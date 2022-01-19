@@ -6,7 +6,7 @@ import { KeyriView } from 'react-native-keyri';
 export default function App() {
   return (
     <View style={styles.container}>
-      <KeyriViewManager color="#32a852" style={styles.box} />
+      <KeyriView color="#32a852" style={styles.box} />
     </View>
   );
 }
