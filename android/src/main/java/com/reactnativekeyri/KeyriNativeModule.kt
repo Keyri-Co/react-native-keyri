@@ -34,6 +34,8 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   private var onAuthSuccess: Callback? = null
   private var errorCallback: Callback? = null
 
+  private lateinit var keyriSdk: KeyriSdk
+
   private val activityEventListener: ActivityEventListener =
     object : ActivityEventListener {
       override fun onActivityResult(
@@ -50,38 +52,46 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       override fun onNewIntent(intent: Intent) = Unit
     }
 
-  init {
-    reactContext.addActivityEventListener(activityEventListener)
-  }
-
-  private val keyriSdk = KeyriSdk(
-    reactContext as Context,
-    KeyriConfig(
-      appKey = "raB7SFWt27VoKqkPhaUrmWAsCJIO8Moj",
-      publicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE56eKjQNfIbfWYCBQLCF2yV6VySbHMzuc07JYCOS6juySvUWE/ubYvw9pJGAgQfmNr2n4LAQggoapHgfHkTNqbg==",
-      callbackUrl = "http://18.234.222.59:5000/users/session-mobile",
-      allowMultipleAccounts = true
-    )
-  )
-
-  override fun getName(): String {
-    return "KeyriNativeModule"
-  }
-
   private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
     errorCallback?.invoke(exception.message)
   }
 
   private val keyriCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + exceptionHandler)
 
+  init {
+    reactContext.addActivityEventListener(activityEventListener)
+  }
+
+  override fun getName(): String {
+    return "KeyriNativeModule"
+  }
+
+  // Required before other methods call
+  @ReactMethod
+  fun initSdk(appKey: String, publicKey: String, callbackUrl: String, allowMultipleAccounts: Boolean) {
+    if (!::keyriSdk.isInitialized) {
+      keyriSdk = KeyriSdk(
+        reactContext as Context,
+        KeyriConfig(
+          appKey = appKey,
+          publicKey = publicKey,
+          callbackUrl = callbackUrl,
+          allowMultipleAccounts = allowMultipleAccounts
+        )
+      )
+    }
+  }
+
   @ReactMethod
   fun listenActivityResult(onAuthSuccess: Callback) {
-    this.onAuthSuccess = onAuthSuccess
+    checkIsinit()
+    this.onAuthSuccess = onAuthSuccess // Simple callback ()
   }
 
   @ReactMethod
   fun listenErrors(errorCallback: Callback) {
-    this.errorCallback = errorCallback
+    checkIsinit()
+    this.errorCallback = errorCallback // Callback (string?)
   }
 
   @ReactMethod
@@ -89,10 +99,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     sessionId: String,
     successCallback: Callback
   ) {
+    checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       val session = keyriSdk.onReadSessionId(sessionId)
 
       withContext(Dispatchers.Main) {
+        // Callback (string, string, string, string, bool)
         successCallback.invoke(
           session.service.serviceId,
           session.service.name,
@@ -114,13 +126,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     custom: String?,
     callback: Callback
   ) {
+    checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       val service = Service(serviceId, serviceName, serviceLogo)
 
       keyriSdk.signup(username, sessionId, service, custom)
 
       withContext(Dispatchers.Main) {
-        callback.invoke()
+        callback.invoke() // Simple callback ()
       }
     }
   }
@@ -134,13 +147,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     custom: String?,
     callback: Callback
   ) {
+    checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       val account = PublicAccount(publicAccountUsername, publicAccountCustom)
 
       keyriSdk.login(account, sessionId, service, custom)
 
       withContext(Dispatchers.Main) {
-        callback.invoke()
+        callback.invoke() // Simple callback ()
       }
     }
   }
@@ -152,11 +166,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     extendedHeaders: ReadableMap,
     callback: Callback
   ) {
+    checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       val headers = extendedHeaders.toHashMap().map { it.key to it.value.toString() }.toMap()
       val authMobileResponse = keyriSdk.mobileSignup(username, custom, headers)
 
       withContext(Dispatchers.Main) {
+        // Callback (string, string, string, string)
         callback.invoke(
           authMobileResponse.user.userId,
           authMobileResponse.user.name,
@@ -174,12 +190,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     extendedHeaders: ReadableMap,
     callback: Callback
   ) {
+    checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       val account = PublicAccount(publicAccountUsername, publicAccountCustom)
       val headers = extendedHeaders.toHashMap().map { it.key to it.value.toString() }.toMap()
       val authMobileResponse = keyriSdk.mobileLogin(account, headers)
 
       withContext(Dispatchers.Main) {
+        // Callback (string, string, string, string)
         callback.invoke(
           authMobileResponse.user.userId,
           authMobileResponse.user.name,
@@ -192,12 +210,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun accounts(callback: (WritableMap?) -> Unit) {
+    checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       val accounts = keyriSdk.accounts()
       val accountsMap = toWritableMap(accounts.map { it.username to it.custom }.toMap())
 
       withContext(Dispatchers.Main) {
-        callback(accountsMap)
+        callback(accountsMap) // Callback (object)
       }
     }
   }
@@ -208,19 +227,21 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     publicAccountCustom: String?,
     callback: Callback
   ) {
+    checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       val account = PublicAccount(publicAccountUsername, publicAccountCustom)
 
       keyriSdk.removeAccount(account)
 
       withContext(Dispatchers.Main) {
-        callback.invoke()
+        callback.invoke() // Simple callback ()
       }
     }
   }
 
   @ReactMethod
   fun authWithScanner(customArg: String? = "CUSTOM") {
+    checkIsinit()
     reactContext.getCurrentActivity()?.let { activity ->
       keyriSdk.authWithScanner(activity, customArg)
     }
@@ -245,5 +266,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     }
 
     return writableMap
+  }
+
+  private fun checkIsinit() {
+    if (!::keyriSdk.isInitialized) throw java.lang.IllegalStateException("You need to call initSdk(...) before")
   }
 }
