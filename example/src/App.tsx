@@ -4,9 +4,18 @@ import { Button, NativeModules, StyleSheet, View } from 'react-native';
 
 const { KeyriNativeModule } = NativeModules;
 
+const APP_KEY = 'raB7SFWt27VoKqkPhaUrmWAsCJIO8Moj';
+const PUBLIC_KEY =
+  'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE56eKjQNfIbfWYCBQLCF2yV6VySbHMzuc07JYCOS6juySvUWE/ubYvw9pJGAgQfmNr2n4LAQggoapHgfHkTNqbg=="';
+const BASE_URL = 'http://18.208.184.185:5000';
+const KEYRI_CALLBACK_URL = `${BASE_URL}/users/session-mobile`;
+
+KeyriNativeModule.initSdk(APP_KEY, PUBLIC_KEY, KEYRI_CALLBACK_URL, false);
+
 const onReadSessionIdClick = () => {
+  const sessionId = '60f180ac10cdf71478f462c7';
   KeyriNativeModule.onReadSessionId(
-    'sessionId', // TODO Scanned sessionId param
+    sessionId,
     (
       serviceId: string,
       name: string,
@@ -72,13 +81,17 @@ const authWithScanner = () => {
 };
 
 export default function App() {
-  KeyriNativeModule.listenActivityResult(() => {
-    console.log(`Authenticated`);
-  });
+  React.useEffect(() => {
+    KeyriNativeModule.listenActivityResult(() => {
+      console.log(`Authenticated`);
+    });
 
-  KeyriNativeModule.listenErrors((errorMessage: string) => {
-    console.log(`Something went wrong: ${errorMessage}`);
-  });
+    KeyriNativeModule.listenErrors((errorMessage: string) => {
+      console.log(`Something went wrong: ${errorMessage}`);
+    });
+
+    // return () => { removeListeners() }
+  }, []);
 
   return (
     <View style={styles.container}>
