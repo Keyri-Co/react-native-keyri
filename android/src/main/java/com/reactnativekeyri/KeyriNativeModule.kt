@@ -9,6 +9,7 @@ import com.keyrico.keyrisdk.entity.PublicAccount
 import com.keyrico.keyrisdk.entity.Service
 import com.keyrico.keyrisdk.entity.Session
 import com.keyrico.keyrisdk.services.api.AuthMobileResponse
+import com.keyrico.keyrisdk.exception.KeyriSdkException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -53,7 +54,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     }
 
   private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-    errorCallback?.invoke(exception.message)
+    val error = if (exception is KeyriSdkException) {
+      reactContext.getString(exception.errorMessage)
+    } else {
+      exception.message ?: "Something went wrong"
+    }
+
+    errorCallback?.invoke(error)
   }
 
   private val keyriCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + exceptionHandler)
@@ -143,12 +150,15 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     publicAccountUsername: String,
     publicAccountCustom: String?,
     sessionId: String,
-    service: Service,
+    serviceId: String,
+    serviceName: String,
+    serviceLogo: String,
     custom: String?,
     callback: Callback
   ) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
+      val service = Service(serviceId, serviceName, serviceLogo)
       val account = PublicAccount(publicAccountUsername, publicAccountCustom)
 
       keyriSdk.login(account, sessionId, service, custom)
@@ -209,14 +219,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun accounts(callback: (WritableMap?) -> Unit) {
+  fun accounts(callback: Callback) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       val accounts = keyriSdk.accounts()
       val accountsMap = toWritableMap(accounts.map { it.username to it.custom }.toMap())
 
       withContext(Dispatchers.Main) {
-        callback(accountsMap) // Callback (object)
+        callback.invoke(accountsMap) // Callback (object)
       }
     }
   }
