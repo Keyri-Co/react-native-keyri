@@ -1,6 +1,6 @@
 import * as React from 'react';
-
-import { Button, NativeModules, StyleSheet, View } from 'react-native';
+import { Button, Modal, NativeModules, StyleSheet, View } from 'react-native';
+import QRCodeScanner from 'react-native-qrcode-scanner';
 
 const { KeyriNativeModule } = NativeModules;
 
@@ -12,8 +12,7 @@ const KEYRI_CALLBACK_URL = `${BASE_URL}/users/session-mobile`;
 
 KeyriNativeModule.initSdk(APP_KEY, PUBLIC_KEY, KEYRI_CALLBACK_URL, false);
 
-const onReadSessionIdClick = () => {
-  const sessionId = '60f180ac10cdf71478f462c7';
+const onReadSessionIdClick = (sessionId: string) => {
   KeyriNativeModule.onReadSessionId(
     sessionId,
     (
@@ -81,6 +80,8 @@ const authWithScanner = () => {
 };
 
 export default function App() {
+  const [isModalVisible, setModalVisible] = React.useState(false);
+
   React.useEffect(() => {
     KeyriNativeModule.listenActivityResult(() => {
       console.log(`Authenticated`);
@@ -95,8 +96,21 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <Modal
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <QRCodeScanner
+          containerStyle={styles.camera}
+          onRead={(e) => {
+            onReadSessionIdClick(JSON.parse(e.data)?.sessionId);
+            setModalVisible(false);
+          }}
+        />
+      </Modal>
+
       <Button
-        onPress={onReadSessionIdClick}
+        onPress={() => setModalVisible(true)}
         title="On ReadSession Id"
         color="#841584"
       />
@@ -127,5 +141,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  camera: {
+    flex: 1,
   },
 });
