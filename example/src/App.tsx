@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Button, Modal, NativeModules, StyleSheet, View } from 'react-native';
+import {Button, Modal, NativeModules, StyleSheet, View} from 'react-native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 
-const { KeyriNativeModule } = NativeModules;
+const {KeyriNativeModule} = NativeModules;
 
 const APP_KEY = 'raB7SFWt27VoKqkPhaUrmWAsCJIO8Moj';
 const PUBLIC_KEY =
@@ -22,23 +22,26 @@ const onReadSessionIdClick = (sessionId: string) => {
       username: string,
       isNewUser: boolean
     ) => {
-      console.log(
-        `New session: ${serviceId}, ${name}, ${logo}, ${username}, ${isNewUser}`
-      );
+      if (isNewUser) {
+        signup(sessionId, serviceId, name, logo, username, 'CUSTOM');
+      } else {
+        // TODO Add implementation
+        login()
+      }
     }
   );
 };
 
-const signup = () => {
+const signup = (sessionId: string, serviceId: string, name: string, logo: string, username: string, custom: string) => {
   KeyriNativeModule.signup(
-    // TODO Params from onReadSessionId() if isNewUser == true
-    'username',
-    'sessionId',
-    'serviceId',
-    'serviceName',
-    'serviceLogo',
-    'custom',
+    username,
+    sessionId,
+    serviceId,
+    name,
+    logo,
+    custom,
     () => {
+      // TODO Show dialog
       console.log(`Signed up`);
     }
   );
@@ -53,6 +56,7 @@ const login = () => {
     'service',
     'custom',
     () => {
+      // TODO Show dialog
       console.log(`Signed up`);
     }
   );
@@ -98,40 +102,55 @@ export default function App() {
     <View style={styles.container}>
       <Modal
         visible={isModalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+        onRequestClose={() => setModalVisible(false)}>
         <QRCodeScanner
           containerStyle={styles.camera}
-          onRead={(e) => {
-            onReadSessionIdClick(JSON.parse(e.data)?.sessionId);
+          onRead={(qr) => {
+            const urlParams = new URLSearchParams(qr.data);
+            const sessionId = urlParams.get('sessionId')
+
+            if (sessionId == null) return
+
+            onReadSessionIdClick(sessionId);
             setModalVisible(false);
           }}
         />
       </Modal>
 
       <Button
-        onPress={() => setModalVisible(true)}
-        title="On ReadSession Id"
-        color="#841584"
-      />
-
-      <Button onPress={signup} title="Signup" color="#841584" />
-
-      <Button onPress={login} title="Login" color="#841584" />
-
-      <Button onPress={mobileSignup} title="Mobile Signup" color="#841584" />
-
-      <Button onPress={mobileLogin} title="Mobile Login" color="#841584" />
-
-      <Button onPress={accounts} title="Accounts" color="#841584" />
-
-      <Button onPress={removeAccount} title="Remove Account" color="#841584" />
-
-      <Button
         onPress={authWithScanner}
         title="Auth With Scanner"
-        color="#841584"
-      />
+        color="#841584"/>
+
+      <Button
+        onPress={() => setModalVisible(true)}
+        title="Signup"
+        color="#841584"/>
+
+      <Button
+        onPress={() => setModalVisible(true)}
+        title="Login"
+        color="#841584"/>
+
+      <Button
+        onPress={mobileSignup}
+        title="Mobile Signup"
+        color="#841584"/>
+
+      <Button
+        onPress={mobileLogin}
+        title="Mobile Login"
+        color="#841584"/>
+
+      <Button
+        onPress={accounts}
+        title="Accounts"
+        color="#841584"/>
+
+      <Button
+        onPress={removeAccount}
+        title="Remove Account"
+        color="#841584"/>
     </View>
   );
 }

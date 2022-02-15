@@ -43,7 +43,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         activity: Activity?,
         requestCode: Int,
         resultCode: Int,
-        intent: Intent
+        intent: Intent?
       ) {
         if (requestCode == KeyriSdk.AUTH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
           onAuthSuccess?.invoke()
