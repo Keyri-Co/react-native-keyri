@@ -8,27 +8,28 @@ import {
 } from 'react-native';
 
 interface Account {
-  id: string;
+  custom: string;
   name: string;
   // ...
 }
 
 const accounts: Account[] = [
   {
-    id: 'uniq1',
+    custom: 'uniq1',
     name: 'Account1',
   },
   {
-    id: 'uniq2',
+    custom: 'null',
     name: 'Account2',
   },
   {
-    id: 'uniq3',
+    custom: 'uniq3',
     name: 'Account3',
   },
 ];
 
-interface LogInScreenProps {}
+interface LogInScreenProps {
+}
 
 export const LogInScreen: React.FC<LogInScreenProps> = () => {
   const onAccountPress = (account: Account) => {
@@ -49,9 +50,8 @@ export const LogInScreen: React.FC<LogInScreenProps> = () => {
 
       <FlatList
         data={accounts}
-        keyExtractor={(account) => account.id}
-        renderItem={({ item }) => renderAccount(item)}
-      />
+        keyExtractor={(account) => account.custom}
+        renderItem={({item}) => renderAccount(item)}/>
     </View>
   );
 };

@@ -17,27 +17,34 @@ const onReadSessionIdClick = (sessionId: string) => {
     sessionId,
     (
       serviceId: string,
-      name: string,
+      serviceName: string,
       logo: string,
       username: string,
       isNewUser: boolean
     ) => {
       if (isNewUser) {
-        signup(sessionId, serviceId, name, logo, username, 'CUSTOM');
+        signup(sessionId, serviceId, serviceName, logo, username, 'CUSTOM');
       } else {
-        // TODO Add implementation
+        // TODO Add implementation (choose account and perform login)
         login()
       }
     }
   );
 };
 
-const signup = (sessionId: string, serviceId: string, name: string, logo: string, username: string, custom: string) => {
+const signup = (
+  sessionId: string,
+  serviceId: string,
+  serviceName: string,
+  logo: string,
+  username: string,
+  custom: string
+) => {
   KeyriNativeModule.signup(
     username,
     sessionId,
     serviceId,
-    name,
+    serviceName,
     logo,
     custom,
     () => {
@@ -47,14 +54,23 @@ const signup = (sessionId: string, serviceId: string, name: string, logo: string
   );
 };
 
-const login = () => {
+const login = (
+  publicAccountUsername: string,
+  publicAccountCustom: string,
+  sessionId: string,
+  serviceId: string,
+  serviceName: string,
+  serviceLogo: string,
+  custom: string
+) => {
   KeyriNativeModule.login(
-    // TODO Params from onReadSessionId() if isNewUser == false
-    'publicAccountUsername',
-    'publicAccountCustom',
-    'sessionId',
-    'service',
-    'custom',
+    publicAccountUsername,
+    publicAccountCustom,
+    sessionId,
+    serviceId,
+    serviceName,
+    serviceLogo,
+    custom,
     () => {
       // TODO Show dialog
       console.log(`Signed up`);
@@ -80,7 +96,7 @@ const removeAccount = () => {
 };
 
 const authWithScanner = () => {
-  KeyriNativeModule.authWithScanner('custom');
+  KeyriNativeModule.authWithScanner('CUSTOM');
 };
 
 export default function App() {
@@ -88,10 +104,12 @@ export default function App() {
 
   React.useEffect(() => {
     KeyriNativeModule.listenActivityResult(() => {
+      // TODO Show dialog
       console.log(`Authenticated`);
     });
 
     KeyriNativeModule.listenErrors((errorMessage: string) => {
+      // TODO Show dialog
       console.log(`Something went wrong: ${errorMessage}`);
     });
 
@@ -106,8 +124,8 @@ export default function App() {
         <QRCodeScanner
           containerStyle={styles.camera}
           onRead={(qr) => {
-            const urlParams = new URLSearchParams(qr.data);
-            const sessionId = urlParams.get('sessionId')
+            // TODO Change
+            const sessionId = qr.data.substring(qr.data.indexOf('sessionId=') + 'sessionId='.length, qr.data.length)
 
             if (sessionId == null) return
 

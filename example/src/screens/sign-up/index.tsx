@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
 
-interface SignUpScreenProps {}
+interface SignUpScreenProps {
+}
 
 export const SignUpScreen: React.FC<SignUpScreenProps> = () => {
   const [text, setText] = React.useState('');
@@ -15,13 +16,12 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = () => {
       <Text style={styles.title}>Sign Up</Text>
       <TextInput
         style={styles.input}
-        placeholder="Nickname"
+        placeholder="Username"
         onChangeText={setText}
-        value={text}
-      />
+        value={text}/>
 
       <View style={styles.button}>
-        <Button title="Submit" onPress={onSubmitPress} />
+        <Button title="Sign up (mobile)" onPress={onSubmitPress}/>
       </View>
     </View>
   );
