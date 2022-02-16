@@ -131,11 +131,11 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun sessionLogin(
     publicAccountUsername: String,
-    publicAccountCustom: String?,
     sessionId: String,
     serviceId: String,
     serviceName: String,
     serviceLogo: String,
+    publicAccountCustom: String?,
     custom: String?,
     promise: Promise
   ) {
@@ -157,7 +157,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun directSignup(username: String, custom: String?, extendedHeaders: ReadableMap, promise: Promise) {
+  fun directSignup(username: String, extendedHeaders: ReadableMap, custom: String?, promise: Promise) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
@@ -183,8 +183,8 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun directLogin(
     publicAccountUsername: String,
-    publicAccountCustom: String?,
     extendedHeaders: ReadableMap,
+    publicAccountCustom: String?,
     promise: Promise
   ) {
     checkIsinit()
