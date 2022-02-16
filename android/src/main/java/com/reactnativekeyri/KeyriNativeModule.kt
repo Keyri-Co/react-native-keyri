@@ -22,11 +22,9 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableType
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableNativeMap
 import java.lang.Exception
 
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
@@ -65,7 +63,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
   // Required before other methods call
   @ReactMethod
-  fun initSdk(appKey: String, publicKey: String, callbackUrl: String, allowMultipleAccounts: Boolean) {
+  fun initialize(appKey: String, publicKey: String, callbackUrl: String, allowMultipleAccounts: Boolean) {
     if (!::keyriSdk.isInitialized) {
       keyriSdk = KeyriSdk(
         reactContext as Context,
@@ -80,14 +78,22 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun onReadSessionId(sessionId: String, promise: Promise) {
+  fun handleSessionId(sessionId: String, promise: Promise) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val session = keyriSdk.onReadSessionId(sessionId)
 
         withContext(Dispatchers.Main) {
-          promise.resolve(session)
+          val resultData = WritableNativeMap()
+
+          resultData.putString("serviceId", session.service.serviceId)
+          resultData.putString("serviceName", session.service.name)
+          resultData.putString("serviceLogo", session.service.logo)
+          resultData.putString("username", session.username)
+          resultData.putBoolean("isNewUser", session.isNewUser)
+
+          promise.resolve(resultData)
         }
       } catch (e: Throwable) {
         promise.reject(handleException(e))
@@ -96,7 +102,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun signup(
+  fun sessionSignup(
     username: String,
     sessionId: String,
     serviceId: String,
@@ -122,7 +128,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun login(
+  fun sessionLogin(
     publicAccountUsername: String,
     publicAccountCustom: String?,
     sessionId: String,
@@ -150,7 +156,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun mobileSignup(username: String, custom: String?, extendedHeaders: ReadableMap, promise: Promise) {
+  fun directSignup(username: String, custom: String?, extendedHeaders: ReadableMap, promise: Promise) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
@@ -158,7 +164,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         val authMobileResponse = keyriSdk.mobileSignup(username, custom, headers)
 
         withContext(Dispatchers.Main) {
-          promise.resolve(authMobileResponse)
+          val resultData = WritableNativeMap()
+
+          resultData.putString("userId", authMobileResponse.user.userId)
+          resultData.putString("userName", authMobileResponse.user.name)
+          resultData.putString("token", authMobileResponse.token)
+          resultData.putString("refreshToken", authMobileResponse.refreshToken)
+
+          promise.resolve(resultData)
         }
       } catch (e: Throwable) {
         promise.reject(handleException(e))
@@ -167,7 +180,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun mobileLogin(
+  fun directLogin(
     publicAccountUsername: String,
     publicAccountCustom: String?,
     extendedHeaders: ReadableMap,
@@ -181,7 +194,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         val authMobileResponse = keyriSdk.mobileLogin(account, headers)
 
         withContext(Dispatchers.Main) {
-          promise.resolve(authMobileResponse)
+          val resultData = WritableNativeMap()
+
+          resultData.putString("userId", authMobileResponse.user.userId)
+          resultData.putString("userName", authMobileResponse.user.name)
+          resultData.putString("token", authMobileResponse.token)
+          resultData.putString("refreshToken", authMobileResponse.refreshToken)
+
+          promise.resolve(resultData)
         }
       } catch (e: Throwable) {
         promise.reject(handleException(e))
@@ -190,14 +210,25 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun accounts(promise: Promise) {
+  fun getAccounts(promise: Promise) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val accounts = keyriSdk.accounts()
 
         withContext(Dispatchers.Main) {
-          promise.resolve(accounts)
+          val resultData = WritableNativeArray()
+
+          accounts.forEach { account ->
+            val accountMap = WritableNativeMap()
+
+            accountMap.putString("username", account.username)
+            accountMap.putString("custom", account.custom)
+
+            resultData.pushMap(accountMap)
+          }
+
+          promise.resolve(resultData)
         }
       } catch (e: Throwable) {
         promise.reject(handleException(e))
@@ -224,7 +255,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun authWithScanner(customArg: String? = "CUSTOM", promise: Promise) {
+  fun easyKeyriAuth(customArg: String? = "CUSTOM", promise: Promise) {
     checkIsinit()
     reactContext.getCurrentActivity()?.let { activity ->
       authWithScannerPromise = promise
