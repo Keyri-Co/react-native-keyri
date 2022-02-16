@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import type { RootNavigationProps } from 'example/src/navigation';
 
 interface Account {
   custom: string;
@@ -28,10 +29,9 @@ const accounts: Account[] = [
   },
 ];
 
-interface LogInScreenProps {
-}
+interface LogInScreenProps extends RootNavigationProps<'LogIn'> {}
 
-export const LogInScreen: React.FC<LogInScreenProps> = () => {
+const LogInScreen: React.FC<LogInScreenProps> = () => {
   const onAccountPress = (account: Account) => {
     console.log('Pressed', account);
   };
@@ -46,12 +46,11 @@ export const LogInScreen: React.FC<LogInScreenProps> = () => {
 
   return (
     <View style={styles.root}>
-      <Text style={styles.title}>Your Accounts</Text>
-
       <FlatList
         data={accounts}
         keyExtractor={(account) => account.custom}
-        renderItem={({item}) => renderAccount(item)}/>
+        renderItem={({ item }) => renderAccount(item)}
+      />
     </View>
   );
 };
@@ -59,11 +58,6 @@ export const LogInScreen: React.FC<LogInScreenProps> = () => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-  },
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    marginVertical: 30,
   },
   row: {
     flexDirection: 'row',
@@ -76,3 +70,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 });
+
+export default LogInScreen;
