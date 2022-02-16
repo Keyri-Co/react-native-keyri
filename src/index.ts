@@ -12,3 +12,5 @@ const Keyri = NativeModules.KeyriNativeModule;
 if (!Keyri) throw new Error(LINKING_ERROR);
 
 export default Keyri as KeyriModule;
+
+export * from './types';
