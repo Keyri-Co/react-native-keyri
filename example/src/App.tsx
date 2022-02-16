@@ -26,7 +26,7 @@ const onReadSessionIdClick = (sessionId: string) => {
         signup(sessionId, serviceId, serviceName, logo, username, 'CUSTOM');
       } else {
         // TODO Add implementation (choose account and perform login)
-        login()
+        // login()
       }
     }
   );
@@ -101,20 +101,6 @@ const authWithScanner = () => {
 
 export default function App() {
   const [isModalVisible, setModalVisible] = React.useState(false);
-
-  React.useEffect(() => {
-    KeyriNativeModule.listenActivityResult(() => {
-      // TODO Show dialog
-      console.log(`Authenticated`);
-    });
-
-    KeyriNativeModule.listenErrors((errorMessage: string) => {
-      // TODO Show dialog
-      console.log(`Something went wrong: ${errorMessage}`);
-    });
-
-    // return () => { removeListeners() }
-  }, []);
 
   return (
     <View style={styles.container}>
