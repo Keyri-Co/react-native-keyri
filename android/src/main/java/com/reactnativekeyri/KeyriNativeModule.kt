@@ -21,21 +21,18 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.Callback
-import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableType
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.bridge.WritableNativeArray
 import java.lang.Exception
 
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
-  private var onAuthSuccess: Callback? = null
-  private var errorCallback: Callback? = null
-
   private lateinit var keyriSdk: KeyriSdk
+  private lateinit var authWithScannerPromise: Promise
 
   private val activityEventListener: ActivityEventListener =
     object : ActivityEventListener {
@@ -46,24 +43,16 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         intent: Intent?
       ) {
         if (requestCode == KeyriSdk.AUTH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-          onAuthSuccess?.invoke()
+          authWithScannerPromise.resolve("Successfully authenticated")
+        } else {
+          authWithScannerPromise.reject("Couldn't auth with scanner")
         }
       }
 
-      override fun onNewIntent(intent: Intent) = Unit
+      override fun onNewIntent(intent: Intent?) = Unit
     }
 
-  private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-    val error = if (exception is KeyriSdkException) {
-      reactContext.getString(exception.errorMessage)
-    } else {
-      exception.message ?: "Something went wrong"
-    }
-
-    errorCallback?.invoke(error)
-  }
-
-  private val keyriCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + exceptionHandler)
+  private val keyriCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
   init {
     reactContext.addActivityEventListener(activityEventListener)
@@ -75,7 +64,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
   // Required before other methods call
   @ReactMethod
-  fun initSdk(appKey: String, publicKey: String, callbackUrl: String, allowMultipleAccounts: Boolean) {
+  fun initialize(appKey: String, publicKey: String, callbackUrl: String, allowMultipleAccounts: Boolean) {
     if (!::keyriSdk.isInitialized) {
       keyriSdk = KeyriSdk(
         reactContext as Context,
@@ -90,192 +79,197 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun listenActivityResult(onAuthSuccess: Callback) {
-    checkIsinit()
-    this.onAuthSuccess = onAuthSuccess // Simple callback ()
-  }
-
-  @ReactMethod
-  fun listenErrors(errorCallback: Callback) {
-    checkIsinit()
-    this.errorCallback = errorCallback // Callback (string?)
-  }
-
-  @ReactMethod
-  fun onReadSessionId(
-    sessionId: String,
-    successCallback: Callback
-  ) {
+  fun handleSessionId(sessionId: String, promise: Promise) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
-      val session = keyriSdk.onReadSessionId(sessionId)
+      try {
+        val session = keyriSdk.onReadSessionId(sessionId)
 
-      withContext(Dispatchers.Main) {
-        // Callback (string, string, string, string, bool)
-        successCallback.invoke(
-          session.service.serviceId,
-          session.service.name,
-          session.service.logo,
-          session.username,
-          session.isNewUser
-        )
+        withContext(Dispatchers.Main) {
+          val resultData = WritableNativeMap()
+
+          resultData.putString("serviceId", session.service.serviceId)
+          resultData.putString("serviceName", session.service.name)
+          resultData.putString("serviceLogo", session.service.logo)
+          resultData.putString("username", session.username)
+          resultData.putBoolean("isNewUser", session.isNewUser)
+
+          promise.resolve(resultData)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
       }
     }
   }
 
   @ReactMethod
-  fun signup(
+  fun sessionSignup(
     username: String,
     sessionId: String,
     serviceId: String,
     serviceName: String,
     serviceLogo: String,
     custom: String?,
-    callback: Callback
+    promise: Promise
   ) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
-      val service = Service(serviceId, serviceName, serviceLogo)
+      try {
+        val service = Service(serviceId, serviceName, serviceLogo)
 
-      keyriSdk.signup(username, sessionId, service, custom)
+        keyriSdk.signup(username, sessionId, service, custom)
 
-      withContext(Dispatchers.Main) {
-        callback.invoke() // Simple callback ()
+        withContext(Dispatchers.Main) {
+          promise.resolve("Signed up")
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
       }
     }
   }
 
   @ReactMethod
-  fun login(
+  fun sessionLogin(
     publicAccountUsername: String,
-    publicAccountCustom: String?,
     sessionId: String,
     serviceId: String,
     serviceName: String,
     serviceLogo: String,
-    custom: String?,
-    callback: Callback
-  ) {
-    checkIsinit()
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      val service = Service(serviceId, serviceName, serviceLogo)
-      val account = PublicAccount(publicAccountUsername, publicAccountCustom)
-
-      keyriSdk.login(account, sessionId, service, custom)
-
-      withContext(Dispatchers.Main) {
-        callback.invoke() // Simple callback ()
-      }
-    }
-  }
-
-  @ReactMethod
-  fun mobileSignup(
-    username: String,
-    custom: String?,
-    extendedHeaders: ReadableMap,
-    callback: Callback
-  ) {
-    checkIsinit()
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      val headers = extendedHeaders.toHashMap().map { it.key to it.value.toString() }.toMap()
-      val authMobileResponse = keyriSdk.mobileSignup(username, custom, headers)
-
-      withContext(Dispatchers.Main) {
-        // Callback (string, string, string, string)
-        callback.invoke(
-          authMobileResponse.user.userId,
-          authMobileResponse.user.name,
-          authMobileResponse.token,
-          authMobileResponse.refreshToken
-        )
-      }
-    }
-  }
-
-  @ReactMethod
-  fun mobileLogin(
-    publicAccountUsername: String,
     publicAccountCustom: String?,
-    extendedHeaders: ReadableMap,
-    callback: Callback
+    custom: String?,
+    promise: Promise
   ) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
-      val account = PublicAccount(publicAccountUsername, publicAccountCustom)
-      val headers = extendedHeaders.toHashMap().map { it.key to it.value.toString() }.toMap()
-      val authMobileResponse = keyriSdk.mobileLogin(account, headers)
+      try {
+        val service = Service(serviceId, serviceName, serviceLogo)
+        val account = PublicAccount(publicAccountUsername, publicAccountCustom)
 
-      withContext(Dispatchers.Main) {
-        // Callback (string, string, string, string)
-        callback.invoke(
-          authMobileResponse.user.userId,
-          authMobileResponse.user.name,
-          authMobileResponse.token,
-          authMobileResponse.refreshToken
-        )
+        keyriSdk.login(account, sessionId, service, custom)
+
+        withContext(Dispatchers.Main) {
+          promise.resolve("Signed in")
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
       }
     }
   }
 
   @ReactMethod
-  fun accounts(callback: Callback) {
+  fun directSignup(username: String, extendedHeaders: ReadableMap, custom: String?, promise: Promise) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
-      val accounts = keyriSdk.accounts()
-      val accountsMap = toWritableMap(accounts.map { it.username to it.custom }.toMap())
+      try {
+        val headers = extendedHeaders.toHashMap().map { it.key to it.value.toString() }.toMap()
+        val authMobileResponse = keyriSdk.mobileSignup(username, custom, headers)
 
-      withContext(Dispatchers.Main) {
-        callback.invoke(accountsMap) // Callback (object)
+        withContext(Dispatchers.Main) {
+          val resultData = WritableNativeMap()
+
+          resultData.putString("userId", authMobileResponse.user.userId)
+          resultData.putString("userName", authMobileResponse.user.name)
+          resultData.putString("token", authMobileResponse.token)
+          resultData.putString("refreshToken", authMobileResponse.refreshToken)
+
+          promise.resolve(resultData)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
       }
     }
   }
 
   @ReactMethod
-  fun removeAccount(
+  fun directLogin(
     publicAccountUsername: String,
+    extendedHeaders: ReadableMap,
     publicAccountCustom: String?,
-    callback: Callback
+    promise: Promise
   ) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
-      val account = PublicAccount(publicAccountUsername, publicAccountCustom)
+      try {
+        val account = PublicAccount(publicAccountUsername, publicAccountCustom)
+        val headers = extendedHeaders.toHashMap().map { it.key to it.value.toString() }.toMap()
+        val authMobileResponse = keyriSdk.mobileLogin(account, headers)
 
-      keyriSdk.removeAccount(account)
+        withContext(Dispatchers.Main) {
+          val resultData = WritableNativeMap()
 
-      withContext(Dispatchers.Main) {
-        callback.invoke() // Simple callback ()
+          resultData.putString("userId", authMobileResponse.user.userId)
+          resultData.putString("userName", authMobileResponse.user.name)
+          resultData.putString("token", authMobileResponse.token)
+          resultData.putString("refreshToken", authMobileResponse.refreshToken)
+
+          promise.resolve(resultData)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
       }
     }
   }
 
   @ReactMethod
-  fun authWithScanner(customArg: String? = "CUSTOM") {
+  fun getAccounts(promise: Promise) {
+    checkIsinit()
+    keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val accounts = keyriSdk.accounts()
+
+        withContext(Dispatchers.Main) {
+          val resultData = WritableNativeArray()
+
+          accounts.forEach { account ->
+            val accountMap = WritableNativeMap()
+
+            accountMap.putString("username", account.username)
+            accountMap.putString("custom", account.custom)
+
+            resultData.pushMap(accountMap)
+          }
+
+          promise.resolve(resultData)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
+    }
+  }
+
+  @ReactMethod
+  fun removeAccount(publicAccountUsername: String, publicAccountCustom: String?, promise: Promise) {
+    checkIsinit()
+    keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val account = PublicAccount(publicAccountUsername, publicAccountCustom)
+
+        keyriSdk.removeAccount(account)
+
+        withContext(Dispatchers.Main) {
+          promise.resolve("Account removed")
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
+    }
+  }
+
+  @ReactMethod
+  fun easyKeyriAuth(customArg: String? = "CUSTOM", promise: Promise) {
     checkIsinit()
     reactContext.getCurrentActivity()?.let { activity ->
+      authWithScannerPromise = promise
       keyriSdk.authWithScanner(activity, customArg)
     }
   }
 
-  private fun toWritableMap(map: Map<String?, Any?>): WritableMap? {
-    val writableMap: WritableMap = Arguments.createMap()
-    val iterator = map.entries.iterator()
-
-    while (iterator.hasNext()) {
-      val pair = iterator.next()
-      val value: Any? = pair.value
-
-      when {
-        value == null -> writableMap.putNull(pair.key as String)
-        value is Boolean -> writableMap.putBoolean(pair.key as String, value)
-        value is Double -> writableMap.putDouble(pair.key as String, value)
-        value is Int -> writableMap.putInt(pair.key as String, value)
-        value is String -> writableMap.putString(pair.key as String, value)
-        else -> writableMap.putNull(pair.key as String)
-      }
+  private fun handleException(throwable: Throwable): String {
+    return if (throwable is KeyriSdkException) {
+      reactContext.getString(throwable.errorMessage)
+    } else {
+      throwable.message ?: "Something went wrong"
     }
-
-    return writableMap
   }
 
   private fun checkIsinit() {
