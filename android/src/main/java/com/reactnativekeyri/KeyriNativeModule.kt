@@ -25,6 +25,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeMap
+import com.facebook.react.bridge.WritableNativeArray
 import java.lang.Exception
 
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
