@@ -24,11 +24,11 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(initialize:(NSString *)appkey rpPublicKey:(NSString *)rpPublicKey callbackUrl:(NSString *)callbackUrl)
 {
-    [Keyri configureWithAppkey:appkey rpPublicKey:rpPublicKey callbackUrl:[NSURL URLWithString:callbackUrl]];
+    [Keyri initializeWithAppkey:appkey rpPublicKey:rpPublicKey callbackUrl:[NSURL URLWithString:callbackUrl]];
 }
 
-RCT_REMAP_METHOD(onReadSession, Id:(NSString *)sessionId onReadSessionResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
-    [self.keyri onReadSessionId:sessionId completion:^(Session * _Nullable session, NSError * _Nullable error) {
+RCT_REMAP_METHOD(handleSessionId, Id:(NSString *)sessionId onReadSessionResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+    [self.keyri handleSessionId:sessionId completion:^(Session * _Nullable session, NSError * _Nullable error) {
         if (!error) {
             resolve(session);
         } else {
@@ -37,13 +37,13 @@ RCT_REMAP_METHOD(onReadSession, Id:(NSString *)sessionId onReadSessionResolver:(
     }];
 }
 
-RCT_REMAP_METHOD(keyriSignUp,
+RCT_REMAP_METHOD(sessionSignup,
                  Username:(NSString *) username
                  service:(Service *) service
                  custom:(NSString * _Nullable) custom
                  signUpWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self.keyri signupWithUsername:username service:service custom:custom completion:^(NSError * _Nullable error) {
+    [self.keyri sessionSignupWithUsername:username service:service custom:custom completion:^(NSError * _Nullable error) {
         if (!error) {
             resolve(@"Success, user is registered");
         } else {
@@ -52,13 +52,13 @@ RCT_REMAP_METHOD(keyriSignUp,
     }];
 }
 
-RCT_REMAP_METHOD(keyriLogin,
+RCT_REMAP_METHOD(sessionLogin,
                  Account:(PublicAccount *) account
                  service:(Service *) service
                  custom:(NSString * _Nullable) custom
                  loginWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self.keyri loginWithAccount:account service:service custom:custom completion:^(NSError * _Nullable error) {
+    [self.keyri sessionLoginWithAccount:account service:service custom:custom completion:^(NSError * _Nullable error) {
         if (!error) {
             resolve(@"Success, user is logged in");
         } else {
@@ -67,13 +67,13 @@ RCT_REMAP_METHOD(keyriLogin,
     }];
 }
 
-RCT_REMAP_METHOD(rpDirectSignUp,
+RCT_REMAP_METHOD(directSignup,
                  Username:(NSString *) username
                  custom:(NSString * _Nullable) custom
                  extendedHeaders:(NSDictionary * _Nullable) extendedHeaders
                  mobileSignUpWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self.keyri mobileSignupWithUsername:username custom:custom extendedHeaders:extendedHeaders completion:^(NSDictionary<NSString *,id> * _Nullable json, NSError * _Nullable error) {
+    [self.keyri directSignupWithUsername:username custom:custom extendedHeaders:extendedHeaders completion:^(NSDictionary<NSString *,id> * _Nullable json, NSError * _Nullable error) {
         if (!error) {
             resolve(@"Success, user is registered via mobile signUp");
         } else {
@@ -82,13 +82,13 @@ RCT_REMAP_METHOD(rpDirectSignUp,
     }];
 }
 
-RCT_REMAP_METHOD(rpDirectLogin,
+RCT_REMAP_METHOD(directLogin,
                  Account:(PublicAccount *) account
                  custom:(NSString * _Nullable) custom
                  extendedHeaders:(NSDictionary * _Nullable) extendedHeaders
                  mobileLoginWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self.keyri mobileLoginWithAccount:account custom:custom extendedHeaders:extendedHeaders completion:^(NSDictionary<NSString *,id> * _Nullable json, NSError * _Nullable error) {
+    [self.keyri directLoginWithAccount:account custom:custom extendedHeaders:extendedHeaders completion:^(NSDictionary<NSString *,id> * _Nullable json, NSError * _Nullable error) {
         if (!error) {
             resolve(@"Success, user is loggedin via mobile login");
         } else {
@@ -97,10 +97,10 @@ RCT_REMAP_METHOD(rpDirectLogin,
     }];
 }
 
-RCT_REMAP_METHOD(accounts,
+RCT_REMAP_METHOD(getAccounts,
                  accountsResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self.keyri accountsWithCompletion:^(NSArray<PublicAccount *> * _Nullable accounts, NSError * _Nullable error) {
+    [self.keyri getAccountsWithCompletion:^(NSArray<PublicAccount *> * _Nullable accounts, NSError * _Nullable error) {
         if (!error) {
             resolve(accounts);
         } else {
@@ -114,7 +114,7 @@ RCT_REMAP_METHOD(easyKeyriAuth,
                  authWithScannerResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.keyri authWithScannerFrom:nil custom:custom completion:^(NSError * _Nullable error) {
+        [self.keyri easyKeyriAuthFrom:nil custom:custom completion:^(NSError * _Nullable error) {
             if (!error) {
                 resolve(@"Success");
             } else {
@@ -122,8 +122,6 @@ RCT_REMAP_METHOD(easyKeyriAuth,
             }
         }];
     });
-    
 }
-
 
 @end
