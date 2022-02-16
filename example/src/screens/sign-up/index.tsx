@@ -1,14 +1,29 @@
 import type { RootNavigationProps } from 'example/src/navigation';
 import * as React from 'react';
-import { Button, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Button, StyleSheet, TextInput, View } from 'react-native';
+import Keyri from 'react-native-keyri';
+
+interface ServerResponse {
+  nickName: string;
+}
 
 interface SignUpScreenProps extends RootNavigationProps<'SignUp'> {}
 
 const SignUpScreen: React.FC<SignUpScreenProps> = () => {
-  const [text, setText] = React.useState('');
+  const [username, setUsername] = React.useState('');
 
-  const onSubmitPress = () => {
-    console.log('Pressed', text);
+  const onSubmitPress = async () => {
+    try {
+      const result = await Keyri.directSignup<ServerResponse>(
+        username,
+        {},
+        null
+      );
+
+      Alert.alert('Success', `Hi ${result?.nickName}, you are signed up`);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -16,12 +31,12 @@ const SignUpScreen: React.FC<SignUpScreenProps> = () => {
       <TextInput
         style={styles.input}
         placeholder="Username"
-        onChangeText={setText}
-        value={text}
+        onChangeText={setUsername}
+        value={username}
       />
 
       <View style={styles.button}>
-        <Button title="Sign up (mobile)" onPress={onSubmitPress} />
+        <Button title="Submit" onPress={onSubmitPress} />
       </View>
     </View>
   );
