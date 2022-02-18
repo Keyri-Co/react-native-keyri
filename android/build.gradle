@@ -33,9 +33,9 @@ android {
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
     versionCode 1
     versionName "1.0"
-    
+
   }
-  
+
   buildTypes {
     release {
       minifyEnabled false
@@ -127,7 +127,8 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'com.github.Keyri-Co.keyri-android-whitelabel-sdk:keyrisdk-debug:0.9.87'
+  debugImplementation 'com.github.Keyri-Co.keyri-android-whitelabel-sdk:keyrisdk-debug:0.9.9'
+  releaseImplementation 'com.github.Keyri-Co.keyri-android-whitelabel-sdk:keyrisdk:0.9.9'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2"
 }
