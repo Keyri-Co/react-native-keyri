@@ -67,9 +67,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun initialize(data: ReadableNativeMap) {
     if (!::keyriSdk.isInitialized) {
-      val appKey = getString("appKey")
-      val publicKey = getString("publicKey")
-      val callbackUrl = getString("callbackUrl")
+      val appKey = data.getString("appKey")
+      val publicKey = data.getString("publicKey")
+      val callbackUrl = data.getString("callbackUrl")
       val allowMultipleAccounts =
         data.takeIf { it.hasKey("allowMultipleAccounts") }?.getBoolean("allowMultipleAccounts") ?: false
 
@@ -115,8 +115,8 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val username = data.getString("username")
-        val sessionId: data.getString("sessionId")
-        val serviceId: data.getString("serviceId")
+        val sessionId = data.getString("sessionId")
+        val serviceId = data.getString("serviceId")
         val serviceName = data.getString("serviceName")
         val serviceLogo = data.getString("serviceLogo")
         val custom = data.takeIf { it.hasKey("custom") }?.getString("custom")
