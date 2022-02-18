@@ -37,12 +37,12 @@ class KeyriView : UIView {
     @objc
     func initialize(appkey: String, rpPublicKey: String, callbackUrl: String) {
         guard let callbackUrl = URL(string: callbackUrl) else { return }
-        Keyri.configure(appkey: appkey, rpPublicKey: rpPublicKey, callbackUrl: callbackUrl)
+        Keyri.initialize(appkey: appkey, rpPublicKey: rpPublicKey, callbackUrl: callbackUrl)
     }
     
     @objc
-    func onReadSessionId(sessionId: String, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        keyri.onReadSessionId(sessionId) { result in
+    func handleSessionId(sessionId: String, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        keyri.handleSessionId(sessionId) { result in
             switch result {
             case .success(let session):
                 resolver(session)
@@ -53,8 +53,8 @@ class KeyriView : UIView {
     }
     
     @objc
-    func keyriSignUp(username: String, service: Service, custom: String?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        keyri.signup(username: username, service: service, custom: custom) { (result: Result<Void, Error>) in
+    func sessionSignup(username: String, service: Service, custom: String?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        keyri.sessionSignup(username: username, service: service, custom: custom) { (result: Result<Void, Error>) in
             switch result {
             case .success():
                 resolver("Success, user is registered")
@@ -65,8 +65,8 @@ class KeyriView : UIView {
     }
     
     @objc
-    func keyriLogin(account: PublicAccount, service: Service, custom: String?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        keyri.login(account: account, service: service, custom: custom) { (result: Result<Void, Error>) in
+    func sessionLogin(account: PublicAccount, service: Service, custom: String?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        keyri.sessionLogin(account: account, service: service, custom: custom) { (result: Result<Void, Error>) in
             switch result {
             case .success():
                 resolver("Success, user is logged in")
@@ -77,8 +77,8 @@ class KeyriView : UIView {
     }
     
     @objc
-    func rpDirectSignUp(username: String, custom: String?, extendedHeaders: [String: String]?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        keyri.mobileSignup(username: username, custom: custom, extendedHeaders: extendedHeaders) { (result: Result<[String : Any], Error>) in
+    func directSignup(username: String, custom: String?, extendedHeaders: [String: String]?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        keyri.directSignup(username: username, custom: custom, extendedHeaders: extendedHeaders) { (result: Result<[String : Any], Error>) in
             switch result {
             case .success(_):
                 resolver("Success, user is registered via mobile signUp")
@@ -89,8 +89,8 @@ class KeyriView : UIView {
     }
         
     @objc
-    func rpDirectLogin(account: PublicAccount, custom: String?, extendedHeaders: [String: String]?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        keyri.mobileLogin(account: account, custom: custom, extendedHeaders: extendedHeaders) { (result: Result<[String : Any], Error>) in
+    func directLogin(account: PublicAccount, custom: String?, extendedHeaders: [String: String]?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        keyri.directLogin(account: account, custom: custom, extendedHeaders: extendedHeaders) { (result: Result<[String : Any], Error>) in
             switch result {
             case .success(_):
                 resolver("Success, user is loggedin via mobile login")
@@ -101,8 +101,8 @@ class KeyriView : UIView {
     }
         
     @objc
-    func accounts(resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        keyri.accounts { (result: Result<[PublicAccount], Error>) in
+    func getAccounts(resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        keyri.getAccounts { (result: Result<[PublicAccount], Error>) in
             switch result {
             case .success(let accounts):
                 resolver(accounts)
@@ -114,7 +114,7 @@ class KeyriView : UIView {
         
     @objc
     func easyKeyriAuth(custom: String?, resolver: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        keyri.authWithScanner(from: nil, custom: custom) { (result: Result<Void, Error>) in
+        keyri.easyKeyriAuth(from: nil, custom: custom) { (result: Result<Void, Error>) in
             switch result {
             case .success():
                 resolver("Success")
