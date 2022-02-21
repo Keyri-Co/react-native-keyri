@@ -1,15 +1,22 @@
-// RnKeyri.m
+//
+//  KeyriNativeModule.m
+//  Keyri
+//
+//  Created by Artemii Tkachuk on 18.02.2022.
+//  Copyright © 2022 Facebook. All rights reserved.
+//
 
-#import "RnKeyri.h"
+#import "KeyriNativeModule.h"
 @import keyri_pod;
 
-@interface RnKeyri ()
+@interface KeyriNativeModule ()
 
 @property (nonatomic, strong) Keyri *keyri;
 
 @end
 
-@implementation RnKeyri
+
+@implementation KeyriNativeModule
 
 RCT_EXPORT_MODULE()
 
