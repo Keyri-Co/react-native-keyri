@@ -3597,7 +3597,7 @@ react-native-camera@^4.2.1:
   dependencies:
     prop-types "^15.6.2"
 
-react-native-keiry@../:
+react-native-keyri@../:
   version "0.1.0"
 
 react-native-safe-area-context@^3.4.0:
