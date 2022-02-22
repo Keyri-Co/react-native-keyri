@@ -24,7 +24,8 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableNativeMap
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.bridge.WritableNativeArray
 import java.lang.Exception
@@ -65,11 +66,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
   // Required before other methods call
   @ReactMethod
-  fun initialize(data: ReadableNativeMap) {
+  fun initialize(data: ReadableMap) {
     if (!::keyriSdk.isInitialized) {
-      val appKey = data.getString("appKey")
-      val publicKey = data.getString("publicKey")
-      val callbackUrl = data.getString("callbackUrl")
+      val appKey: String =
+        data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to init SDK with appKey")
+      val publicKey: String =
+        data.getString("publicKey") ?: throw java.lang.IllegalStateException("You need to init SDK with publicKey")
+      val callbackUrl: String =
+        data.getString("callbackUrl") ?: throw java.lang.IllegalStateException("You need to init SDK with callbackUrl")
       val allowMultipleAccounts =
         data.takeIf { it.hasKey("allowMultipleAccounts") }?.getBoolean("allowMultipleAccounts") ?: false
 
@@ -110,16 +114,16 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun sessionSignup(data: ReadableNativeMap, promise: Promise) {
+  fun sessionSignup(data: ReadableMap, promise: Promise) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val username = data.getString("username")
-        val sessionId = data.getString("sessionId")
-        val serviceId = data.getString("serviceId")
-        val serviceName = data.getString("serviceName")
-        val serviceLogo = data.getString("serviceLogo")
-        val custom = data.takeIf { it.hasKey("custom") }?.getString("custom")
+        val username: String = data.getString("username") ?: ""
+        val sessionId: String = data.getString("sessionId") ?: ""
+        val serviceId: String = data.getString("serviceId") ?: ""
+        val serviceName: String = data.getString("serviceName") ?: ""
+        val serviceLogo: String = data.getString("serviceLogo") ?: ""
+        val custom: String? = data.takeIf { it.hasKey("custom") }?.getString("custom")
 
         val service = Service(serviceId, serviceName, serviceLogo)
 
@@ -135,15 +139,15 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun sessionLogin(data: ReadableNativeMap, promise: Promise) {
+  fun sessionLogin(data: ReadableMap, promise: Promise) {
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val publicAccountUsername = data.getString("publicAccountUsername")
-        val sessionId = data.getString("sessionId")
-        val serviceId = data.getString("serviceId")
-        val serviceName = data.getString("serviceName")
-        val serviceLogo = data.getString("serviceLogo")
+        val publicAccountUsername: String = data.getString("publicAccountUsername") ?: ""
+        val sessionId: String = data.getString("sessionId") ?: ""
+        val serviceId: String = data.getString("serviceId") ?: ""
+        val serviceName: String = data.getString("serviceName") ?: ""
+        val serviceLogo: String = data.getString("serviceLogo") ?: ""
         val publicAccountCustom = data.takeIf { it.hasKey("publicAccountCustom") }?.getString("publicAccountCustom")
         val custom = data.takeIf { it.hasKey("custom") }?.getString("custom")
 
