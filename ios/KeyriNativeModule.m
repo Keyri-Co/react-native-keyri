@@ -29,15 +29,32 @@ RCT_EXPORT_MODULE()
     return  self;
 }
 
-RCT_EXPORT_METHOD(initialize:(NSString *)appkey rpPublicKey:(NSString *)rpPublicKey callbackUrl:(NSString *)callbackUrl)
+RCT_EXPORT_METHOD(initialize:(NSDictionary *)data)
 {
-    [Keyri initializeWithAppkey:appkey rpPublicKey:rpPublicKey callbackUrl:[NSURL URLWithString:callbackUrl]];
+    id appKey = [data objectForKey:@"appKey"];
+    id publicKey = [data objectForKey:@"publicKey"];
+    id callbackUrl = [data objectForKey:@"callbackUrl"];
+
+    if ([appKey isKindOfClass:[NSString class]] && [publicKey isKindOfClass:[NSString class]] && [callbackUrl isKindOfClass:[NSString class]]) {
+        [Keyri initializeWithAppkey:appKey rpPublicKey:publicKey callbackUrl:[NSURL URLWithString:callbackUrl]];
+    } else {
+        NSLog(@"there was error during initialization of keyri sdk");
+    }
 }
 
-RCT_REMAP_METHOD(handleSessionId, Id:(NSString *)sessionId onReadSessionResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+RCT_REMAP_METHOD(handleSessionId,
+                 Id:(NSString *)sessionId
+                 onReadSessionResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     [self.keyri handleSessionId:sessionId completion:^(Session * _Nullable session, NSError * _Nullable error) {
         if (!error) {
-            resolve(session);
+            NSDictionary *resultData = @{
+                @"serviceId": session.service.id,
+                @"serviceName": session.service.name,
+                @"serviceLogo": session.service.logo,
+                @"username": session.username,
+                @"isNewUser": @(session.isNewUser)
+            };
+            resolve(resultData);
         } else {
             reject(@"Error", @"there was error during fetching session", error);
         }
@@ -45,11 +62,21 @@ RCT_REMAP_METHOD(handleSessionId, Id:(NSString *)sessionId onReadSessionResolver
 }
 
 RCT_REMAP_METHOD(sessionSignup,
-                 Username:(NSString *) username
-                 service:(Service *) service
-                 custom:(NSString * _Nullable) custom
+                 Data:(NSDictionary *)data
                  signUpWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
+    id serviceId = [data objectForKey:@"serviceId"];
+    id serviceName = [data objectForKey:@"serviceName"];
+    id serviceLogo = [data objectForKey:@"serviceLogo"];
+    id username = [data objectForKey:@"username"];
+    id custom = [data objectForKey:@"custom"];
+    
+    if ([serviceId isKindOfClass:[NSString class]] && [serviceName isKindOfClass:[NSString class]] && [username isKindOfClass:[NSString class]]) {
+        reject(@"Error", @"there was error during registration", [NSError new]);
+        return;
+    }
+
+    Service *service = [[Service alloc] initWithId:serviceId name:serviceName logo:serviceLogo];
     [self.keyri sessionSignupWithUsername:username service:service custom:custom completion:^(NSError * _Nullable error) {
         if (!error) {
             resolve(@"Success, user is registered");
@@ -60,11 +87,24 @@ RCT_REMAP_METHOD(sessionSignup,
 }
 
 RCT_REMAP_METHOD(sessionLogin,
-                 Account:(PublicAccount *) account
-                 service:(Service *) service
-                 custom:(NSString * _Nullable) custom
+                 Data:(NSDictionary *)data
                  loginWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
+    id publicAccountUsername = [data objectForKey:@"publicAccountUsername"];
+    //id sessionId = [data objectForKey:@"sessionId"];
+    id serviceId = [data objectForKey:@"serviceId"];
+    id serviceName = [data objectForKey:@"serviceName"];
+    id serviceLogo = [data objectForKey:@"serviceLogo"];
+    id publicAccountCustom = [data objectForKey:@"publicAccountCustom"];
+    id custom = [data objectForKey:@"custom"];
+    
+    if ([publicAccountUsername isKindOfClass:[NSString class]] && [serviceId isKindOfClass:[NSString class]] && [serviceName isKindOfClass:[NSString class]]) {
+        reject(@"Error", @"there was error during login", [NSError new]);
+        return;
+    }
+
+    PublicAccount *account = [[PublicAccount alloc] initWithUsername:publicAccountUsername custom:publicAccountCustom];
+    Service *service = [[Service alloc] initWithId:serviceId name:serviceName logo:serviceLogo];
     [self.keyri sessionLoginWithAccount:account service:service custom:custom completion:^(NSError * _Nullable error) {
         if (!error) {
             resolve(@"Success, user is logged in");
@@ -76,13 +116,20 @@ RCT_REMAP_METHOD(sessionLogin,
 
 RCT_REMAP_METHOD(directSignup,
                  Username:(NSString *) username
-                 custom:(NSString * _Nullable) custom
                  extendedHeaders:(NSDictionary * _Nullable) extendedHeaders
+                 custom:(NSString * _Nullable) custom
                  mobileSignUpWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self.keyri directSignupWithUsername:username custom:custom extendedHeaders:extendedHeaders completion:^(NSDictionary<NSString *,id> * _Nullable json, NSError * _Nullable error) {
+    [self.keyri directSignupWithUsername:username custom:custom extendedHeaders:extendedHeaders completion:^(AuthMobileResponse * _Nullable response, NSError * _Nullable error) {
         if (!error) {
-            resolve(@"Success, user is registered via mobile signUp");
+            NSDictionary *resultData = @{
+                @"userId": response.user.id,
+                @"userName": response.user.name,
+                @"token": response.token,
+                @"refreshToken": response.refreshToken
+            };
+
+            resolve(resultData);
         } else {
             reject(@"Error", @"there was error during mobile signUp", error);
         }
@@ -90,14 +137,22 @@ RCT_REMAP_METHOD(directSignup,
 }
 
 RCT_REMAP_METHOD(directLogin,
-                 Account:(PublicAccount *) account
-                 custom:(NSString * _Nullable) custom
+                 PublicAccountUsername:(NSString *) publicAccountUsername
                  extendedHeaders:(NSDictionary * _Nullable) extendedHeaders
+                 publicAccountCustom:(NSString * _Nullable) publicAccountCustom
                  mobileLoginWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    [self.keyri directLoginWithAccount:account custom:custom extendedHeaders:extendedHeaders completion:^(NSDictionary<NSString *,id> * _Nullable json, NSError * _Nullable error) {
+    PublicAccount *account = [[PublicAccount alloc] initWithUsername:publicAccountUsername custom:publicAccountCustom];
+    [self.keyri directLoginWithAccount:account custom:publicAccountCustom extendedHeaders:extendedHeaders completion:^(AuthMobileResponse * _Nullable response, NSError * _Nullable error) {
         if (!error) {
-            resolve(@"Success, user is loggedin via mobile login");
+            NSDictionary *resultData = @{
+                @"userId": response.user.id,
+                @"userName": response.user.name,
+                @"token": response.token,
+                @"refreshToken": response.refreshToken
+            };
+
+            resolve(resultData);
         } else {
             reject(@"Error", @"there was error during mobile login", error);
         }
@@ -109,9 +164,31 @@ RCT_REMAP_METHOD(getAccounts,
                  rejecter:(RCTPromiseRejectBlock)reject) {
     [self.keyri getAccountsWithCompletion:^(NSArray<PublicAccount *> * _Nullable accounts, NSError * _Nullable error) {
         if (!error) {
-            resolve(accounts);
+            NSMutableArray *resultData = [NSMutableArray new];
+            for (PublicAccount *account in accounts) {
+                [resultData addObject:@{
+                    @"username": account.username,
+                    @"custom": account.custom
+                }];
+            }
+            resolve(resultData);
         } else {
             reject(@"Error", @"there was error during fetching accounts", error);
+        }
+    }];
+}
+
+RCT_REMAP_METHOD(removeAccount,
+                 PublicAccountUsername:(NSString *) publicAccountUsername
+                 publicAccountCustom:(NSString * _Nullable) publicAccountCustom
+                 accountsResolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject) {
+    PublicAccount *account = [[PublicAccount alloc] initWithUsername:publicAccountUsername custom:publicAccountCustom];
+    [self.keyri removeAccountWithAccount:account completion:^(NSError * _Nullable error) {
+        if (!error) {
+            resolve(@"Account removed");
+        } else {
+            reject(@"Error", @"there was error during removing account", error);
         }
     }];
 }
@@ -123,7 +200,7 @@ RCT_REMAP_METHOD(easyKeyriAuth,
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.keyri easyKeyriAuthFrom:nil custom:custom completion:^(NSError * _Nullable error) {
             if (!error) {
-                resolve(@"Success");
+                resolve(@"Successfully authenticated");
             } else {
                 reject(@"Error", @"there was error during auth with scanner", error);
             }
@@ -132,3 +209,6 @@ RCT_REMAP_METHOD(easyKeyriAuth,
 }
 
 @end
+
+
+
