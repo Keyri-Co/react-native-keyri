@@ -164,12 +164,18 @@ RCT_REMAP_METHOD(getAccounts,
                  rejecter:(RCTPromiseRejectBlock)reject) {
     [self.keyri getAccountsWithCompletion:^(NSArray<PublicAccount *> * _Nullable accounts, NSError * _Nullable error) {
         if (!error) {
-            NSMutableArray *resultData = [NSMutableArray new];
+            NSMutableArray *resultData = [[NSMutableArray alloc] init];
             for (PublicAccount *account in accounts) {
-                [resultData addObject:@{
-                    @"username": account.username,
-                    @"custom": account.custom
-                }];
+                NSMutableDictionary *acc = [[NSMutableDictionary alloc] init];
+                if (account.username) {
+                    [acc setValue:account.username forKey:@"username"];
+                    if (account.custom) {
+                        [acc setValue:account.custom forKey:@"custom"];
+                    } else {
+                        [acc setValue:@"" forKey:@"custom"];
+                    }
+                    [resultData addObject:acc];
+                }
             }
             resolve(resultData);
         } else {
