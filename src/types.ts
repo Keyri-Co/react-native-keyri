@@ -1,3 +1,29 @@
+export interface KeyriInitializeOptions {
+  appKey: string;
+  publicKey: string;
+  callbackUrl: string;
+  allowMultipleAccounts?: boolean
+}
+
+export interface KeyriSessionLoginOptions {
+  publicAccountUsername: string,
+  publicAccountCustom?: string,
+  sessionId: string,
+  serviceId: string,
+  serviceName: string,
+  serviceLogo: string,
+  custom?: string
+}
+
+export interface KeyriSessionSignupOptions {
+  username: string,
+  sessionId: string,
+  serviceId: string,
+  serviceName: string,
+  serviceLogo: string,
+  custom?: string
+}
+
 export interface KeyriSession {
   serviceId: string;
   serviceName: string;
@@ -12,33 +38,13 @@ export interface KeyriPublicAccount {
 }
 
 export interface KeyriModule {
-  initialize: (
-    appKey: string,
-    publicKey: string,
-    callbackUrl: string,
-    allowMultipleAccounts: boolean
-  ) => void;
+  initialize: (options: KeyriInitializeOptions) => void;
+
+  sessionLogin: (options: KeyriSessionLoginOptions) => Promise<void>;
+
+  sessionSignup: (options: KeyriSessionSignupOptions) => Promise<void>;
 
   handleSessionId: (sessionId: string) => Promise<KeyriSession>;
-
-  sessionLogin: (
-    publicAccountUsername: string,
-    sessionId: string,
-    serviceId: string,
-    serviceName: string,
-    serviceLogo: string,
-    publicAccountCustom?: string,
-    custom?: string
-  ) => void;
-
-  sessionSignup: (
-    username: string,
-    sessionId: string,
-    serviceId: string,
-    serviceName: string,
-    serviceLogo: string,
-    custom?: string
-  ) => Promise<string>;
 
   directLogin: <RPServerResponse = unknown>(
     publicAccountUsername: string,
@@ -59,5 +65,5 @@ export interface KeyriModule {
   removeAccount: (
     publicAccountUsername: string,
     publicAccountCustom?: string
-  ) => Promise<string>;
+  ) => Promise<void>;
 }

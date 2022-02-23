@@ -26,7 +26,7 @@ const InitialScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
         <View style={styles.buttonContainer}>
           <Button
             title="Easy Keyri Auth"
-            onPress={() => Keyri.easyKeyriAuth(null)}
+            onPress={() => Keyri.easyKeyriAuth()}
           />
         </View>
       </View>

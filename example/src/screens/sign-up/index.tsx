@@ -4,7 +4,7 @@ import { Alert, Button, StyleSheet, TextInput, View } from 'react-native';
 import Keyri from 'react-native-keyri';
 
 interface ServerResponse {
-  nickName: string;
+  userName: string;
 }
 
 interface SignUpScreenProps extends RootNavigationProps<'SignUp'> {}
@@ -20,7 +20,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = () => {
         null
       );
 
-      Alert.alert('Success', `Hi ${result?.nickName}, you are signed up`);
+      Alert.alert('Success', `Hi ${result?.userName}, you are signed up`);
     } catch (e) {
       console.error(e);
     }
