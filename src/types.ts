@@ -1,27 +1,28 @@
 export interface KeyriInitializeOptions {
   appKey: string;
-  publicKey: string;
+  iosPublicKey: string;
+  androidPublicKey: string;
   callbackUrl: string;
-  allowMultipleAccounts?: boolean
+  allowMultipleAccounts?: boolean;
 }
 
 export interface KeyriSessionLoginOptions {
-  publicAccountUsername: string,
-  publicAccountCustom?: string,
-  sessionId: string,
-  serviceId: string,
-  serviceName: string,
-  serviceLogo: string,
-  custom?: string
+  publicAccountUsername: string;
+  publicAccountCustom?: string;
+  sessionId: string;
+  serviceId: string;
+  serviceName: string;
+  serviceLogo: string;
+  custom?: string;
 }
 
 export interface KeyriSessionSignupOptions {
-  username: string,
-  sessionId: string,
-  serviceId: string,
-  serviceName: string,
-  serviceLogo: string,
-  custom?: string
+  username: string;
+  sessionId: string;
+  serviceId: string;
+  serviceName: string;
+  serviceLogo: string;
+  custom?: string;
 }
 
 export interface KeyriSession {
@@ -37,6 +38,10 @@ export interface KeyriPublicAccount {
   custom?: string;
 }
 
+export interface ExtendedHeaders {
+  [key: string]: string;
+}
+
 export interface KeyriModule {
   initialize: (options: KeyriInitializeOptions) => void;
 
@@ -47,14 +52,14 @@ export interface KeyriModule {
   handleSessionId: (sessionId: string) => Promise<KeyriSession>;
 
   directLogin: <RPServerResponse = unknown>(
-    publicAccountUsername: string,
-    extendedHeaders?: unknown,
-    publicAccountCustom?: string
+    username: string,
+    headers?: ExtendedHeaders,
+    custom?: string
   ) => Promise<RPServerResponse>;
 
   directSignup: <RPServerResponse = unknown>(
     username: string,
-    extendedHeaders: unknown,
+    headers?: ExtendedHeaders,
     custom?: string
   ) => Promise<RPServerResponse>;
 
@@ -62,8 +67,5 @@ export interface KeyriModule {
 
   easyKeyriAuth: (custom?: string) => Promise<void>;
 
-  removeAccount: (
-    publicAccountUsername: string,
-    publicAccountCustom?: string
-  ) => Promise<void>;
+  removeAccount: (username: string, custom?: string) => Promise<void>;
 }

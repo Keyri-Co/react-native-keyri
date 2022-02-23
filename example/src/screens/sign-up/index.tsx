@@ -14,11 +14,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = () => {
 
   const onSubmitPress = async () => {
     try {
-      const result = await Keyri.directSignup<ServerResponse>(
-        username,
-        {},
-        null
-      );
+      const result = await Keyri.directSignup<ServerResponse>(username, {});
 
       Alert.alert('Success', `Hi ${result?.userName}, you are signed up`);
     } catch (e) {
