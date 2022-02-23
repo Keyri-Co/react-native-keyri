@@ -14,11 +14,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = () => {
 
   const onSubmitPress = async () => {
     try {
-      const result = await Keyri.directSignup<ServerResponse>(
-        username,
-        {},
-        null
-      );
+      const result = await Keyri.directSignup<ServerResponse>(username, {});
 
       Alert.alert('Success', `Hi ${result?.userName}, you are signed up`);
     } catch (e) {
@@ -52,6 +48,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginHorizontal: 30,
     marginVertical: 20,
+    paddingVertical: 10,
   },
   button: {
     marginHorizontal: 30,

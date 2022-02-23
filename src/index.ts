@@ -1,5 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
-import type { KeyriModule } from './types';
+import type { KeyriInitializeOptions, KeyriModule } from './types';
 
 const LINKING_ERROR =
   `The package 'react-native-keyri' doesn't seem to be linked. Make sure: \n\n` +
@@ -7,10 +7,56 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo managed workflow\n';
 
-const Keyri = NativeModules.KeyriNativeModule;
+const Module = NativeModules.KeyriNativeModule;
 
-if (!Keyri) throw new Error(LINKING_ERROR);
+if (!Module) throw new Error(LINKING_ERROR);
 
-export default Keyri as KeyriModule;
+const Keyri: KeyriModule = {
+  initialize: (options: KeyriInitializeOptions) => {
+    Module.initialize({
+      appKey: options.appKey,
+      callbackUrl: options.callbackUrl,
+      allowMultipleAccounts: options.allowMultipleAccounts,
+      publicKey: Platform.select({
+        ios: options.iosPublicKey,
+        android: options.androidPublicKey,
+      }),
+    });
+  },
+
+  handleSessionId: (sessionId) => {
+    return Module.handleSessionId(sessionId);
+  },
+
+  sessionLogin: () => {
+    return Module.sessionLogin();
+  },
+
+  sessionSignup: () => {
+    return Module.sessionSignup();
+  },
+
+  directLogin: (username, headers = {}, custom) => {
+    return Module.directLogin(username, headers, custom ?? null);
+  },
+
+  directSignup: (username, headers = {}, custom) => {
+    return Module.directSignup(username, headers, custom ?? null);
+  },
+
+  getAccounts: () => {
+    return Module.getAccounts();
+  },
+
+  easyKeyriAuth: (custom) => {
+    return Module.easyKeyriAuth(custom ?? null);
+  },
+
+  removeAccount: (username, custom) => {
+    return Module.removeAccount(username, custom ?? null);
+  },
+};
+
+export default Keyri;
 
 export * from './types';

@@ -25,12 +25,8 @@ const LogInScreen: React.FC<LogInScreenProps> = () => {
 
   const onAccountPress = async (account: KeyriPublicAccount) => {
     try {
-      const { username, custom } = account;
-      const result = await Keyri.directLogin<ServerResponse>(
-        username,
-        {},
-        custom
-      );
+      const { username } = account;
+      const result = await Keyri.directLogin<ServerResponse>(username);
 
       Alert.alert('Success', `Hi ${result.userName}, you are logged in`);
     } catch (e) {
