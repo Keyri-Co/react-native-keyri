@@ -1,5 +1,10 @@
 import { NativeModules, Platform } from 'react-native';
-import type { KeyriInitializeOptions, KeyriModule } from './types';
+import type {
+  KeyriInitializeOptions,
+  KeyriModule,
+  KeyriSessionLoginOptions,
+  KeyriSessionSignupOptions,
+} from './types';
 
 const LINKING_ERROR =
   `The package 'react-native-keyri' doesn't seem to be linked. Make sure: \n\n` +
@@ -28,12 +33,12 @@ const Keyri: KeyriModule = {
     return Module.handleSessionId(sessionId);
   },
 
-  sessionLogin: () => {
-    return Module.sessionLogin();
+  sessionLogin: (options: KeyriSessionLoginOptions) => {
+    return Module.sessionLogin(options);
   },
 
-  sessionSignup: () => {
-    return Module.sessionSignup();
+  sessionSignup: (options: KeyriSessionSignupOptions) => {
+    return Module.sessionSignup(options);
   },
 
   directLogin: (username, headers = {}, custom) => {
