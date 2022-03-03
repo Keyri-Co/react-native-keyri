@@ -65,17 +65,12 @@ RCT_REMAP_METHOD(sessionSignup,
                  Data:(NSDictionary *)data
                  signUpWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    id serviceId = [data objectForKey:@"serviceId"];
-    id serviceName = [data objectForKey:@"serviceName"];
-    id serviceLogo = [data objectForKey:@"serviceLogo"];
-    id username = [data objectForKey:@"username"];
-    id custom = [data objectForKey:@"custom"];
+    NSString *serviceId = [NSString stringWithFormat:@"%@", [data objectForKey:@"serviceId"]];
+    NSString *serviceName = [NSString stringWithFormat:@"%@", [data objectForKey:@"serviceName"]];
+    NSString *serviceLogo = [NSString stringWithFormat:@"%@", [data objectForKey:@"serviceLogo"]];
+    NSString *username = [NSString stringWithFormat:@"%@", [data objectForKey:@"username"]];
+    NSString *custom = [NSString stringWithFormat:@"%@", [data objectForKey:@"custom"]];
     
-    if ([serviceId isKindOfClass:[NSString class]] && [serviceName isKindOfClass:[NSString class]] && [username isKindOfClass:[NSString class]]) {
-        reject(@"Error", @"there was error during registration", [NSError new]);
-        return;
-    }
-
     Service *service = [[Service alloc] initWithId:serviceId name:serviceName logo:serviceLogo];
     [self.keyri sessionSignupWithUsername:username service:service custom:custom completion:^(NSError * _Nullable error) {
         if (!error) {
@@ -90,13 +85,12 @@ RCT_REMAP_METHOD(sessionLogin,
                  Data:(NSDictionary *)data
                  loginWithResolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject) {
-    id publicAccountUsername = [data objectForKey:@"publicAccountUsername"];
-    //id sessionId = [data objectForKey:@"sessionId"];
-    id serviceId = [data objectForKey:@"serviceId"];
-    id serviceName = [data objectForKey:@"serviceName"];
-    id serviceLogo = [data objectForKey:@"serviceLogo"];
-    id publicAccountCustom = [data objectForKey:@"publicAccountCustom"];
-    id custom = [data objectForKey:@"custom"];
+    NSString *publicAccountUsername = [NSString stringWithFormat:@"%@", [data objectForKey:@"publicAccountUsername"]];
+    NSString *serviceId = [NSString stringWithFormat:@"%@", [data objectForKey:@"serviceId"]];
+    NSString *serviceName = [NSString stringWithFormat:@"%@", [data objectForKey:@"serviceName"]];
+    NSString *serviceLogo = [NSString stringWithFormat:@"%@", [data objectForKey:@"serviceLogo"]];
+    NSString *custom = [NSString stringWithFormat:@"%@", [data objectForKey:@"custom"]];
+    NSString *publicAccountCustom = [NSString stringWithFormat:@"%@", [data objectForKey:@"publicAccountCustom"]];
     
     if ([publicAccountUsername isKindOfClass:[NSString class]] && [serviceId isKindOfClass:[NSString class]] && [serviceName isKindOfClass:[NSString class]]) {
         reject(@"Error", @"there was error during login", [NSError new]);
