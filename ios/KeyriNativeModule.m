@@ -47,13 +47,15 @@ RCT_REMAP_METHOD(handleSessionId,
                  onReadSessionResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     [self.keyri handleSessionId:sessionId completion:^(Session * _Nullable session, NSError * _Nullable error) {
         if (!error) {
-            NSDictionary *resultData = @{
-                @"serviceId": session.service.id,
-                @"serviceName": session.service.name,
-                @"serviceLogo": session.service.logo,
-                @"username": session.username,
-                @"isNewUser": @(session.isNewUser)
-            };
+            NSMutableDictionary *resultData = [NSMutableDictionary new];
+            [resultData setValue:session.service.id forKey:@"serviceId"];
+            [resultData setValue:session.service.name forKey:@"serviceName"];
+            [resultData setValue:session.service.logo forKey:@"serviceLogo"];
+            [resultData setValue:@(session.isNewUser) forKey:@"isNewUser"];
+            
+            if (session.username) {
+                [resultData setValue:session.username forKey:@"username"];
+            }
             resolve(resultData);
         } else {
             reject(@"Error", @"there was error during fetching session", error);
@@ -92,10 +94,6 @@ RCT_REMAP_METHOD(sessionLogin,
     NSString *custom = [NSString stringWithFormat:@"%@", [data objectForKey:@"custom"]];
     NSString *publicAccountCustom = [NSString stringWithFormat:@"%@", [data objectForKey:@"publicAccountCustom"]];
     
-    if ([publicAccountUsername isKindOfClass:[NSString class]] && [serviceId isKindOfClass:[NSString class]] && [serviceName isKindOfClass:[NSString class]]) {
-        reject(@"Error", @"there was error during login", [NSError new]);
-        return;
-    }
 
     PublicAccount *account = [[PublicAccount alloc] initWithUsername:publicAccountUsername custom:publicAccountCustom];
     Service *service = [[Service alloc] initWithId:serviceId name:serviceName logo:serviceLogo];
