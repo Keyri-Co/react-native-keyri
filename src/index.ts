@@ -22,10 +22,7 @@ const Keyri: KeyriModule = {
       appKey: options.appKey,
       callbackUrl: options.callbackUrl,
       allowMultipleAccounts: options.allowMultipleAccounts,
-      publicKey: Platform.select({
-        ios: options.iosPublicKey,
-        android: options.androidPublicKey,
-      }),
+      publicKey: options.rpPublicKey
     });
   },
 
