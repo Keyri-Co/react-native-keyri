@@ -206,6 +206,21 @@ RCT_REMAP_METHOD(easyKeyriAuth,
     });
 }
 
+RCT_REMAP_METHOD(whitelabelAuth,
+                 custom:(NSString * _Nullable) custom
+                 whitelabelAuthResolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.keyri whitelabelAuthWithCustom:custom completion:^(NSError * _Nullable error) {
+            if (!error) {
+                resolve(@"Successfully whitelabel authenticated");
+            } else {
+                reject(@"Error", @"there was error during whitelabel auth", error);
+            }
+        }];
+    });
+}
+
 @end
 
 
