@@ -42,6 +42,11 @@ export interface ExtendedHeaders {
   [key: string]: string;
 }
 
+export interface WhitelabelAuthOptions {
+  sessionId: string;
+  custom: string;
+}
+
 export interface KeyriModule {
   initialize: (options: KeyriInitializeOptions) => void;
 
@@ -69,5 +74,5 @@ export interface KeyriModule {
 
   removeAccount: (username: string, custom?: string) => Promise<void>;
 
-  whitelabelAuth:(custom: string) => Promise<void>;
+  whitelabelAuth:(options: WhitelabelAuthOptions) => Promise<void>;
 }
