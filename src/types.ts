@@ -68,4 +68,6 @@ export interface KeyriModule {
   easyKeyriAuth: (custom?: string) => Promise<void>;
 
   removeAccount: (username: string, custom?: string) => Promise<void>;
+
+  whitelabelAuth:(custom: string) => Promise<void>;
 }

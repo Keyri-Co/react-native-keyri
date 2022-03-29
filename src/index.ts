@@ -60,6 +60,10 @@ const Keyri: KeyriModule = {
   removeAccount: (username, custom) => {
     return Module.removeAccount(username, custom ?? null);
   },
+
+  whitelabelAuth: (custom) => {
+    return Module.whitelabelAuth(custom ?? null);
+  }
 };
 
 export default Keyri;
