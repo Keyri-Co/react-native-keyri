@@ -127,7 +127,7 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'com.github.Keyri-Co.keyri-android-whitelabel-sdk:keyrisdk:1.0.3'
+  implementation "com.github.Keyri-Co:keyri-android-whitelabel-sdk:1.0.3"
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2"
 }
