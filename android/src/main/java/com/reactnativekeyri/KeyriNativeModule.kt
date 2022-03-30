@@ -8,28 +8,29 @@ import com.keyrico.keyrisdk.KeyriSdk
 import com.keyrico.keyrisdk.entity.PublicAccount
 import com.keyrico.keyrisdk.entity.session.Session
 import com.keyrico.keyrisdk.entity.session.service.Service
-import com.keyrico.keyrisdk.services.api.AuthMobileResponse
+import com.keyrico.keyrisdk.entity.session.service.AndroidAppSettings
+import com.keyrico.keyrisdk.entity.session.service.IosAppSettings
+import com.keyrico.keyrisdk.entity.session.service.OriginalDomain
+import com.keyrico.keyrisdk.entity.session.ipdata.Asn
+import com.keyrico.keyrisdk.entity.session.ipdata.IpLanguage
+import com.keyrico.keyrisdk.entity.session.ipdata.IpCurrency
+import com.keyrico.keyrisdk.entity.session.ipdata.IpTimeZone
+import com.keyrico.keyrisdk.entity.session.ipdata.Threat
+import com.keyrico.keyrisdk.entity.session.ipdata.IpData
 import com.keyrico.keyrisdk.exception.KeyriSdkException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReadableType
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.ReadableNativeArray
-import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.bridge.WritableNativeArray
-import java.lang.Exception
 
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -111,16 +112,11 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val username: String = data.getString("username") ?: ""
+        val session = createSession(data)
         val sessionId: String = data.getString("sessionId") ?: ""
-        val serviceId: String = data.getString("serviceId") ?: ""
-        val serviceName: String = data.getString("serviceName") ?: ""
-        val serviceLogo: String = data.getString("serviceLogo") ?: ""
         val custom: String? = data.takeIf { it.hasKey("custom") }?.getString("custom")
 
-        val service = Service(serviceId, serviceName, serviceLogo)
-
-        keyriSdk.sessionSignup(username, sessionId, service, custom)
+        keyriSdk.sessionSignup(session.username ?: "", sessionId, session.service, custom)
 
         withContext(Dispatchers.Main) {
           promise.resolve("Signed up")
@@ -136,18 +132,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val publicAccountUsername: String = data.getString("publicAccountUsername") ?: ""
         val sessionId: String = data.getString("sessionId") ?: ""
-        val serviceId: String = data.getString("serviceId") ?: ""
-        val serviceName: String = data.getString("serviceName") ?: ""
-        val serviceLogo: String = data.getString("serviceLogo") ?: ""
-        val publicAccountCustom = data.takeIf { it.hasKey("publicAccountCustom") }?.getString("publicAccountCustom")
         val custom = data.takeIf { it.hasKey("custom") }?.getString("custom")
 
-        val service = Service(serviceId, serviceName, serviceLogo)
-        val account = PublicAccount(publicAccountUsername, publicAccountCustom)
+        val session = createSession(data)
+        val account = PublicAccount(session.username ?: "", custom)
 
-        keyriSdk.sessionLogin(account, sessionId, service, custom)
+        keyriSdk.sessionLogin(account, sessionId, session.service, custom)
 
         withContext(Dispatchers.Main) {
           promise.resolve("Signed in")
@@ -333,163 +324,10 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       putInt("version", session.service.version)
       putString("ironPlansUUID", session.service.ironPlansUUID)
       putString("qrLogo", session.service.qrLogo)
-      putString("sessionType", session.service.sessionType)
-      putString("custom", session.service.custom)
     }
 
-    val widgetIPDataMap = WritableNativeMap().apply {
-      putString("ip", session.widgetIPData.ip)
-      putBoolean("isEu", session.widgetIPData.isEu)
-      putString("city", session.widgetIPData.city)
-      putString("region", session.widgetIPData.region)
-      putString("regionCode", session.widgetIPData.regionCode)
-      putString("countryName", session.widgetIPData.countryName)
-      putString("countryCode", session.widgetIPData.countryCode)
-      putString("continentName", session.widgetIPData.continentName)
-      putString("continentCode", session.widgetIPData.continentCode)
-      putDouble("latitude", session.widgetIPData.latitude)
-      putDouble("longitude", session.widgetIPData.longitude)
-      putString("postal", session.widgetIPData.postal)
-      putString("callingCode", session.widgetIPData.callingCode)
-      putString("flag", session.widgetIPData.flag)
-      putString("emojiFlag", session.widgetIPData.emojiFlag)
-      putString("emojiUnicode", session.widgetIPData.emojiUnicode)
-
-      val asnMap = WritableNativeMap().also {
-        it.putString("asn", session.widgetIPData.asn.asn)
-        it.putString("name", session.widgetIPData.asn.name)
-        it.putString("domain", session.widgetIPData.asn.domain)
-        it.putString("route", session.widgetIPData.asn.route)
-        it.putString("type", session.widgetIPData.asn.type)
-      }
-
-      putMap("asn", asnMap)
-
-      val languages = WritableNativeArray()
-
-      session.widgetIPData.languages.forEach { lang ->
-        val language = WritableNativeMap()
-
-        language.putString("name", lang.name)
-        language.putString("native", lang.native)
-        language.putString("code", lang.code)
-
-        languages.pushMap(language)
-      }
-
-      putArray("languages", languages)
-
-      val currencyMap = WritableNativeMap().also {
-        it.putString("name", session.widgetIPData.currency.name)
-        it.putString("code", session.widgetIPData.currency.code)
-        it.putString("symbol", session.widgetIPData.currency.symbol)
-        it.putString("native", session.widgetIPData.currency.native)
-        it.putString("plural", session.widgetIPData.currency.plural)
-      }
-
-      putMap("currency", currencyMap)
-
-      val timeZoneMap = WritableNativeMap().also {
-        it.putString("name", session.widgetIPData.timeZone.name)
-        it.putString("abbr", session.widgetIPData.timeZone.abbr)
-        it.putString("offset", session.widgetIPData.timeZone.offset)
-        it.putBoolean("isDst", session.widgetIPData.timeZone.isDst)
-        it.putString("currentTime", session.widgetIPData.timeZone.currentTime)
-      }
-
-      putMap("timeZone", timeZoneMap)
-
-      val threatMap = WritableNativeMap().also {
-        it.putBoolean("isTor", session.widgetIPData.threat.isTor)
-        it.putBoolean("isProxy", session.widgetIPData.threat.isProxy)
-        it.putBoolean("isAnonymous", session.widgetIPData.threat.isAnonymous)
-        it.putBoolean("isKnownAttacker", session.widgetIPData.threat.isKnownAttacker)
-        it.putBoolean("isKnownAbuser", session.widgetIPData.threat.isKnownAbuser)
-        it.putBoolean("isThreat", session.widgetIPData.threat.isThreat)
-        it.putBoolean("isBogon", session.widgetIPData.threat.isBogon)
-      }
-
-      putMap("threat", threatMap)
-      putString("count", session.widgetIPData.count)
-      putInt("status", session.widgetIPData.status)
-    }
-
-    val mobileIPDataMap = WritableNativeMap().apply {
-      putString("ip", session.mobileIPData.ip)
-      putBoolean("isEu", session.mobileIPData.isEu)
-      putString("city", session.mobileIPData.city)
-      putString("region", session.mobileIPData.region)
-      putString("regionCode", session.mobileIPData.regionCode)
-      putString("countryName", session.mobileIPData.countryName)
-      putString("countryCode", session.mobileIPData.countryCode)
-      putString("continentName", session.mobileIPData.continentName)
-      putString("continentCode", session.mobileIPData.continentCode)
-      putDouble("latitude", session.mobileIPData.latitude)
-      putDouble("longitude", session.mobileIPData.longitude)
-      putString("postal", session.mobileIPData.postal)
-      putString("callingCode", session.mobileIPData.callingCode)
-      putString("flag", session.mobileIPData.flag)
-      putString("emojiFlag", session.mobileIPData.emojiFlag)
-      putString("emojiUnicode", session.mobileIPData.emojiUnicode)
-
-      val asnMap = WritableNativeMap().also {
-        it.putString("asn", session.mobileIPData.asn.asn)
-        it.putString("name", session.mobileIPData.asn.name)
-        it.putString("domain", session.mobileIPData.asn.domain)
-        it.putString("route", session.mobileIPData.asn.route)
-        it.putString("type", session.mobileIPData.asn.type)
-      }
-
-      putMap("asn", asnMap)
-
-      val languages = WritableNativeArray()
-
-      session.mobileIPData.languages.forEach { lang ->
-        val language = WritableNativeMap()
-
-        language.putString("name", lang.name)
-        language.putString("native", lang.native)
-        language.putString("code", lang.code)
-
-        languages.pushMap(language)
-      }
-
-      putArray("languages", languages)
-
-      val currencyMap = WritableNativeMap().also {
-        it.putString("name", session.mobileIPData.currency.name)
-        it.putString("code", session.mobileIPData.currency.code)
-        it.putString("symbol", session.mobileIPData.currency.symbol)
-        it.putString("native", session.mobileIPData.currency.native)
-        it.putString("plural", session.mobileIPData.currency.plural)
-      }
-
-      putMap("currency", currencyMap)
-
-      val timeZoneMap = WritableNativeMap().also {
-        it.putString("name", session.mobileIPData.timeZone.name)
-        it.putString("abbr", session.mobileIPData.timeZone.abbr)
-        it.putString("offset", session.mobileIPData.timeZone.offset)
-        it.putBoolean("isDst", session.mobileIPData.timeZone.isDst)
-        it.putString("currentTime", session.mobileIPData.timeZone.currentTime)
-      }
-
-      putMap("timeZone", timeZoneMap)
-
-      val threatMap = WritableNativeMap().also {
-        it.putBoolean("isTor", session.mobileIPData.threat.isTor)
-        it.putBoolean("isProxy", session.mobileIPData.threat.isProxy)
-        it.putBoolean("isAnonymous", session.mobileIPData.threat.isAnonymous)
-        it.putBoolean("isKnownAttacker", session.mobileIPData.threat.isKnownAttacker)
-        it.putBoolean("isKnownAbuser", session.mobileIPData.threat.isKnownAbuser)
-        it.putBoolean("isThreat", session.mobileIPData.threat.isThreat)
-        it.putBoolean("isBogon", session.mobileIPData.threat.isBogon)
-      }
-
-      putMap("threat", threatMap)
-      putString("count", session.mobileIPData.count)
-      putInt("status", session.mobileIPData.status)
-    }
+    val widgetIPDataMap = session.widgetIPData?.let { createIpData(it) }
+    val mobileIPDataMap = session.mobileIPData?.let { createIpData(it) }
 
     val resultData = WritableNativeMap().apply {
       putMap("service", serviceMap)
@@ -497,8 +335,218 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       putBoolean("isNewUser", session.isNewUser)
       putMap("widgetIPData", widgetIPDataMap)
       putMap("mobileIPData", mobileIPDataMap)
+      putString("sessionType", session.sessionType)
+      putString("custom", session.custom)
     }
 
     return resultData
+  }
+
+  private fun createIpData(ipData: IpData): WritableNativeMap {
+    return WritableNativeMap().apply {
+      putString("ip", ipData.ip)
+      putBoolean("isEu", ipData.isEu)
+      putString("city", ipData.city)
+      putString("region", ipData.region)
+      putString("regionCode", ipData.regionCode)
+      putString("countryName", ipData.countryName)
+      putString("countryCode", ipData.countryCode)
+      putString("continentName", ipData.continentName)
+      putString("continentCode", ipData.continentCode)
+      putDouble("latitude", ipData.latitude)
+      putDouble("longitude", ipData.longitude)
+      putString("postal", ipData.postal)
+      putString("callingCode", ipData.callingCode)
+      putString("flag", ipData.flag)
+      putString("emojiFlag", ipData.emojiFlag)
+      putString("emojiUnicode", ipData.emojiUnicode)
+
+      val asnMap = WritableNativeMap().also {
+        it.putString("asn", ipData.asn.asn)
+        it.putString("name", ipData.asn.name)
+        it.putString("domain", ipData.asn.domain)
+        it.putString("route", ipData.asn.route)
+        it.putString("type", ipData.asn.type)
+      }
+
+      putMap("asn", asnMap)
+
+      val languages = WritableNativeArray()
+
+      ipData.languages.forEach { lang ->
+        val language = WritableNativeMap()
+
+        language.putString("name", lang.name)
+        language.putString("native", lang.native)
+        language.putString("code", lang.code)
+
+        languages.pushMap(language)
+      }
+
+      putArray("languages", languages)
+
+      val currencyMap = WritableNativeMap().also {
+        it.putString("name", ipData.currency.name)
+        it.putString("code", ipData.currency.code)
+        it.putString("symbol", ipData.currency.symbol)
+        it.putString("native", ipData.currency.native)
+        it.putString("plural", ipData.currency.plural)
+      }
+
+      putMap("currency", currencyMap)
+
+      val timeZoneMap = WritableNativeMap().also {
+        it.putString("name", ipData.timeZone.name)
+        it.putString("abbr", ipData.timeZone.abbr)
+        it.putString("offset", ipData.timeZone.offset)
+        it.putBoolean("isDst", ipData.timeZone.isDst)
+        it.putString("currentTime", ipData.timeZone.currentTime)
+      }
+
+      putMap("timeZone", timeZoneMap)
+
+      val threatMap = WritableNativeMap().also {
+        it.putBoolean("isTor", ipData.threat.isTor)
+        it.putBoolean("isProxy", ipData.threat.isProxy)
+        it.putBoolean("isAnonymous", ipData.threat.isAnonymous)
+        it.putBoolean("isKnownAttacker", ipData.threat.isKnownAttacker)
+        it.putBoolean("isKnownAbuser", ipData.threat.isKnownAbuser)
+        it.putBoolean("isThreat", ipData.threat.isThreat)
+        it.putBoolean("isBogon", ipData.threat.isBogon)
+      }
+
+      putMap("threat", threatMap)
+      putString("count", ipData.count)
+      putInt("status", ipData.status)
+    }
+  }
+
+  private fun createSession(data: ReadableMap): Session {
+    val sessionMap = data.getMap("session")
+
+    val service = sessionMap?.getMap("service")?.let { mapToService(it) }
+      ?: throw java.lang.IllegalStateException("Must contain service")
+    val widgetIPData = sessionMap.takeIf { it.hasKey("widgetIPData") }?.getMap("widgetIPData")?.let { mapToIPData(it) }
+    val mobileIPData = sessionMap.takeIf { it.hasKey("mobileIPData") }?.getMap("mobileIPData")?.let { mapToIPData(it) }
+
+    return Session(
+      service,
+      sessionMap.takeIf { it.hasKey("username") }?.getString("username"),
+      sessionMap.getBoolean("isNewUser"),
+      widgetIPData,
+      mobileIPData,
+      sessionMap.getString("sessionType") ?: "",
+      sessionMap.takeIf { it.hasKey("custom") }?.getString("custom")
+    )
+  }
+
+  private fun mapToService(data: ReadableMap): Service? {
+    val androidAppSettingsMap = data.getMap("androidAppSettings")
+    val iosAppSettingsMap = data.getMap("iosAppSettings")
+    val originalDomainMap = data.getMap("originalDomain")
+
+    val androidAppSettings = AndroidAppSettings(
+      androidAppSettingsMap?.takeIf { it.hasKey("androidPackageName") }?.getString("androidPackageName"),
+      androidAppSettingsMap?.takeIf { it.hasKey("sha256CertFingerprints") }?.getString("sha256CertFingerprints"),
+      androidAppSettingsMap?.takeIf { it.hasKey("androidGooglePlayLink") }?.getString("androidGooglePlayLink")
+    )
+
+    val iosAppSettings = IosAppSettings(
+      iosAppSettingsMap?.takeIf { it.hasKey("iosAppId") }?.getString("iosAppId"),
+      iosAppSettingsMap?.takeIf { it.hasKey("iosAppStoreLink") }?.getString("iosAppStoreLink"),
+      iosAppSettingsMap?.takeIf { it.hasKey("teamId") }?.getString("teamId"),
+      iosAppSettingsMap?.takeIf { it.hasKey("bundleId") }?.getString("bundleId")
+    )
+
+    val originalDomain = OriginalDomain(
+      originalDomainMap?.takeIf { it.hasKey("domainName") }?.getString("domainName"),
+      originalDomainMap?.takeIf { it.hasKey("verifiedRecord") }?.getString("verifiedRecord"),
+      originalDomainMap?.takeIf { it.hasKey("isDomainApproved") }?.getBoolean("isDomainApproved") ?: false
+    )
+
+    return Service(
+      data.getBoolean("isValid"),
+      data.getString("qrCodeType") ?: "",
+      androidAppSettings,
+      iosAppSettings,
+      data.getString("subDomainName"),
+      originalDomain,
+      data.getString("serviceId") ?: "",
+      data.getString("name") ?: "",
+      data.getString("logo") ?: "",
+      data.getString("key") ?: "",
+      data.getString("createdAt") ?: "",
+      data.getString("updatedAt") ?: "",
+      data.getInt("version"),
+      data.takeIf { it.hasKey("ironPlansUUID") }?.getString("ironPlansUUID"),
+      data.takeIf { it.hasKey("qrLogo") }?.getString("qrLogo")
+    )
+  }
+
+  private fun mapToIPData(data: ReadableMap): IpData {
+    val asnMap = data.getMap("asn")
+    val currencyMap = data.getMap("currency")
+    val timeZoneMap = data.getMap("timeZone")
+    val threatMap = data.getMap("threat")
+
+    val asn = Asn(
+      asnMap?.getString("asn") ?: "",
+      asnMap?.getString("name") ?: "",
+      asnMap?.getString("domain") ?: "",
+      asnMap?.getString("route") ?: "",
+      asnMap?.getString("type") ?: ""
+    )
+
+    val currency = IpCurrency(
+      currencyMap?.getString("name") ?: "",
+      currencyMap?.getString("code") ?: "",
+      currencyMap?.getString("symbol") ?: "",
+      currencyMap?.getString("native") ?: "",
+      currencyMap?.getString("plural") ?: ""
+    )
+
+    val timeZone = IpTimeZone(
+      timeZoneMap?.getString("name") ?: "",
+      timeZoneMap?.getString("abbr") ?: "",
+      timeZoneMap?.getString("offset") ?: "",
+      timeZoneMap?.getBoolean("isDst") ?: false,
+      timeZoneMap?.getString("currentTime") ?: ""
+    )
+
+    val threat = Threat(
+      threatMap?.getBoolean("isTor") ?: false,
+      threatMap?.getBoolean("isProxy") ?: false,
+      threatMap?.getBoolean("isAnonymous") ?: false,
+      threatMap?.getBoolean("isKnownAttacker") ?: false,
+      threatMap?.getBoolean("isKnownAbuser") ?: false,
+      threatMap?.getBoolean("isThreat") ?: false,
+      threatMap?.getBoolean("isBogon") ?: false
+    )
+
+    return IpData(
+      data.getString("ip") ?: "",
+      data.getBoolean("isEu"),
+      data.getString("city") ?: "",
+      data.getString("region") ?: "",
+      data.getString("regionCode") ?: "",
+      data.getString("countryName") ?: "",
+      data.getString("countryCode") ?: "",
+      data.getString("continentName") ?: "",
+      data.getString("continentCode") ?: "",
+      data.getDouble("latitude"),
+      data.getDouble("longitude"),
+      data.getString("postal") ?: "",
+      data.getString("callingCode") ?: "",
+      data.getString("flag") ?: "",
+      data.getString("emojiFlag") ?: "",
+      data.getString("emojiUnicode") ?: "",
+      asn,
+      emptyList<IpLanguage>(),
+      currency,
+      timeZone,
+      threat,
+      data.getString("count") ?: "",
+      data.getInt("status")
+    )
   }
 }
