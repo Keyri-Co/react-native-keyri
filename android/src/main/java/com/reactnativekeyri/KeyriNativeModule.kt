@@ -112,11 +112,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val session = createSession(data)
-        val sessionId: String = data.getString("sessionId") ?: ""
+        val service = data.getMap("service")?.let { mapToService(it) } ?: throw java.lang.IllegalStateException("Must contain service")
+        val sessionId: String = data.getString("sessionId") ?: throw java.lang.IllegalStateException("Must contain sessionId")
+        val username: String = data.takeIf { it.hasKey("username") }?.getString("username") ?: ""
         val custom: String? = data.takeIf { it.hasKey("custom") }?.getString("custom")
 
-        keyriSdk.sessionSignup(session.username ?: "", sessionId, session.service, custom)
+        keyriSdk.sessionSignup(username, sessionId, service, custom)
 
         withContext(Dispatchers.Main) {
           promise.resolve("Signed up")
@@ -132,13 +133,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val sessionId: String = data.getString("sessionId") ?: ""
-        val custom = data.takeIf { it.hasKey("custom") }?.getString("custom")
+        val service = data.getMap("service")?.let { mapToService(it) } ?: throw java.lang.IllegalStateException("Must contain service")
+        val sessionId: String = data.getString("sessionId") ?: throw java.lang.IllegalStateException("Must contain sessionId")
+        val username: String = data.takeIf { it.hasKey("username") }?.getString("username") ?: ""
+        val custom: String? = data.takeIf { it.hasKey("custom") }?.getString("custom")
 
-        val session = createSession(data)
-        val account = PublicAccount(session.username ?: "", custom)
+        val account = PublicAccount(username ?: "", custom)
 
-        keyriSdk.sessionLogin(account, sessionId, session.service, custom)
+        keyriSdk.sessionLogin(account, sessionId, service, custom)
 
         withContext(Dispatchers.Main) {
           promise.resolve("Signed in")
@@ -326,15 +328,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       putString("qrLogo", session.service.qrLogo)
     }
 
-    val widgetIPDataMap = session.widgetIPData?.let { createIpData(it) }
-    val mobileIPDataMap = session.mobileIPData?.let { createIpData(it) }
-
     val resultData = WritableNativeMap().apply {
       putMap("service", serviceMap)
-      putString("username", session.username)
+
+      session.username?.let { putString("username", it) }
+
       putBoolean("isNewUser", session.isNewUser)
-      putMap("widgetIPData", widgetIPDataMap)
-      putMap("mobileIPData", mobileIPDataMap)
+      putMap("widgetIPData", session.widgetIPData?.let { createIpData(it) })
+      putMap("mobileIPData", session.mobileIPData?.let { createIpData(it) })
       putString("sessionType", session.sessionType)
       putString("custom", session.custom)
     }
@@ -419,25 +420,6 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       putString("count", ipData.count)
       putInt("status", ipData.status)
     }
-  }
-
-  private fun createSession(data: ReadableMap): Session {
-    val sessionMap = data.getMap("session")
-
-    val service = sessionMap?.getMap("service")?.let { mapToService(it) }
-      ?: throw java.lang.IllegalStateException("Must contain service")
-    val widgetIPData = sessionMap.takeIf { it.hasKey("widgetIPData") }?.getMap("widgetIPData")?.let { mapToIPData(it) }
-    val mobileIPData = sessionMap.takeIf { it.hasKey("mobileIPData") }?.getMap("mobileIPData")?.let { mapToIPData(it) }
-
-    return Session(
-      service,
-      sessionMap.takeIf { it.hasKey("username") }?.getString("username"),
-      sessionMap.getBoolean("isNewUser"),
-      widgetIPData,
-      mobileIPData,
-      sessionMap.getString("sessionType") ?: "",
-      sessionMap.takeIf { it.hasKey("custom") }?.getString("custom")
-    )
   }
 
   private fun mapToService(data: ReadableMap): Service? {
