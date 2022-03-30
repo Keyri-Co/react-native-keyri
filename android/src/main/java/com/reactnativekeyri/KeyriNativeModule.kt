@@ -6,8 +6,8 @@ import android.content.Intent
 import com.keyrico.keyrisdk.KeyriConfig
 import com.keyrico.keyrisdk.KeyriSdk
 import com.keyrico.keyrisdk.entity.PublicAccount
-import com.keyrico.keyrisdk.entity.Service
-import com.keyrico.keyrisdk.entity.Session
+import com.keyrico.keyrisdk.entity.session.Session
+import com.keyrico.keyrisdk.entity.session.service.Service
 import com.keyrico.keyrisdk.services.api.AuthMobileResponse
 import com.keyrico.keyrisdk.exception.KeyriSdkException
 import kotlinx.coroutines.CoroutineScope
