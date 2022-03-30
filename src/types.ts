@@ -1,7 +1,6 @@
 export interface KeyriInitializeOptions {
   appKey: string;
-  iosPublicKey: string;
-  androidPublicKey: string;
+  rpPublicKey: string;
   callbackUrl: string;
   allowMultipleAccounts?: boolean;
 }

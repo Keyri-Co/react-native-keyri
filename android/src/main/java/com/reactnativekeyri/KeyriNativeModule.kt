@@ -273,6 +273,25 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     }
   }
 
+  @ReactMethod
+  fun whitelabelAuth(data: ReadableMap, promise: Promise) {
+    checkIsinit()
+    keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val sessionId: String = data.getString("sessionId") ?: ""
+        val custom: String = data.getString("custom") ?: ""
+
+        keyriSdk.whitelabelAuth(sessionId, custom)
+
+        withContext(Dispatchers.Main) {
+          promise.resolve("Custom was sent")
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
+    }
+  }
+
   private fun handleException(throwable: Throwable): String {
     return if (throwable is KeyriSdkException) {
       reactContext.getString(throwable.errorMessage)
