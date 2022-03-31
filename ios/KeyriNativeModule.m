@@ -47,16 +47,7 @@ RCT_REMAP_METHOD(handleSessionId,
                  onReadSessionResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
     [self.keyri handleSessionId:sessionId completion:^(Session * _Nullable session, NSError * _Nullable error) {
         if (!error) {
-            NSMutableDictionary *resultData = [NSMutableDictionary new];
-            [resultData setValue:session.service.id forKey:@"serviceId"];
-            [resultData setValue:session.service.name forKey:@"serviceName"];
-            [resultData setValue:session.service.logo forKey:@"serviceLogo"];
-            [resultData setValue:@(session.isNewUser) forKey:@"isNewUser"];
-            
-            if (session.username) {
-                [resultData setValue:session.username forKey:@"username"];
-            }
-            resolve(resultData);
+            resolve([session dictionary]);
         } else {
             reject(@"Error", @"there was error during fetching session", error);
         }
@@ -72,6 +63,10 @@ RCT_REMAP_METHOD(sessionSignup,
     NSString *serviceLogo = [NSString stringWithFormat:@"%@", [data objectForKey:@"serviceLogo"]];
     NSString *username = [NSString stringWithFormat:@"%@", [data objectForKey:@"username"]];
     NSString *custom = [NSString stringWithFormat:@"%@", [data objectForKey:@"custom"]];
+    
+    if (serviceId == nil) { serviceId = @""; }
+    if (serviceName == nil) { serviceName = @""; }
+    if (username == nil) { username = @""; }
     
     Service *service = [[Service alloc] initWithId:serviceId name:serviceName logo:serviceLogo];
     [self.keyri sessionSignupWithUsername:username service:service custom:custom completion:^(NSError * _Nullable error) {
@@ -94,6 +89,9 @@ RCT_REMAP_METHOD(sessionLogin,
     NSString *custom = [NSString stringWithFormat:@"%@", [data objectForKey:@"custom"]];
     NSString *publicAccountCustom = [NSString stringWithFormat:@"%@", [data objectForKey:@"publicAccountCustom"]];
     
+    if (publicAccountUsername == nil) { publicAccountUsername = @""; }
+    if (serviceId == nil) { serviceId = @""; }
+    if (serviceName == nil) { serviceName = @""; }
 
     PublicAccount *account = [[PublicAccount alloc] initWithUsername:publicAccountUsername custom:publicAccountCustom];
     Service *service = [[Service alloc] initWithId:serviceId name:serviceName logo:serviceLogo];
@@ -224,6 +222,3 @@ RCT_REMAP_METHOD(whitelabelAuth,
 }
 
 @end
-
-
-
