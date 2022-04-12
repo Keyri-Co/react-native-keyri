@@ -36,7 +36,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
   private lateinit var keyriSdk: KeyriSdk
-  private lateinit var authWithScannerPromise: Promise
+  private var authWithScannerPromise: Promise? = null
 
   private val activityEventListener: ActivityEventListener =
     object : ActivityEventListener {
@@ -46,10 +46,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         resultCode: Int,
         intent: Intent?
       ) {
-        if (requestCode == KeyriSdk.AUTH_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-          authWithScannerPromise.resolve("Successfully authenticated")
-        } else {
-          authWithScannerPromise.reject("Couldn't auth with scanner")
+        if (requestCode == KeyriSdk.AUTH_REQUEST_CODE) {
+          if (resultCode == Activity.RESULT_OK) {
+            authWithScannerPromise?.resolve("Successfully authenticated")
+          } else {
+            authWithScannerPromise?.reject("Couldn't auth with scanner")
+          }
         }
       }
 
