@@ -276,7 +276,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       try {
         val sessionId: String = data.getString("sessionId") ?: ""
         val custom: String = data.getString("custom") ?: ""
-        val aesKey: String? = data.getString("aesKey")
+        val aesKey: String? = data.takeIf { it.hasKey("aesKey") }?.getString("aesKey")
 
         keyriSdk.whitelabelAuth(sessionId, custom, aesKey)
 
