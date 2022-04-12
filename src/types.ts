@@ -44,6 +44,7 @@ export interface ExtendedHeaders {
 export interface WhitelabelAuthOptions {
   sessionId: string;
   custom: string;
+  aesKey?: string;
 }
 
 export interface KeyriModule {
