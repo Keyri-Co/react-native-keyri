@@ -36,7 +36,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
   private lateinit var keyriSdk: KeyriSdk
-  private var authWithScannerPromise: Promise?
+  private var authWithScannerPromise: Promise? = null
 
   private val activityEventListener: ActivityEventListener =
     object : ActivityEventListener {
