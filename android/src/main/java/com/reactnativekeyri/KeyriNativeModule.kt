@@ -85,7 +85,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         reactContext as Context,
         KeyriConfig(
           appKey = appKey,
-          publicKey = publicKey,
+          rpPublicKey = publicKey,
           callbackUrl = callbackUrl,
           allowMultipleAccounts = allowMultipleAccounts
         )
