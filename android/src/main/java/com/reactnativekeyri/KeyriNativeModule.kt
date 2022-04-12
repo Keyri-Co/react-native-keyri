@@ -276,8 +276,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       try {
         val sessionId: String = data.getString("sessionId") ?: ""
         val custom: String = data.getString("custom") ?: ""
+        val aesKey: String? = data.getString("aesKey")
 
-        keyriSdk.whitelabelAuth(sessionId, custom)
+        keyriSdk.whitelabelAuth(sessionId, custom, aesKey)
 
         withContext(Dispatchers.Main) {
           promise.resolve("Custom was sent")
