@@ -211,7 +211,9 @@ RCT_REMAP_METHOD(whitelabelAuth,
     dispatch_async(dispatch_get_main_queue(), ^{
         NSString *sessionId = [NSString stringWithFormat:@"%@", [data objectForKey:@"sessionId"]];
         NSString *custom = [NSString stringWithFormat:@"%@", [data objectForKey:@"custom"]];
-        [self.keyri whitelabelAuthWithSessionId:sessionId custom:custom completion:^(NSError * _Nullable error) {
+        NSString *aesKey = [NSString stringWithFormat:@"%@", [data objectForKey:@"aesKey"]];
+        
+        [self.keyri whitelabelAuthWithSessionId:sessionId externalAesKey:aesKey custom:custom completion:^(NSError * _Nullable error) {
             if (!error) {
                 resolve(@"Successfully whitelabel authenticated");
             } else {
