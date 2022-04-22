@@ -4,20 +4,19 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
+import com.facebook.react.bridge.ActivityEventListener
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.KeyriSdk
-import com.keyrico.keyrisdk.exception.KeyriSdkException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ActivityEventListener
-import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableNativeMap
 
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -115,8 +114,30 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
             putString("widgetUserAgent", session.widgetUserAgent)
             putString("action", session.action)
             putString("sessionId", session.sessionId)
-            putString("ttl", session.ttl)
+            putString("sessionType", session.sessionType)
             putString("logo", session.logo)
+            putString("iPAddressMobile", session.iPAddressMobile)
+            putString("iPAddressWidget", session.iPAddressWidget)
+
+            val riskAnalytics = WritableNativeMap().also { riskAnalyticsMap ->
+              val riskAnalytics = session.riskAnalytics
+
+              val geoData = WritableNativeMap().also { geoDataMap ->
+                val geoData = riskAnalytics.geoData
+
+                geoDataMap.putString("continent_code", geoData.continent_code)
+                geoDataMap.putString("country_code", geoData.country_code)
+                geoDataMap.putString("city", geoData.city)
+                geoDataMap.putDouble("latitude", geoData.latitude)
+                geoDataMap.putDouble("longitude", geoData.longitude)
+                geoDataMap.putString("region_code", geoData.region_code)
+              }
+
+              riskAnalyticsMap.putMap("geoData", geoData)
+              riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
+            }
+
+            putMap("riskAnalytics", riskAnalytics)
             putString("salt", session.salt)
             putString("hash", session.hash)
             session.username?.let { putString("username", it) }
@@ -154,7 +175,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun easyKeyriAuth(data: ReadableMap, promise: Promise) {
     checkIsinit()
-    reactContext.getCurrentActivity()?.let { activity ->
+    reactContext.currentActivity?.let { activity ->
       authWithScannerPromise = promise
 
       val publicUserId: String =
@@ -162,16 +183,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       val secureCustom: String? = data.takeIf { it.hasKey("secureCustom") }?.getString("secureCustom")
       val publicCustom: String? = data.takeIf { it.hasKey("publicCustom") }?.getString("publicCustom")
 
-      keyriSdk.easyKeyriAuth(publicUserId, activity as AppCompatActivity, AUTH_REQUEST_CODE, secureCustom, publicCustom)
+      keyriSdk.easyKeyriAuth(activity as AppCompatActivity, AUTH_REQUEST_CODE, publicUserId, secureCustom, publicCustom)
     }
   }
 
   private fun handleException(throwable: Throwable): String {
-    return if (throwable is KeyriSdkException) {
-      reactContext.getString(throwable.errorMessage)
-    } else {
-      throwable.message ?: "Something went wrong"
-    }
+    return throwable.message ?: "Something went wrong"
   }
 
   private fun checkIsinit() {
