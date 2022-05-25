@@ -1,17 +1,18 @@
 package com.reactnativekeyri
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.KeyriSdk
+import com.keyrico.keyrisdk.ui.auth.AuthWithScannerActivity
+import com.keyrico.keyrisdk.entity.session.Session
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,8 +22,11 @@ import kotlinx.coroutines.withContext
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
-  private lateinit var keyriSdk: KeyriSdk
+  private val keyriSdk by lazy(::KeyriSdk)
+
   private var authWithScannerPromise: Promise? = null
+
+  private val sessions: MutableList<Session> = mutableListOf()
 
   private val activityEventListener: ActivityEventListener =
     object : ActivityEventListener {
@@ -54,29 +58,14 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     return "KeyriNativeModule"
   }
 
-  // Required before other methods call
-  @ReactMethod
-  fun initialize(data: ReadableMap) {
-    if (!::keyriSdk.isInitialized) {
-      val rpPublicKey = data.takeIf { it.hasKey("rpPublicKey") }?.getString("rpPublicKey")
-        ?: throw java.lang.IllegalStateException("You need to init SDK with rpPublicKey")
-
-      val serviceDomain = data.takeIf { it.hasKey("serviceDomain") }?.getString("serviceDomain")
-        ?: throw java.lang.IllegalStateException("You need to init SDK with serviceDomain")
-
-      keyriSdk = KeyriSdk(reactContext as Context, rpPublicKey, serviceDomain)
-    }
-  }
-
   @ReactMethod
   fun generateAssociationKey(publicUserId: String, promise: Promise) {
-    checkIsinit()
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        keyriSdk.generateAssociationKey(publicUserId)
+        val generatedKey = keyriSdk.generateAssociationKey(publicUserId)
 
         withContext(Dispatchers.Main) {
-          promise.resolve("Key generated")
+          promise.resolve(generatedKey)
         }
       } catch (e: Throwable) {
         promise.reject(handleException(e))
@@ -85,11 +74,44 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun getAssociationKey(publicUserId: String, promise: Promise) {
-    checkIsinit()
+  fun getUserSignature(publicUserId: String?, customSignedData: String?, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val associationKey: String? = keyriSdk.getAssociationKey(publicUserId)
+        val signature = keyriSdk.getUserSignature(publicUserId, customSignedData)
+
+        withContext(Dispatchers.Main) {
+          promise.resolve(signature)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
+    }
+  }
+
+  @ReactMethod
+  fun listAssociationKey(promise: Promise) {
+    keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val associationKeys = keyriSdk.listAssociationKey()
+
+        val resultData = WritableNativeArray()
+
+        associationKeys.forEach(resultData::pushString)
+
+        withContext(Dispatchers.Main) {
+          promise.resolve(resultData)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
+    }
+  }
+
+  @ReactMethod
+  fun getAssociationKey(publicUserId: String?, promise: Promise) {
+    keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val associationKey = keyriSdk.getAssociationKey(publicUserId)
 
         withContext(Dispatchers.Main) {
           promise.resolve(associationKey)
@@ -101,46 +123,90 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun handleSessionId(sessionId: String, promise: Promise) {
-    checkIsinit()
+  fun initiateQrSession(sessionId: String, appKey: String, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val session = keyriSdk.handleSessionId(sessionId)
+        val session = keyriSdk.initiateQrSession(sessionId, appKey)
+
+        sessions.add(session)
 
         withContext(Dispatchers.Main) {
           WritableNativeMap().apply {
-            putString("widgetEndPoint", session.widgetEndPoint)
             putString("widgetOrigin", session.widgetOrigin)
-            putString("widgetUserAgent", session.widgetUserAgent)
-            putString("action", session.action)
             putString("sessionId", session.sessionId)
-            putString("sessionType", session.sessionType)
-            putString("logo", session.logo)
             putString("iPAddressMobile", session.iPAddressMobile)
             putString("iPAddressWidget", session.iPAddressWidget)
 
-            val riskAnalytics = WritableNativeMap().also { riskAnalyticsMap ->
-              val riskAnalytics = session.riskAnalytics
+            val widgetUserAgentMap = WritableNativeMap().also {
+              val widgetUserAgent = session.widgetUserAgent
 
-              val geoData = WritableNativeMap().also { geoDataMap ->
-                val geoData = riskAnalytics.geoData
-
-                geoDataMap.putString("continent_code", geoData.continent_code)
-                geoDataMap.putString("country_code", geoData.country_code)
-                geoDataMap.putString("city", geoData.city)
-                geoDataMap.putDouble("latitude", geoData.latitude)
-                geoDataMap.putDouble("longitude", geoData.longitude)
-                geoDataMap.putString("region_code", geoData.region_code)
-              }
-
-              riskAnalyticsMap.putMap("geoData", geoData)
-              riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
+              it.putBoolean("isDesktop", widgetUserAgent.isDesktop)
+              it.putString("os", widgetUserAgent.os)
+              it.putString("browser", widgetUserAgent.browser)
             }
 
-            putMap("riskAnalytics", riskAnalytics)
-            putString("salt", session.salt)
-            putString("hash", session.hash)
-            session.username?.let { putString("username", it) }
+            val userParametersMap = WritableNativeMap().also {
+              val userParameters = session.userParameters
+
+              it.putString("origin", userParameters.origin)
+              it.putString("method", userParameters.method)
+              it.putString("environment", userParameters.environment)
+            }
+
+            val riskAnalyticsMap = WritableNativeMap().also { riskAnalyticsMap ->
+              val riskAnalytics = session.riskAnalytics
+
+              val riskAttributesMap = WritableNativeMap().also {
+                val riskAttributes = riskAnalytics.riskAttributes
+
+                it.putBoolean("isKnownAbuser", riskAttributes.isKnownAbuser)
+                it.putBoolean("isIcloudRelay", riskAttributes.isIcloudRelay)
+                it.putBoolean("isKnownAttacker", riskAttributes.isKnownAttacker)
+                it.putBoolean("isAnonymous", riskAttributes.isAnonymous)
+                it.putBoolean("isThreat", riskAttributes.isThreat)
+                it.putBoolean("isBogon", riskAttributes.isBogon)
+                it.putBoolean("blocklists", riskAttributes.blocklists)
+                it.putBoolean("isDatacenter", riskAttributes.isDatacenter)
+                it.putBoolean("isTor", riskAttributes.isTor)
+                it.putBoolean("isProxy", riskAttributes.isProxy)
+              }
+
+              val geoDataMap = WritableNativeMap().also { geoDataMap ->
+                val mobileMap = WritableNativeMap().also {
+                  val mobile = riskAnalytics.geoData.mobile
+
+                  it.putString("continentCode", mobile.continentCode)
+                  it.putString("countryCode", mobile.countryCode)
+                  it.putString("city", mobile.city)
+                  it.putDouble("latitude", mobile.latitude)
+                  it.putDouble("longitude", mobile.longitude)
+                  it.putString("regionCode", mobile.regionCode)
+                }
+
+                val browserMap = WritableNativeMap().also {
+                  val browser = riskAnalytics.geoData.browser
+
+                  it.putString("continentCode", browser.continentCode)
+                  it.putString("countryCode", browser.countryCode)
+                  it.putString("city", browser.city)
+                  it.putDouble("latitude", browser.latitude)
+                  it.putDouble("longitude", browser.longitude)
+                  it.putString("regionCode", browser.regionCode)
+                }
+
+                geoDataMap.putMap("mobile", mobileMap)
+                geoDataMap.putMap("browser", browserMap)
+              }
+
+              riskAnalyticsMap.putMap("riskAttributes", riskAttributesMap)
+              riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
+              riskAnalyticsMap.putString("riskFlagString", riskAnalytics.riskFlagString)
+              riskAnalyticsMap.putMap("geoData", geoDataMap)
+            }
+
+            putMap("widgetUserAgent", widgetUserAgentMap)
+            putMap("userParameters", userParametersMap)
+            putMap("riskAnalytics", riskAnalyticsMap)
           }.let(promise::resolve)
         }
       } catch (e: Throwable) {
@@ -150,21 +216,16 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun challengeSession(data: ReadableMap, promise: Promise) {
-    checkIsinit()
+  fun initializeDefaultScreen(sessionId: String, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val publicUserId: String =
-          data.getString("publicUserId") ?: throw java.lang.IllegalStateException("You need to provide publicUserId")
-        val sessionId: String =
-          data.getString("sessionId") ?: throw java.lang.IllegalStateException("You need to provide sessionId")
-        val secureCustom: String? = data.takeIf { it.hasKey("secureCustom") }?.getString("secureCustom")
-        val publicCustom: String? = data.takeIf { it.hasKey("publicCustom") }?.getString("publicCustom")
+        val session = sessions.firstOrNull { it.sessionId == sessionId }
+          ?: throw java.lang.IllegalStateException("Session not found")
 
-        keyriSdk.challengeSession(publicUserId, sessionId, secureCustom, publicCustom)
+        val isApproved = keyriSdk.initializeDefaultScreen(reactContext.currentActivity?.fragmentManager, session)
 
         withContext(Dispatchers.Main) {
-          promise.resolve("Authenticated")
+          promise.resolve(isApproved)
         }
       } catch (e: Throwable) {
         promise.reject(handleException(e))
@@ -173,26 +234,66 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun confirmSession(sessionId: String, publicUserId: String?, payload: String, promise: Promise) {
+    finishSession(sessionId, publicUserId, payload, true, promise)
+  }
+
+  @ReactMethod
+  fun denySession(sessionId: String, publicUserId: String?, payload: String, promise: Promise) {
+    finishSession(sessionId, publicUserId, payload, false, promise)
+  }
+
+  @ReactMethod
   fun easyKeyriAuth(data: ReadableMap, promise: Promise) {
-    checkIsinit()
     reactContext.currentActivity?.let { activity ->
       authWithScannerPromise = promise
 
       val publicUserId: String =
         data.getString("publicUserId") ?: throw java.lang.IllegalStateException("You need to provide publicUserId")
-      val secureCustom: String? = data.takeIf { it.hasKey("secureCustom") }?.getString("secureCustom")
-      val publicCustom: String? = data.takeIf { it.hasKey("publicCustom") }?.getString("publicCustom")
+      val appKey: String =
+        data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
+      val payload: String =
+        data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
 
-      keyriSdk.easyKeyriAuth(activity as AppCompatActivity, AUTH_REQUEST_CODE, publicUserId, secureCustom, publicCustom)
+      val intent = Intent(activity, AuthWithScannerActivity::class.java).apply {
+        putExtra(AuthWithScannerActivity.APP_KEY, appKey)
+        putExtra(AuthWithScannerActivity.PUBLIC_USER_ID, publicUserId)
+        putExtra(AuthWithScannerActivity.PAYLOAD, payload)
+      }
+
+      activity.startActivityForResult(intent, AUTH_REQUEST_CODE)
+    }
+  }
+
+  private fun finishSession(
+    sessionId: String,
+    publicUserId: String?,
+    payload: String,
+    isApproved: Boolean,
+    promise: Promise
+  ) {
+    keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val session = sessions.firstOrNull { it.sessionId == sessionId }
+          ?: throw java.lang.IllegalStateException("Session not found")
+
+        val isSuccess = if (isApproved) {
+          session.confirm(publicUserId, payload)
+        } else {
+          session.deny(publicUserId, payload)
+        }
+
+        withContext(Dispatchers.Main) {
+          promise.resolve(isSuccess)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
     }
   }
 
   private fun handleException(throwable: Throwable): String {
     return throwable.message ?: "Something went wrong"
-  }
-
-  private fun checkIsinit() {
-    if (!::keyriSdk.isInitialized) throw java.lang.IllegalStateException("You need to call initSdk(...) before")
   }
 
   companion object {
