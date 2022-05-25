@@ -2,6 +2,7 @@ package com.reactnativekeyri
 
 import android.app.Activity
 import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -138,70 +139,70 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
             putString("iPAddressWidget", session.iPAddressWidget)
 
             val widgetUserAgentMap = WritableNativeMap().also {
-              val widgetUserAgent = session.widgetUserAgent
-
-              it.putBoolean("isDesktop", widgetUserAgent.isDesktop)
-              it.putString("os", widgetUserAgent.os)
-              it.putString("browser", widgetUserAgent.browser)
+              session.widgetUserAgent?.let { widgetUserAgent ->
+                it.putBoolean("isDesktop", widgetUserAgent.isDesktop)
+                it.putString("os", widgetUserAgent.os)
+                it.putString("browser", widgetUserAgent.browser)
+              }
             }
 
             val userParametersMap = WritableNativeMap().also {
-              val userParameters = session.userParameters
-
-              it.putString("origin", userParameters.origin)
-              it.putString("method", userParameters.method)
-              it.putString("environment", userParameters.environment)
+              session.userParameters?.let { userParameters ->
+                it.putString("origin", userParameters.origin)
+                it.putString("method", userParameters.method)
+                it.putString("environment", userParameters.environment)
+              }
             }
 
             val riskAnalyticsMap = WritableNativeMap().also { riskAnalyticsMap ->
-              val riskAnalytics = session.riskAnalytics
-
-              val riskAttributesMap = WritableNativeMap().also {
-                val riskAttributes = riskAnalytics.riskAttributes
-
-                it.putBoolean("isKnownAbuser", riskAttributes.isKnownAbuser)
-                it.putBoolean("isIcloudRelay", riskAttributes.isIcloudRelay)
-                it.putBoolean("isKnownAttacker", riskAttributes.isKnownAttacker)
-                it.putBoolean("isAnonymous", riskAttributes.isAnonymous)
-                it.putBoolean("isThreat", riskAttributes.isThreat)
-                it.putBoolean("isBogon", riskAttributes.isBogon)
-                it.putBoolean("blocklists", riskAttributes.blocklists)
-                it.putBoolean("isDatacenter", riskAttributes.isDatacenter)
-                it.putBoolean("isTor", riskAttributes.isTor)
-                it.putBoolean("isProxy", riskAttributes.isProxy)
-              }
-
-              val geoDataMap = WritableNativeMap().also { geoDataMap ->
-                val mobileMap = WritableNativeMap().also {
-                  val mobile = riskAnalytics.geoData.mobile
-
-                  it.putString("continentCode", mobile.continentCode)
-                  it.putString("countryCode", mobile.countryCode)
-                  it.putString("city", mobile.city)
-                  it.putDouble("latitude", mobile.latitude)
-                  it.putDouble("longitude", mobile.longitude)
-                  it.putString("regionCode", mobile.regionCode)
+              session.riskAnalytics?.let { riskAnalytics ->
+                val riskAttributesMap = WritableNativeMap().also {
+                  riskAnalytics.riskAttributes?.let { riskAttributes ->
+                    it.putBoolean("isKnownAbuser", riskAttributes.isKnownAbuser ?: false)
+                    it.putBoolean("isIcloudRelay", riskAttributes.isIcloudRelay ?: false)
+                    it.putBoolean("isKnownAttacker", riskAttributes.isKnownAttacker ?: false)
+                    it.putBoolean("isAnonymous", riskAttributes.isAnonymous ?: false)
+                    it.putBoolean("isThreat", riskAttributes.isThreat ?: false)
+                    it.putBoolean("isBogon", riskAttributes.isBogon ?: false)
+                    it.putBoolean("blocklists", riskAttributes.blocklists ?: false)
+                    it.putBoolean("isDatacenter", riskAttributes.isDatacenter ?: false)
+                    it.putBoolean("isTor", riskAttributes.isTor ?: false)
+                    it.putBoolean("isProxy", riskAttributes.isProxy ?: false)
+                  }
                 }
 
-                val browserMap = WritableNativeMap().also {
-                  val browser = riskAnalytics.geoData.browser
+                val geoDataMap = WritableNativeMap().also { geoDataMap ->
+                  val mobileMap = WritableNativeMap().also {
+                    riskAnalytics.geoData?.mobile?.let { mobile ->
+                      it.putString("continentCode", mobile.continentCode)
+                      it.putString("countryCode", mobile.countryCode)
+                      it.putString("city", mobile.city)
+                      it.putDouble("latitude", mobile.latitude)
+                      it.putDouble("longitude", mobile.longitude)
+                      it.putString("regionCode", mobile.regionCode)
+                    }
+                  }
 
-                  it.putString("continentCode", browser.continentCode)
-                  it.putString("countryCode", browser.countryCode)
-                  it.putString("city", browser.city)
-                  it.putDouble("latitude", browser.latitude)
-                  it.putDouble("longitude", browser.longitude)
-                  it.putString("regionCode", browser.regionCode)
+                  val browserMap = WritableNativeMap().also {
+                    riskAnalytics.geoData?.browser?.let { browser ->
+                      it.putString("continentCode", browser.continentCode)
+                      it.putString("countryCode", browser.countryCode)
+                      it.putString("city", browser.city)
+                      it.putDouble("latitude", browser.latitude)
+                      it.putDouble("longitude", browser.longitude)
+                      it.putString("regionCode", browser.regionCode)
+                    }
+                  }
+
+                  geoDataMap.putMap("mobile", mobileMap)
+                  geoDataMap.putMap("browser", browserMap)
                 }
 
-                geoDataMap.putMap("mobile", mobileMap)
-                geoDataMap.putMap("browser", browserMap)
+                riskAnalyticsMap.putMap("riskAttributes", riskAttributesMap)
+                riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
+                riskAnalyticsMap.putString("riskFlagString", riskAnalytics.riskFlagString)
+                riskAnalyticsMap.putMap("geoData", geoDataMap)
               }
-
-              riskAnalyticsMap.putMap("riskAttributes", riskAttributesMap)
-              riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
-              riskAnalyticsMap.putString("riskFlagString", riskAnalytics.riskFlagString)
-              riskAnalyticsMap.putMap("geoData", geoDataMap)
             }
 
             putMap("widgetUserAgent", widgetUserAgentMap)
@@ -222,7 +223,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         val session = sessions.firstOrNull { it.sessionId == sessionId }
           ?: throw java.lang.IllegalStateException("Session not found")
 
-        val isApproved = keyriSdk.initializeDefaultScreen(reactContext.currentActivity?.fragmentManager, session)
+        val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
+
+        val isApproved = keyriSdk.initializeDefaultScreen(fm, session)
 
         withContext(Dispatchers.Main) {
           promise.resolve(isApproved)
