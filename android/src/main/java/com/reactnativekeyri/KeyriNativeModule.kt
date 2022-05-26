@@ -127,7 +127,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun initiateQrSession(sessionId: String, appKey: String, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val session = keyriSdk.initiateQrSession(sessionId, appKey)
+        val session = keyriSdk.initiateQrSession(sessionId, appKey).getOrThrow()
 
         sessions.add(session)
 
@@ -284,7 +284,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
           session.confirm(publicUserId, payload)
         } else {
           session.deny(publicUserId, payload)
-        }
+        }.getOrThrow()
 
         withContext(Dispatchers.Main) {
           promise.resolve(isSuccess)
