@@ -11,7 +11,7 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
-import com.keyrico.keyrisdk.KeyriSdk
+import com.keyrico.keyrisdk.Keyri
 import com.keyrico.keyrisdk.ui.auth.AuthWithScannerActivity
 import com.keyrico.keyrisdk.entity.session.Session
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
-  private val keyriSdk by lazy(::KeyriSdk)
+  private val keyri by lazy(::Keyri)
 
   private var authWithScannerPromise: Promise? = null
 
@@ -63,7 +63,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun generateAssociationKey(publicUserId: String, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val generatedKey = keyriSdk.generateAssociationKey(publicUserId)
+        val generatedKey = keyri.generateAssociationKey(publicUserId)
 
         withContext(Dispatchers.Main) {
           promise.resolve(generatedKey)
@@ -78,7 +78,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun getUserSignature(publicUserId: String?, customSignedData: String?, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val signature = keyriSdk.getUserSignature(publicUserId, customSignedData)
+        val signature = keyri.getUserSignature(publicUserId, customSignedData)
 
         withContext(Dispatchers.Main) {
           promise.resolve(signature)
@@ -93,7 +93,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun listAssociationKey(promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val associationKeys = keyriSdk.listAssociationKey()
+        val associationKeys = keyri.listAssociationKey()
 
         val resultData = WritableNativeArray()
 
@@ -112,7 +112,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun getAssociationKey(publicUserId: String?, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val associationKey = keyriSdk.getAssociationKey(publicUserId)
+        val associationKey = keyri.getAssociationKey(publicUserId)
 
         withContext(Dispatchers.Main) {
           promise.resolve(associationKey)
@@ -124,10 +124,18 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun initiateQrSession(sessionId: String, appKey: String, promise: Promise) {
+  fun initiateQrSession(data: ReadableMap, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val session = keyriSdk.initiateQrSession(sessionId, appKey).getOrThrow()
+        val appKey: String =
+          data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
+        val sessionId: String =
+          data.getString("sessionId") ?: throw java.lang.IllegalStateException("You need to provide sessionId")
+        val payload: String =
+          data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
+        val publicUserId: String? = data.getString("publicUserId")
+
+        val session = keyri.initiateQrSession(appKey, sessionId, payload, publicUserId).getOrThrow()
 
         sessions.add(session)
 
@@ -225,7 +233,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
 
-        val isApproved = keyriSdk.initializeDefaultScreen(fm, session)
+        val isApproved = keyri.initializeDefaultScreen(fm, session)
 
         withContext(Dispatchers.Main) {
           promise.resolve(isApproved)
@@ -237,13 +245,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun confirmSession(sessionId: String, publicUserId: String?, payload: String, promise: Promise) {
-    finishSession(sessionId, publicUserId, payload, true, promise)
+  fun confirmSession(sessionId: String, promise: Promise) {
+    finishSession(sessionId, true, promise)
   }
 
   @ReactMethod
-  fun denySession(sessionId: String, publicUserId: String?, payload: String, promise: Promise) {
-    finishSession(sessionId, publicUserId, payload, false, promise)
+  fun denySession(sessionId: String, promise: Promise) {
+    finishSession(sessionId, false, promise)
   }
 
   @ReactMethod
@@ -268,22 +276,16 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     }
   }
 
-  private fun finishSession(
-    sessionId: String,
-    publicUserId: String?,
-    payload: String,
-    isApproved: Boolean,
-    promise: Promise
-  ) {
+  private fun finishSession(sessionId: String, isApproved: Boolean, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val session = sessions.firstOrNull { it.sessionId == sessionId }
           ?: throw java.lang.IllegalStateException("Session not found")
 
         val isSuccess = if (isApproved) {
-          session.confirm(publicUserId, payload)
+          session.confirm()
         } else {
-          session.deny(publicUserId, payload)
+          session.deny()
         }.getOrThrow()
 
         withContext(Dispatchers.Main) {
