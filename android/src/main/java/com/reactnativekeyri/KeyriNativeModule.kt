@@ -327,7 +327,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       putMap("iosAppSettings", iosAppSettingsMap)
       session.service.subDomainName?.let { putString("subDomainName", it) }
       putMap("originalDomain", originalDomainMap)
-      session.service.id?.let { putString("_id", it) }
+      session.service.id?.let { putString("id", it) }
       session.service.name?.let { putString("name", it) }
       session.service.logo?.let { putString("logo", it) }
       session.service.createdAt?.let { putString("createdAt", it) }
