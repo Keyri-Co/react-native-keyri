@@ -107,7 +107,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-
+    //string[]
   @ReactMethod
   fun getAssociationKey(publicUserId: String?, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
@@ -122,9 +122,10 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-
+//string
   @ReactMethod
   fun initiateQrSession(data: ReadableMap, promise: Promise) {
+    //{appKey: String,sessionId: String,payload: String,publicUserId: String?}
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val appKey: String =
@@ -223,7 +224,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-
+//{session}
   @ReactMethod
   fun initializeDefaultScreen(sessionId: String, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
@@ -248,7 +249,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun confirmSession(sessionId: String, promise: Promise) {
     finishSession(sessionId, true, promise)
   }
-
+//boolean
   @ReactMethod
   fun denySession(sessionId: String, promise: Promise) {
     finishSession(sessionId, false, promise)
