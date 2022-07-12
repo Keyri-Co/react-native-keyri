@@ -73,7 +73,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-
+//promise<string>
   @ReactMethod
   fun getUserSignature(publicUserId: String?, customSignedData: String?, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
@@ -88,7 +88,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-
+//Promise<string>
   @ReactMethod
   fun listAssociationKey(promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
@@ -244,7 +244,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-
+//Promice<boolean>
   @ReactMethod
   fun confirmSession(sessionId: String, promise: Promise) {
     finishSession(sessionId, true, promise)
@@ -254,7 +254,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun denySession(sessionId: String, promise: Promise) {
     finishSession(sessionId, false, promise)
   }
-
+//boolean
   @ReactMethod
   fun easyKeyriAuth(data: ReadableMap, promise: Promise) {
     reactContext.currentActivity?.let { activity ->
@@ -277,6 +277,22 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     }
   }
 
+/* @ReactMethod
+    fun initializeDefaultScreen(sessionId: String, promise: Promise) {
+      keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val session = sessions.firstOrNull { it.sessionId == sessionId }
+          ?: throw java.lang.IllegalStateException("Session not found")
+          val isApproved = keyri.initializeDefaultScreen(supportFragmentManager, session)
+          withContext(Dispatchers.Main) {
+          promise.resolve(isApproved)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
+    }
+    }
+*/
   private fun finishSession(sessionId: String, isApproved: Boolean, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {

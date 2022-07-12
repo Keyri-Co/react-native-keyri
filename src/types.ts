@@ -30,6 +30,57 @@ export interface KeyriSession {
   serviceLogo?: string;
   username?: string;
   isNewUser: boolean;
+
+  widgetOrigin: string;
+  sessionId: string;
+  iPAddressMobile: string;
+  iPAddressWidget: string;
+  widgetUserAgent : {
+    isDesktop: boolean;
+    os: string;
+    browser: string
+   };
+   userParameters: {
+    origin: string;
+    method: string;
+    environment: string
+   };
+   riskAnalytics: {
+    riskFlagString: string;
+    riskStatus: string;
+    riskAttributes: {
+      isKnownAbuser: boolean;
+      isIcloudRelay: boolean;
+      isKnownAttacker: boolean;
+      isAnonymous: boolean;
+      isThreat: boolean;
+      isBogon: boolean;
+      blocklists: boolean;
+      isDatacenter: boolean;
+      isTor: boolean;
+      isProxy: boolean
+    };
+    geoDataMap: {
+      mobile: {
+        continentCode: string;
+        countryCode: string;
+        city: string;
+        latitude: number;
+        longitude: number;
+        regionCode: number
+      };
+      browser: {
+        continentCode: string;
+        countryCode: string;
+        city: string;
+        latitude: number;
+        longitude: number;
+        regionCode: number
+      }
+    }
+   }
+     
+    
 }
 
 export interface KeyriPublicAccount {
@@ -48,31 +99,25 @@ export interface WhitelabelAuthOptions {
 }
 
 export interface KeyriModule {
-  initialize: (options: KeyriInitializeOptions) => void;
-
-  sessionLogin: (options: KeyriSessionLoginOptions) => Promise<void>;
-
-  sessionSignup: (options: KeyriSessionSignupOptions) => Promise<void>;
-
-  handleSessionId: (sessionId: string) => Promise<KeyriSession>;
-
-  directLogin: <RPServerResponse = unknown>(
-    username: string,
-    headers?: ExtendedHeaders,
-    custom?: string
-  ) => Promise<RPServerResponse>;
-
-  directSignup: <RPServerResponse = unknown>(
-    username: string,
-    headers?: ExtendedHeaders,
-    custom?: string
-  ) => Promise<RPServerResponse>;
-
-  getAccounts: () => Promise<KeyriPublicAccount[]>;
-
-  easyKeyriAuth: (custom?: string) => Promise<void>;
-
-  removeAccount: (username: string, custom?: string) => Promise<void>;
-
-  whitelabelAuth:(options: WhitelabelAuthOptions) => Promise<void>;
+  
+  generateAssociationKey:(publicUserId: string) => Promise<string>;
+  getUserSignature: (publicUserId?: string, customSignedData?: string) => Promise<string>;
+  listAssociationKey: () => Promise<string[]>;
+  getAssociationKey: (publicUserId?: string) => Promise<string>;
+  initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
+  initializeDefaultScreen: (sessionId: string) => Promise<boolean>;
+  confirmSession: (sessionId: string) => void;
+  denySession: (sessionId: string) => void;
+  easyKeyriAuth: (data: EasyKeyriAuthOptions) => void
+}
+export interface InitiateQrSessionOptions {
+  appKey: string;
+  sessionId: string;
+  payload: string;
+  publicUserId?: string;
+}
+export interface EasyKeyriAuthOptions{
+  publicUserId: string;
+  appKey: string;
+  payload: string;
 }

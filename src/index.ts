@@ -1,9 +1,9 @@
 import { NativeModules, Platform } from 'react-native';
 import type {
-  KeyriInitializeOptions,
+  InitiateQrSessionOptions,
+  EasyKeyriAuthOptions,
   KeyriModule,
-  KeyriSessionLoginOptions,
-  KeyriSessionSignupOptions,
+ 
 } from './types';
 
 const LINKING_ERROR =
@@ -16,51 +16,38 @@ const Module = NativeModules.KeyriNativeModule;
 
 if (!Module) throw new Error(LINKING_ERROR);
 
-const Keyri: KeyriModule = {
-  initialize: (options: KeyriInitializeOptions) => {
-    Module.initialize({
-      appKey: options.appKey,
-      callbackUrl: options.callbackUrl,
-      allowMultipleAccounts: options.allowMultipleAccounts,
-      publicKey: options.rpPublicKey
-    });
-  },
+ const Keyri: KeyriModule = {
+  generateAssociationKey:(publicUserId: string) => {
+    return Module.generateAssociationKey(publicUserId)
+   },
+  getUserSignature: (publicUserId?: string, customSignedData?: string) => {
+    return Module.getUserSignature(publicUserId, customSignedData)
+   },
+   listAssociationKey: () => {
+    return Module.listAssociationKey()
+   },
 
-  handleSessionId: (sessionId) => {
-    return Module.handleSessionId(sessionId);
-  },
+   getAssociationKey: (publicUserId?: string) => {
+    return Module.getAssociationKey(publicUserId)
+   },
 
-  sessionLogin: (options: KeyriSessionLoginOptions) => {
-    return Module.sessionLogin(options);
-  },
+   initiateQrSession: (options: InitiateQrSessionOptions) => {
+    return Module.initiateQrSession(options)
+   },
+   initializeDefaultScreen: (sessionId: string) => {
+    return Module.initializeDefaultScreen(sessionId)
+   },
+   confirmSession: (sessionId: string) => {
+    return Module.confirmSession(sessionId)
+   },
+   denySession: (sessionId: string) => {
+    return Module.denySession(sessionId)
+   },
+   easyKeyriAuth: (data: EasyKeyriAuthOptions) => {
+    return Module.easyKeyriAuth(data)
+   },
+   
 
-  sessionSignup: (options: KeyriSessionSignupOptions) => {
-    return Module.sessionSignup(options);
-  },
-
-  directLogin: (username, headers = {}, custom) => {
-    return Module.directLogin(username, headers, custom ?? null);
-  },
-
-  directSignup: (username, headers = {}, custom) => {
-    return Module.directSignup(username, headers, custom ?? null);
-  },
-
-  getAccounts: () => {
-    return Module.getAccounts();
-  },
-
-  easyKeyriAuth: (custom) => {
-    return Module.easyKeyriAuth(custom ?? null);
-  },
-
-  removeAccount: (username, custom) => {
-    return Module.removeAccount(username, custom ?? null);
-  },
-
-  whitelabelAuth: (options) => {
-    return Module.whitelabelAuth(options);
-  }
 };
 
 export default Keyri;

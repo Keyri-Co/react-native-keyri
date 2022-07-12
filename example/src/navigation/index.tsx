@@ -22,7 +22,11 @@ const RootNavigator: React.FC<RootNavigatorProps> = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Initial" component={InitialScreen} />
+        <Stack.Screen
+          name="Initial"
+          component={InitialScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen name="LogIn" component={LogInScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
       </Stack.Navigator>

@@ -1,5 +1,5 @@
 import Keyri from 'react-native-keyri';
-
+import { URL, URLSearchParams } from 'react-native-url-polyfill';
 const BASE_URL = 'http://18.208.184.185:5000';
 
 export function initializeKeyri() {
@@ -11,4 +11,19 @@ export function initializeKeyri() {
     androidPublicKey:
       'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE56eKjQNfIbfWYCBQLCF2yV6VySbHMzuc07JYCOS6juySvUWE/ubYvw9pJGAgQfmNr2n4LAQggoapHgfHkTNqbg==',
   });
+}
+export interface ISearchParam {
+  aesKey: any;
+  issuer: string;
+  secret: string;
+  sessionId: string;
+  data: string;
+}
+export function parseUrlParams(url: string) {
+  const search = new URLSearchParams(new URL(url).search);
+
+  const params: ISearchParam = Array.from(search.entries()).reduce((accum, [a, b]) => {
+    return { ...accum, [a]: b };
+  }, {});
+  return params;
 }
