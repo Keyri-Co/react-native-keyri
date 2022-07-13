@@ -75,7 +75,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 //promise<string>
   @ReactMethod
-  fun getUserSignature(publicUserId: String?, customSignedData: String?, promise: Promise) {
+  fun getUserSignature(publicUserId: String?, customSignedData: String, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val signature = keyri.getUserSignature(publicUserId, customSignedData)

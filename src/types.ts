@@ -78,9 +78,7 @@ export interface KeyriSession {
         regionCode: number
       }
     }
-   }
-     
-    
+  };
 }
 
 export interface KeyriPublicAccount {
