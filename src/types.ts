@@ -35,17 +35,17 @@ export interface KeyriSession {
   sessionId: string;
   iPAddressMobile: string;
   iPAddressWidget: string;
-  widgetUserAgent : {
+  widgetUserAgent: {
     isDesktop: boolean;
     os: string;
-    browser: string
-   };
-   userParameters: {
+    browser: string;
+  };
+  userParameters: {
     origin: string;
     method: string;
-    environment: string
-   };
-   riskAnalytics: {
+    environment: string;
+  };
+  riskAnalytics: {
     riskFlagString: string;
     riskStatus: string;
     riskAttributes: {
@@ -58,7 +58,7 @@ export interface KeyriSession {
       blocklists: boolean;
       isDatacenter: boolean;
       isTor: boolean;
-      isProxy: boolean
+      isProxy: boolean;
     };
     geoDataMap: {
       mobile: {
@@ -67,7 +67,7 @@ export interface KeyriSession {
         city: string;
         latitude: number;
         longitude: number;
-        regionCode: number
+        regionCode: number;
       };
       browser: {
         continentCode: string;
@@ -75,9 +75,9 @@ export interface KeyriSession {
         city: string;
         latitude: number;
         longitude: number;
-        regionCode: number
-      }
-    }
+        regionCode: number;
+      };
+    };
   };
 }
 
@@ -97,16 +97,20 @@ export interface WhitelabelAuthOptions {
 }
 
 export interface KeyriModule {
-  
-  generateAssociationKey:(publicUserId: string) => Promise<string>;
-  getUserSignature: (publicUserId?: string, customSignedData?: string) => Promise<string>;
+  generateAssociationKey: (publicUserId: string) => Promise<string>;
+  getUserSignature: (
+    publicUserId?: string,
+    customSignedData?: string
+  ) => Promise<string>;
   listAssociationKey: () => Promise<string[]>;
   getAssociationKey: (publicUserId?: string) => Promise<string>;
-  initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
+  initiateQrSession: (
+    options: InitiateQrSessionOptions
+  ) => Promise<KeyriSession>;
   initializeDefaultScreen: (sessionId: string) => Promise<boolean>;
   confirmSession: (sessionId: string) => void;
   denySession: (sessionId: string) => void;
-  easyKeyriAuth: (data: EasyKeyriAuthOptions) => void
+  easyKeyriAuth: (data: EasyKeyriAuthOptions) => void;
 }
 export interface InitiateQrSessionOptions {
   appKey: string;
@@ -114,7 +118,7 @@ export interface InitiateQrSessionOptions {
   payload: string;
   publicUserId?: string;
 }
-export interface EasyKeyriAuthOptions{
+export interface EasyKeyriAuthOptions {
   publicUserId: string;
   appKey: string;
   payload: string;

@@ -22,8 +22,15 @@ export interface ISearchParam {
 export function parseUrlParams(url: string) {
   const search = new URLSearchParams(new URL(url).search);
 
-  const params: ISearchParam = Array.from(search.entries()).reduce((accum, [a, b]) => {
-    return { ...accum, [a]: b };
-  }, {});
+  const params: ISearchParam = Array.from(search.entries()).reduce(
+    (accum, [a, b]) => {
+      return { ...accum, [a]: b };
+    },
+    {}
+  );
   return params;
+}
+export enum ILoginType {
+  custom = 'custom',
+  default = 'default',
 }
