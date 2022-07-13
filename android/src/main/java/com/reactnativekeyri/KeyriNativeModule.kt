@@ -73,7 +73,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-//promise<string>
+
   @ReactMethod
   fun getUserSignature(publicUserId: String?, customSignedData: String, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
@@ -88,7 +88,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-//Promise<string>
+
   @ReactMethod
   fun listAssociationKey(promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
@@ -107,7 +107,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-    //string[]
+
   @ReactMethod
   fun getAssociationKey(publicUserId: String?, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
@@ -122,21 +122,18 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-//string
+
   @ReactMethod
   fun initiateQrSession(data: ReadableMap, promise: Promise) {
-    //{appKey: String,sessionId: String,payload: String,publicUserId: String?}
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val appKey: String =
           data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
         val sessionId: String =
           data.getString("sessionId") ?: throw java.lang.IllegalStateException("You need to provide sessionId")
-        val payload: String =
-          data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
         val publicUserId: String? = data.getString("publicUserId")
 
-        val session = keyri.initiateQrSession(appKey, sessionId, payload, publicUserId).getOrThrow()
+        val session = keyri.initiateQrSession(appKey, sessionId, publicUserId).getOrThrow()
 
         sessions.add(session)
 
@@ -224,9 +221,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-//{session}
+
   @ReactMethod
-  fun initializeDefaultScreen(sessionId: String, promise: Promise) {
+  fun initializeDefaultScreen(sessionId: String, payload: String, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val session = sessions.firstOrNull { it.sessionId == sessionId }
@@ -234,7 +231,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
 
-        val isApproved = keyri.initializeDefaultScreen(fm, session)
+        val isApproved = keyri.initializeDefaultScreen(fm, session, payload)
 
         withContext(Dispatchers.Main) {
           promise.resolve(isApproved)
@@ -244,24 +241,23 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       }
     }
   }
-//Promice<boolean>
+
   @ReactMethod
-  fun confirmSession(sessionId: String, promise: Promise) {
-    finishSession(sessionId, true, promise)
+  fun confirmSession(sessionId: String, payload: String, promise: Promise) {
+    finishSession(sessionId, payload, true, promise)
   }
-//boolean
+
   @ReactMethod
-  fun denySession(sessionId: String, promise: Promise) {
-    finishSession(sessionId, false, promise)
+  fun denySession(sessionId: String, payload: String, promise: Promise) {
+    finishSession(sessionId, payload, false, promise)
   }
-//boolean
+
   @ReactMethod
   fun easyKeyriAuth(data: ReadableMap, promise: Promise) {
     reactContext.currentActivity?.let { activity ->
       authWithScannerPromise = promise
 
-      val publicUserId: String =
-        data.getString("publicUserId") ?: throw java.lang.IllegalStateException("You need to provide publicUserId")
+      val publicUserId: String? = data.getString("publicUserId")
       val appKey: String =
         data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
       val payload: String =
@@ -277,32 +273,16 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     }
   }
 
-/* @ReactMethod
-    fun initializeDefaultScreen(sessionId: String, promise: Promise) {
-      keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val session = sessions.firstOrNull { it.sessionId == sessionId }
-          ?: throw java.lang.IllegalStateException("Session not found")
-          val isApproved = keyri.initializeDefaultScreen(supportFragmentManager, session)
-          withContext(Dispatchers.Main) {
-          promise.resolve(isApproved)
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
-    }
-    }
-*/
-  private fun finishSession(sessionId: String, isApproved: Boolean, promise: Promise) {
+  private fun finishSession(sessionId: String, payload: String, isApproved: Boolean, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
         val session = sessions.firstOrNull { it.sessionId == sessionId }
           ?: throw java.lang.IllegalStateException("Session not found")
 
         val isSuccess = if (isApproved) {
-          session.confirm()
+          session.confirm(payload)
         } else {
-          session.deny()
+          session.deny(payload)
         }.getOrThrow()
 
         withContext(Dispatchers.Main) {
