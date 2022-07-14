@@ -154,9 +154,8 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
             val userParametersMap = WritableNativeMap().also {
               session.userParameters?.let { userParameters ->
-                it.putString("origin", userParameters.origin)
-                it.putString("method", userParameters.method)
-                it.putString("environment", userParameters.environment)
+                it.putString("custom", userParameters.custom)
+               
               }
             }
 

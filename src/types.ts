@@ -41,9 +41,7 @@ export interface KeyriSession {
     browser: string;
   };
   userParameters: {
-    origin: string;
-    method: string;
-    environment: string;
+    custom: string | null;
   };
   riskAnalytics: {
     riskFlagString: string;
