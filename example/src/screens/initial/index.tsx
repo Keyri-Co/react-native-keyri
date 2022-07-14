@@ -44,9 +44,8 @@ const InitialScreen: React.FC<InitialScreenProps> = ({ route }) => {
         const session = await Keyri.initiateQrSession(options);
         if (session) {
           if (type === ILoginType.default) {
-            setLoading(false)
+            setLoading(false);
             await Keyri.initializeDefaultScreen(sessionId, 'payload');
-            
           } else {
             setSession(session);
             setCustomLoginVisible(true);
