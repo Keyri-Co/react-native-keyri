@@ -19,7 +19,7 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.5)
-  - keyri-pod (0.1.26)
+  - keyri-pod (1.0.7)
   - Permission-Camera (3.4.0):
     - RNPermissions
   - RCTRequired (0.63.4)
@@ -197,9 +197,9 @@ PODS:
   - react-native-camera/RN (4.2.1):
     - React-Core
   - react-native-keyri (0.1.0):
-    - keyri-pod
+    - keyri-pod (~> 1.0.7)
     - React-Core
-  - react-native-safe-area-context (3.4.0):
+  - react-native-safe-area-context (3.4.1):
     - React-Core
   - React-RCTActionSheet (0.63.4):
     - React-Core/RCTActionSheetHeaders (= 0.63.4)
@@ -263,7 +263,7 @@ PODS:
     - React-jsi (= 0.63.4)
   - RNPermissions (3.4.0):
     - React-Core
-  - RNScreens (3.11.1):
+  - RNScreens (3.15.0):
     - React-Core
     - React-RCTImage
   - Yoga (1.14.0)
@@ -382,7 +382,7 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: f2c97f2529dd79c083355182cc158c9f98f4bd6e
   Folly: b73c3869541e86821df3c387eb0af5f65addfab4
   glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
-  keyri-pod: bdb73f8562459cd4b786e2612e5e481221a54f21
+  keyri-pod: b4fbdc05368a071ec72abc24e5be2aaf277e4e1e
   Permission-Camera: 40f43388fa8a648dc6ced73f145ef329ab3ff3fe
   RCTRequired: 082f10cd3f905d6c124597fd1c14f6f2655ff65e
   RCTTypeSafety: 8c9c544ecbf20337d069e4ae7fd9a377aadf504b
@@ -395,8 +395,8 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
   react-native-camera: 3eae183c1d111103963f3dd913b65d01aef8110f
-  react-native-keyri: efcaf3d0a8c039ef5545773149fe250903f938c1
-  react-native-safe-area-context: f4f7cc09d81ae2d39dfd13e764d718969af07080
+  react-native-keyri: 0caab826d62048a534c6c2d821b2991555e07407
+  react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   React-RCTActionSheet: 89a0ca9f4a06c1f93c26067af074ccdce0f40336
   React-RCTAnimation: 1bde3ecc0c104c55df246eda516e0deb03c4e49b
   React-RCTBlob: a97d378b527740cc667e03ebfa183a75231ab0f0
@@ -408,9 +408,9 @@ SPEC CHECKSUMS:
   React-RCTVibration: ae4f914cfe8de7d4de95ae1ea6cc8f6315d73d9d
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
   RNPermissions: eac721f71748c4472d6e876038270b75397d6ee7
-  RNScreens: 4d83613b50b74ed277026375dc0810893b0c347f
+  RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 
-PODFILE CHECKSUM: 7c012227d9fa3c39cfc3e1c83d53275477551f55
+PODFILE CHECKSUM: ff44cdf394e864fb22aadf4f503fc3c42aa4f00c
 
 COCOAPODS: 1.11.3
