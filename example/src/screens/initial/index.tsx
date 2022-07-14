@@ -1,4 +1,4 @@
-import type { RootNavigationProps } from 'src/navigation';
+import type { RootNavigationProps } from 'example/src/navigation';
 import * as React from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {
