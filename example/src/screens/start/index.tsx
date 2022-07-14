@@ -2,8 +2,8 @@ import * as React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { RootNavigationProps } from 'example/src/navigation';
-import { ILoginType } from '../../utils/keyri';
-interface LogInScreenProps extends RootNavigationProps<'LogIn'> {}
+import { ILoginType } from '../../utils/types';
+interface LogInScreenProps extends RootNavigationProps<'Start'> {}
 
 const StartScreen: React.FC<LogInScreenProps> = ({ navigation }) => {
   const goNext = (type: ILoginType) => {

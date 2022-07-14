@@ -3,7 +3,6 @@ import type {
   InitiateQrSessionOptions,
   EasyKeyriAuthOptions,
   KeyriModule,
- 
 } from './types';
 
 const LINKING_ERROR =
@@ -16,38 +15,36 @@ const Module = NativeModules.KeyriNativeModule;
 
 if (!Module) throw new Error(LINKING_ERROR);
 
- const Keyri: KeyriModule = {
-  generateAssociationKey:(publicUserId: string) => {
-    return Module.generateAssociationKey(publicUserId)
-   },
+const Keyri: KeyriModule = {
+  generateAssociationKey: (publicUserId: string) => {
+    return Module.generateAssociationKey(publicUserId);
+  },
   getUserSignature: (publicUserId?: string, customSignedData?: string) => {
-    return Module.getUserSignature(publicUserId, customSignedData)
-   },
-   listAssociationKey: () => {
-    return Module.listAssociationKey()
-   },
+    return Module.getUserSignature(publicUserId, customSignedData);
+  },
+  listAssociationKey: () => {
+    return Module.listAssociationKey();
+  },
 
-   getAssociationKey: (publicUserId?: string) => {
-    return Module.getAssociationKey(publicUserId)
-   },
+  getAssociationKey: (publicUserId?: string) => {
+    return Module.getAssociationKey(publicUserId);
+  },
 
-   initiateQrSession: (options: InitiateQrSessionOptions) => {
-    return Module.initiateQrSession(options)
-   },
-   initializeDefaultScreen: (sessionId: string) => {
-    return Module.initializeDefaultScreen(sessionId)
-   },
-   confirmSession: (sessionId: string) => {
-    return Module.confirmSession(sessionId)
-   },
-   denySession: (sessionId: string) => {
-    return Module.denySession(sessionId)
-   },
-   easyKeyriAuth: (data: EasyKeyriAuthOptions) => {
-    return Module.easyKeyriAuth(data)
-   },
-   
-
+  initiateQrSession: (options: InitiateQrSessionOptions) => {
+    return Module.initiateQrSession(options);
+  },
+  initializeDefaultScreen: (sessionId: string, payload: string) => {
+    return Module.initializeDefaultScreen(sessionId, payload);
+  },
+  confirmSession: (sessionId: string, payload: string) => {
+    return Module.confirmSession(sessionId, payload);
+  },
+  denySession: (sessionId: string, payload: string) => {
+    return Module.denySession(sessionId, payload);
+  },
+  easyKeyriAuth: (data: EasyKeyriAuthOptions) => {
+    return Module.easyKeyriAuth(data);
+  },
 };
 
 export default Keyri;

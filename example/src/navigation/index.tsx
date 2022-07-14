@@ -7,10 +7,11 @@ import {
 import InitialScreen from '../screens/initial';
 import StartScreen from '../screens/start';
 import SignUpScreen from '../screens/sign-up';
+import type { ILoginType } from '../utils/types';
 
 type RootNavigatorParams = {
-  Initial: undefined;
-  LogIn: undefined;
+  Initial: { type: ILoginType };
+  Start: { type: ILoginType };
   SignUp: undefined;
 };
 
@@ -23,7 +24,7 @@ const RootNavigator: React.FC<RootNavigatorProps> = () => {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
-          name="LogIn"
+          name="Start"
           component={StartScreen}
           options={{ headerShown: false }}
         />

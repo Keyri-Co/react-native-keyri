@@ -107,15 +107,17 @@ export interface KeyriModule {
   initiateQrSession: (
     options: InitiateQrSessionOptions
   ) => Promise<KeyriSession>;
-  initializeDefaultScreen: (sessionId: string) => Promise<boolean>;
-  confirmSession: (sessionId: string) => void;
-  denySession: (sessionId: string) => void;
+  initializeDefaultScreen: (
+    sessionId: string,
+    payload: string
+  ) => Promise<boolean>;
+  confirmSession: (sessionId: string, payload: string) => Promise<boolean>;
+  denySession: (sessionId: string, payload: string) => Promise<boolean>;
   easyKeyriAuth: (data: EasyKeyriAuthOptions) => void;
 }
 export interface InitiateQrSessionOptions {
   appKey: string;
   sessionId: string;
-  payload: string;
   publicUserId?: string;
 }
 export interface EasyKeyriAuthOptions {
