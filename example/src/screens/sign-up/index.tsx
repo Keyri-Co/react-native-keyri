@@ -1,4 +1,4 @@
-import type { RootNavigationProps } from 'example/src/navigation';
+import type { RootNavigationProps } from 'src/navigation';
 import * as React from 'react';
 import { Alert, Button, StyleSheet, TextInput, View } from 'react-native';
 import Keyri from 'react-native-keyri';

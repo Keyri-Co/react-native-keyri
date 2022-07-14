@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import type { RootNavigationProps } from 'example/src/navigation';
+import type { RootNavigationProps } from 'src/navigation';
 import { ILoginType } from '../../utils/types';
 interface LogInScreenProps extends RootNavigationProps<'Start'> {}
 
