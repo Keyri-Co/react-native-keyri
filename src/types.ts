@@ -58,7 +58,7 @@ export interface KeyriSession {
       isTor: boolean;
       isProxy: boolean;
     };
-    geoDataMap: {
+    geoData: {
       mobile: {
         continentCode: string;
         countryCode: string;
@@ -68,12 +68,12 @@ export interface KeyriSession {
         regionCode: number;
       };
       browser: {
+        city: string;
         continentCode: string;
         countryCode: string;
-        city: string;
         latitude: number;
         longitude: number;
-        regionCode: number;
+        regionCode: string;
       };
     };
   };

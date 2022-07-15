@@ -12,7 +12,6 @@ import Keyri from 'react-native-keyri';
 import type { KeyriSession } from '../../../../src/types';
 import { ISearchParam, ILoginType } from '../../utils/types';
 import { parseUrlParams } from '../../utils/helpers';
-
 import PopupModal from '../../components/PopupModal';
 
 interface InitialScreenProps extends RootNavigationProps<'Initial'> {}
@@ -101,7 +100,6 @@ const styles = StyleSheet.create({
     top: 100,
     zIndex: 10000,
   },
-
   camera: {
     width: width,
     zIndex: -1,
@@ -111,7 +109,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignSelf: 'center',
     bottom: 38,
-
     fontSize: 12,
     fontWeight: '500',
     color: '#777',

@@ -12,7 +12,8 @@ export function parseUrlParams(url: string) {
         secret: null;
         sessionId: null;
         data: null;
-      } = Array.from(search.entries()).reduce((accum, [a, b]) => {
+      } = Array.from(search.entries()).reduce(
+    (accum, [a, b]) => {
       return { ...accum, [a]: b };
     },
     { aesKey: null, issuer: null, secret: null, sessionId: null, data: null }

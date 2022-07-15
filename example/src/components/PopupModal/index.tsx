@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Keyri from 'react-native-keyri';
 
 import {
   StyleSheet,
@@ -10,8 +11,6 @@ import {
   Animated,
   Image,
 } from 'react-native';
-import Keyri from 'react-native-keyri';
-
 import { IWidgetTypes } from '../../utils/types';
 import { ICONS } from '../../assets/index';
 import type { KeyriSession } from '../../../../src/types';
@@ -61,24 +60,23 @@ const PopupModal: React.FC<IPopupModalProps> = ({
     Keyri.confirmSession(id, 'payload');
     closeModal();
   };
+
   const getSource = (widgetType: IWidgetTypes) => {
     switch (widgetType) {
       case IWidgetTypes.laptop:
         return ICONS.LAP_TOP_GEO;
-
       case IWidgetTypes.mobile:
         return ICONS.MOBILE;
-
       default:
         return ICONS.OS;
     }
   };
 
   const countryCodeLaptop =
-    session?.riskAnalytics?.geoDataMap?.browser?.countryCode;
-  const cityBrowserLaptop = session?.riskAnalytics?.geoDataMap?.browser?.city;
-  const countryMobile = session?.riskAnalytics?.geoDataMap?.mobile?.countryCode;
-  const cityMobile = session?.riskAnalytics?.geoDataMap?.mobile?.city;
+    session?.riskAnalytics?.geoData?.browser?.countryCode;
+  const cityBrowserLaptop = session?.riskAnalytics?.geoData?.browser?.city;
+  const countryMobile = session?.riskAnalytics?.geoData?.mobile?.countryCode;
+  const cityMobile = session?.riskAnalytics?.geoData?.mobile?.city;
   const os = session?.widgetUserAgent?.os;
   const browser = session?.widgetUserAgent?.browser;
   const authenticationDenied =
@@ -181,7 +179,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopRightRadius: 30,
     borderTopLeftRadius: 30,
-
     width: width,
     paddingVertical: 30,
     justifyContent: 'center',
@@ -202,7 +199,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#9887CB',
   },
-
   title: {
     fontSize: 18,
     color: '#5A4384',
@@ -238,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: width * 0.8,
     height: 40,
-    marginVertical: 10,
+    marginTop: 20,
   },
   image: {
     width: 18,
