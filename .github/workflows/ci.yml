@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 16
+
+jobs:
+  lint:
+    name: Run linters
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install yarn cache
+        uses: c-hive/gha-yarn-cache@v2
+        
+      - name: Install packages
+        run: yarn install
+
+      - name: Run linter
+        run: yarn lint
+
+      - name: Check typescript
+        run: yarn typescript
