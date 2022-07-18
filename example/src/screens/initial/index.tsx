@@ -1,6 +1,7 @@
 import type { RootNavigationProps } from 'example/src/navigation';
 import * as React from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
+import type { BarCodeReadEvent } from 'react-native-camera';
 import {
   StyleSheet,
   View,
@@ -30,7 +31,7 @@ const InitialScreen: React.FC<InitialScreenProps> = ({ route }) => {
     setCustomLoginVisible(visible);
   };
   const onReadSuccess = React.useCallback(
-    async (scan: any) => {
+    async (scan: BarCodeReadEvent) => {
       try {
         setLoading(true);
         const params: ISearchParam = parseUrlParams(scan.data);

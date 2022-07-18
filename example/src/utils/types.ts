@@ -3,7 +3,7 @@ export enum ILoginType {
   default = 'default',
 }
 export interface ISearchParam {
-  aesKey: any;
+  aesKey: string | null;
   issuer: string | null;
   secret: string | null;
   sessionId: string | null;
