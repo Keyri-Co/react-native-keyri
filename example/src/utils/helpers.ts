@@ -1,22 +1,14 @@
-import { URL, URLSearchParams } from 'react-native-url-polyfill';
-import type { ISearchParam } from './types';
-
 export function parseUrlParams(url: string) {
-  const search = new URLSearchParams(new URL(url).search);
-
-  const params:
-    | ISearchParam
-    | {
-        aesKey: null;
-        issuer: null;
-        secret: null;
-        sessionId: null;
-        data: null;
-      } = Array.from(search.entries()).reduce(
-    (accum, [a, b]) => {
-      return { ...accum, [a]: b };
-    },
-    { aesKey: null, issuer: null, secret: null, sessionId: null, data: null }
-  );
+  const params = url
+    .split('?')?.[1]
+    .split('&')
+    .reduce((obj, el: string) => {
+      const tmp = el.split('=');
+      if (tmp?.length > 0) {
+        return { ...obj, [tmp[0]]: tmp?.[1] };
+      } else {
+        return obj;
+      }
+    }, {});
   return params;
 }
