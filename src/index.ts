@@ -1,9 +1,8 @@
 import { NativeModules, Platform } from 'react-native';
 import type {
-  KeyriInitializeOptions,
+  InitiateQrSessionOptions,
+  EasyKeyriAuthOptions,
   KeyriModule,
-  KeyriSessionLoginOptions,
-  KeyriSessionSignupOptions,
 } from './types';
 
 const LINKING_ERROR =
@@ -17,50 +16,35 @@ const Module = NativeModules.KeyriNativeModule;
 if (!Module) throw new Error(LINKING_ERROR);
 
 const Keyri: KeyriModule = {
-  initialize: (options: KeyriInitializeOptions) => {
-    Module.initialize({
-      appKey: options.appKey,
-      callbackUrl: options.callbackUrl,
-      allowMultipleAccounts: options.allowMultipleAccounts,
-      publicKey: options.rpPublicKey
-    });
+  generateAssociationKey: (publicUserId: string) => {
+    return Module.generateAssociationKey(publicUserId);
+  },
+  getUserSignature: (publicUserId?: string, customSignedData?: string) => {
+    return Module.getUserSignature(publicUserId, customSignedData);
+  },
+  listAssociationKey: () => {
+    return Module.listAssociationKey();
   },
 
-  handleSessionId: (sessionId) => {
-    return Module.handleSessionId(sessionId);
+  getAssociationKey: (publicUserId?: string) => {
+    return Module.getAssociationKey(publicUserId);
   },
 
-  sessionLogin: (options: KeyriSessionLoginOptions) => {
-    return Module.sessionLogin(options);
+  initiateQrSession: (options: InitiateQrSessionOptions) => {
+    return Module.initiateQrSession(options);
   },
-
-  sessionSignup: (options: KeyriSessionSignupOptions) => {
-    return Module.sessionSignup(options);
+  initializeDefaultScreen: (sessionId: string, payload: string) => {
+    return Module.initializeDefaultScreen(sessionId, payload);
   },
-
-  directLogin: (username, headers = {}, custom) => {
-    return Module.directLogin(username, headers, custom ?? null);
+  confirmSession: (sessionId: string, payload: string) => {
+    return Module.confirmSession(sessionId, payload);
   },
-
-  directSignup: (username, headers = {}, custom) => {
-    return Module.directSignup(username, headers, custom ?? null);
+  denySession: (sessionId: string, payload: string) => {
+    return Module.denySession(sessionId, payload);
   },
-
-  getAccounts: () => {
-    return Module.getAccounts();
+  easyKeyriAuth: (data: EasyKeyriAuthOptions) => {
+    return Module.easyKeyriAuth(data);
   },
-
-  easyKeyriAuth: (custom) => {
-    return Module.easyKeyriAuth(custom ?? null);
-  },
-
-  removeAccount: (username, custom) => {
-    return Module.removeAccount(username, custom ?? null);
-  },
-
-  whitelabelAuth: (options) => {
-    return Module.whitelabelAuth(options);
-  }
 };
 
 export default Keyri;

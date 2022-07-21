@@ -15,12 +15,15 @@
     "react-native": "0.63.4",
     "react-native-camera": "^4.2.1",
     "react-native-keyri": "../",
+    "react-native-permissions": "^3.4.0",
+    "react-native-qrcode-scanner": "^1.5.5",
     "react-native-safe-area-context": "^3.4.0",
     "react-native-screens": "^3.11.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/runtime": "^7.12.5",
+    "@types/react-native": "^0.66.15",
     "babel-plugin-module-resolver": "^4.0.0",
     "metro-react-native-babel-preset": "^0.64.0"
   }

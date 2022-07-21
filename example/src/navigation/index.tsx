@@ -5,12 +5,12 @@ import {
   NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
 import InitialScreen from '../screens/initial';
-import LogInScreen from '../screens/log-in';
-import SignUpScreen from '../screens/sign-up';
+import StartScreen from '../screens/start';
+import type { ILoginType } from '../utils/types';
 
 type RootNavigatorParams = {
-  Initial: undefined;
-  LogIn: undefined;
+  Initial: { type: ILoginType };
+  Start: { type: ILoginType };
   SignUp: undefined;
 };
 
@@ -22,9 +22,16 @@ const RootNavigator: React.FC<RootNavigatorProps> = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Initial" component={InitialScreen} />
-        <Stack.Screen name="LogIn" component={LogInScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen
+          name="Start"
+          component={StartScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Initial"
+          component={InitialScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
