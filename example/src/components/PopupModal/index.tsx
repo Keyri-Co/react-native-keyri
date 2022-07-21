@@ -14,10 +14,10 @@ import {
 import { IWidgetTypes } from '../../utils/types';
 import { ICONS } from '../../assets/index';
 import type { KeyriSession } from '../../../../src/types';
-
+const { width, height } = Dimensions.get('window');
 interface IPopupModalProps {
   session: KeyriSession | null;
-  setSession: (session: KeyriSession | null) => void;
+  setSession: () => void;
   id: string;
   customLoginVisible: boolean;
   setCustomLoginVisible: (visible: boolean) => void;
@@ -30,16 +30,15 @@ const PopupModal: React.FC<IPopupModalProps> = ({
   customLoginVisible,
   setCustomLoginVisible,
 }) => {
-  const value = React.useRef(new Animated.Value(670)).current;
+  const value = React.useRef(new Animated.Value(height)).current;
 
-  const animateOpen = React.useCallback(() => {
+  const animateOpen = () => {
     Animated.timing(value, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [value]);
-
+  };
   const onCustomLoginDeny = () => {
     Keyri.denySession(id, 'payload');
     closeModal();
@@ -47,14 +46,13 @@ const PopupModal: React.FC<IPopupModalProps> = ({
 
   const closeModal = () => {
     Animated.timing(value, {
-      toValue: 670,
+      toValue: height,
       duration: 300,
       useNativeDriver: true,
-    }).start();
-    setTimeout(() => {
-      setSession(null);
+    }).start(() => {
+      setSession();
       setCustomLoginVisible(false);
-    }, 350);
+    });
   };
   const onCustomLoginOk = () => {
     Keyri.confirmSession(id, 'payload');
@@ -167,7 +165,7 @@ const PopupModal: React.FC<IPopupModalProps> = ({
     </Modal>
   );
 };
-const { width } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   modalRoot: {
     flex: 1,
@@ -179,20 +177,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopRightRadius: 30,
     borderTopLeftRadius: 30,
-    width: width,
     paddingVertical: 30,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  touchable: {
-    width: width * 0.8,
-    alignItems: 'center',
-    height: 60,
-    justifyContent: 'center',
-    borderRadius: 25,
-    borderColor: '#e3e3e3',
-    borderBottomWidth: 0.5,
-    paddingBottom: 3,
   },
   touchableText: {
     fontSize: 14,

@@ -14,7 +14,7 @@ import type { KeyriSession } from '../../../../src/types';
 import { ISearchParam, ILoginType } from '../../utils/types';
 import { parseUrlParams } from '../../utils/helpers';
 import PopupModal from '../../components/PopupModal';
-
+import { APP_KEY } from '../../utils/constants';
 interface InitialScreenProps extends RootNavigationProps<'Initial'> {}
 
 const InitialScreen: React.FC<InitialScreenProps> = ({ route }) => {
@@ -24,51 +24,44 @@ const InitialScreen: React.FC<InitialScreenProps> = ({ route }) => {
   const [id, setSessionId] = React.useState<string>('');
   const [customLoginVisible, setCustomLoginVisible] =
     React.useState<boolean>(false);
-  const changeSession = (obj: KeyriSession | null) => {
-    setSession(obj);
-  };
-  const toggleModal = (visible: boolean) => {
-    setCustomLoginVisible(visible);
-  };
-  const onReadSuccess = React.useCallback(
-    async (scan: BarCodeReadEvent) => {
-      try {
-        setLoading(true);
-        const params: ISearchParam = parseUrlParams(scan.data);
-        const sessionId: string = params?.sessionId ?? '';
-        const options = {
-          appKey: 'IT7VrTQ0r4InzsvCNJpRCRpi1qzfgpaj',
-          sessionId: sessionId,
-          publicUserId: 'email@com',
-        };
-        const session = await Keyri.initiateQrSession(options);
-        if (session) {
-          if (type === ILoginType.default) {
-            setLoading(false);
-            await Keyri.initializeDefaultScreen(sessionId, 'payload');
-          } else {
-            setSession(session);
-            setCustomLoginVisible(true);
-            setSessionId(sessionId);
-          }
+  const onReadSuccess = async (scan: BarCodeReadEvent) => {
+    try {
+      setLoading(true);
+      const params: ISearchParam = parseUrlParams(scan.data);
+      const sessionId: string = params?.sessionId ?? '';
+      const options = {
+        appKey: APP_KEY,
+        sessionId: sessionId,
+        publicUserId: '',
+      };
+      const session = await Keyri.initiateQrSession(options);
+      if (session) {
+        if (type === ILoginType.default) {
+          setLoading(false);
+          await Keyri.initializeDefaultScreen(sessionId, 'payload');
+        } else {
+          setSession(session);
+          setCustomLoginVisible(true);
+          setSessionId(sessionId);
         }
-      } catch (error) {
-        console.log(error, '==error initiate qr session');
-      } finally {
-        setLoading(false);
       }
-    },
-    [type]
-  );
+    } catch (error) {
+      console.log(error, '==error initiate qr session');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.root}>
       <PopupModal
         session={sessionObj}
-        setSession={changeSession}
+        setSession={() => setSession(null)}
         id={id}
         customLoginVisible={customLoginVisible}
-        setCustomLoginVisible={toggleModal}
+        setCustomLoginVisible={(visible: boolean) =>
+          setCustomLoginVisible(visible)
+        }
       />
       {loading ? (
         <View style={styles.indicator}>
