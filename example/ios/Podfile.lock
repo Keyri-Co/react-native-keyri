@@ -263,7 +263,7 @@ PODS:
     - React-jsi (= 0.63.4)
   - RNPermissions (3.4.0):
     - React-Core
-  - RNScreens (3.15.0):
+  - RNScreens (3.13.1):
     - React-Core
     - React-RCTImage
   - Yoga (1.14.0)
@@ -408,7 +408,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: ae4f914cfe8de7d4de95ae1ea6cc8f6315d73d9d
   ReactCommon: 73d79c7039f473b76db6ff7c6b159c478acbbb3b
   RNPermissions: eac721f71748c4472d6e876038270b75397d6ee7
-  RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
+  RNScreens: 40a2cb40a02a609938137a1e0acfbf8fc9eebf19
   Yoga: 4bd86afe9883422a7c4028c00e34790f560923d6
 
 PODFILE CHECKSUM: ff44cdf394e864fb22aadf4f503fc3c42aa4f00c
