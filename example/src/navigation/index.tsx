@@ -9,7 +9,7 @@ import StartScreen from '../screens/start';
 import type { ILoginType } from '../utils/types';
 
 type RootNavigatorParams = {
-  Initial: { type: ILoginType };
+  Initial: { type: ILoginType; url: string | null };
   Start: { type: ILoginType };
   SignUp: undefined;
 };
