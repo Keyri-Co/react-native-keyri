@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Text,
   Dimensions,
+  Linking,
 } from 'react-native';
 import Keyri from 'react-native-keyri';
 import type { KeyriSession } from '../../../../src/types';
@@ -19,39 +20,66 @@ interface InitialScreenProps extends RootNavigationProps<'Initial'> {}
 
 const InitialScreen: React.FC<InitialScreenProps> = ({ route }) => {
   const type: ILoginType = route.params?.type ?? ILoginType.default;
+  const urlFromRoute = route?.params?.url;
   const [loading, setLoading] = React.useState<boolean>(false);
   const [sessionObj, setSession] = React.useState<KeyriSession | null>(null);
   const [id, setSessionId] = React.useState<string>('');
   const [customLoginVisible, setCustomLoginVisible] =
     React.useState<boolean>(false);
-  const onReadSuccess = async (scan: BarCodeReadEvent) => {
-    try {
-      setLoading(true);
-      const params: ISearchParam = parseUrlParams(scan.data);
-      const sessionId: string = params?.sessionId ?? '';
-      const options = {
-        appKey: APP_KEY,
-        sessionId: sessionId,
-        publicUserId: '',
-      };
-      const session = await Keyri.initiateQrSession(options);
-      if (session) {
-        if (type === ILoginType.default) {
-          setLoading(false);
-          await Keyri.initializeDefaultScreen(sessionId, 'payload');
-        } else {
-          setSession(session);
-          setCustomLoginVisible(true);
-          setSessionId(sessionId);
+  const [deepLink, setDeepLink] = React.useState<string | null>(null);
+  const onReadSuccess = React.useCallback(
+    async (scan: BarCodeReadEvent | { data: string }) => {
+      try {
+        setLoading(true);
+        const params: ISearchParam = parseUrlParams(scan.data);
+        const sessionId: string = params?.sessionId ?? '';
+        const options = {
+          appKey: APP_KEY,
+          sessionId: sessionId,
+          publicUserId: '',
+        };
+        const session = await Keyri.initiateQrSession(options);
+        if (session) {
+          if (type === ILoginType.default) {
+            setLoading(false);
+            await Keyri.initializeDefaultScreen(sessionId, 'payload');
+          } else {
+            setSession(session);
+            setCustomLoginVisible(true);
+            setSessionId(sessionId);
+          }
         }
+      } catch (error) {
+        console.log(error, '==error initiate qr session');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.log(error, '==error initiate qr session');
-    } finally {
-      setLoading(false);
+    },
+    [type]
+  );
+  React.useEffect(() => {
+    const getInitialUrl = async () => {
+      const initialUrl = await Linking.getInitialURL();
+      if (initialUrl) onReadSuccess({ data: initialUrl });
+    };
+    getInitialUrl();
+  }, [onReadSuccess]);
+  Linking.addEventListener('url', ({ url }) => {
+    if (url !== deepLink) {
+      setDeepLink(url);
     }
-  };
+  });
+  React.useEffect(() => {
+    if (deepLink) {
+      onReadSuccess({ data: deepLink });
+    }
+  }, [deepLink, onReadSuccess]);
 
+  React.useEffect(() => {
+    if (urlFromRoute) {
+      setDeepLink(urlFromRoute);
+    }
+  }, [urlFromRoute]);
   return (
     <View style={styles.root}>
       <PopupModal

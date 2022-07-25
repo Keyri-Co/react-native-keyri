@@ -1,14 +1,45 @@
 import * as React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Linking,
+} from 'react-native';
+import Keyri from 'react-native-keyri';
 
+import { APP_KEY } from '../../utils/constants';
 import type { RootNavigationProps } from 'example/src/navigation';
 import { ILoginType } from '../../utils/types';
 interface LogInScreenProps extends RootNavigationProps<'Start'> {}
 
 const StartScreen: React.FC<LogInScreenProps> = ({ navigation }) => {
+  const [url, setUrl] = React.useState<null | string>(null);
   const goNext = (type: ILoginType) => {
-    navigation.navigate('Initial', { type: type });
+    navigation.navigate('Initial', { type: type, url: url });
   };
+  const easyAuth = async () => {
+    const data = {
+      publicUserId: '',
+      appKey: APP_KEY,
+      payload: '',
+    };
+    try {
+      await Keyri.easyKeyriAuth(data);
+    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      () => {};
+    }
+  };
+  React.useEffect(() => {
+    const urlHandler = (e: { url: string }) => {
+      if (e?.url) {
+        setUrl(e?.url);
+      }
+    };
+    Linking.addEventListener('url', urlHandler);
+    return () => Linking.removeAllListeners('url');
+  }, []);
   return (
     <View style={styles.root}>
       <Text style={styles.title}>Choose options to login</Text>
@@ -25,6 +56,10 @@ const StartScreen: React.FC<LogInScreenProps> = ({ navigation }) => {
           onPress={() => goNext(ILoginType.custom)}
         >
           <Text style={styles.btnText}>Custom popup</Text>
+        </TouchableOpacity>
+        <Text style={styles.text}>or</Text>
+        <TouchableOpacity style={styles.touchable} onPress={easyAuth}>
+          <Text style={styles.btnText}>Easy Keyri Auth</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -43,7 +78,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   btnView: {
-    height: 170,
+    height: 220,
     justifyContent: 'space-between',
     marginBottom: 70,
   },
