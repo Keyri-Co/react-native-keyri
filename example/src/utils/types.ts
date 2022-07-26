@@ -1,8 +1,5 @@
 import type { KeyriSession } from 'react-native-keyri';
-export enum ILoginType {
-  custom = 'custom',
-  default = 'default',
-}
+
 export interface ISearchParam {
   aesKey: string | null;
   issuer: string | null;

@@ -230,7 +230,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
 
-        val isApproved = keyri.initializeDefaultScreen(fm, session, payload)
+        val isApproved = keyri.initializeDefaultScreen(fm, session, payload).getOrThrow()
 
         withContext(Dispatchers.Main) {
           promise.resolve(isApproved)
