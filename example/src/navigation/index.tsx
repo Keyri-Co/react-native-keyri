@@ -4,14 +4,14 @@ import {
   createNativeStackNavigator,
   NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
-import InitialScreen from '../screens/initial';
+import DefaultScreen from '../screens/default';
+import CustomScreen from '../screens/custom';
 import StartScreen from '../screens/start';
-import type { ILoginType } from '../utils/types';
 
-type RootNavigatorParams = {
-  Initial: { type: ILoginType; url: string | null };
-  Start: { type: ILoginType };
-  SignUp: undefined;
+export type RootNavigatorParams = {
+  Start: undefined;
+  Custom: undefined;
+  Default: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootNavigatorParams>();
@@ -28,8 +28,13 @@ const RootNavigator: React.FC<RootNavigatorProps> = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Initial"
-          component={InitialScreen}
+          name="Custom"
+          component={CustomScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Default"
+          component={DefaultScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

@@ -1,3 +1,4 @@
+import type { KeyriSession } from 'react-native-keyri';
 export enum ILoginType {
   custom = 'custom',
   default = 'default',
@@ -13,4 +14,10 @@ export enum IWidgetTypes {
   laptop = 'laptop',
   mobile = 'mobile',
   os = 'os',
+}
+export interface ISessionContext {
+  activeSession: KeyriSession | null;
+  activeSessionId: string;
+  setActiveSession: (session: KeyriSession | null) => void;
+  setActiveSessionId: (sessionId: string) => void;
 }
