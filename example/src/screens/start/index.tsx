@@ -35,9 +35,12 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
 
   const easyAuth = async () => {
     const data = {
-      appKey: 'raB7SFWt27woKqkPhaUrmWAsCJIO8Moj',
-      publicUserId: 'a.kuliahin@csn.khai.edu',
-      payload: 'Xo8aOBcobWGmDLIiXdBqPw',
+      publicUserId: 'user@email',
+      appKey: APP_KEY,
+      payload: '',
+      // appKey: 'raB7SFWt27woKqkPhaUrmWAsCJIO8Moj',
+      // publicUserId: 'a.kuliahin@csn.khai.edu',
+      // payload: 'Xo8aOBcobWGmDLIiXdBqPw',
     };
     try {
       await Keyri.easyKeyriAuth(data);
