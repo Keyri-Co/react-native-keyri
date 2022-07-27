@@ -1,7 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+
 import React, { useEffect } from 'react';
 import { Text, TouchableOpacity, View, Linking } from 'react-native';
 import Keyri from 'react-native-keyri';
+const axios = require('axios');
 
 import { APP_KEY } from '../../utils/constants';
 import type {
@@ -38,17 +39,28 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
       publicUserId: 'user@email',
       appKey: APP_KEY,
       payload: '',
-      // appKey: 'raB7SFWt27woKqkPhaUrmWAsCJIO8Moj',
-      // publicUserId: 'a.kuliahin@csn.khai.edu',
-      // payload: 'Xo8aOBcobWGmDLIiXdBqPw',
+      
     };
     try {
       await Keyri.easyKeyriAuth(data);
     } catch {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      () => {};
+      
     }
   };
+
+  const supabaseEasyAuth = async () => {
+    const url =  'https://pidfgjqywchqcqdjhmsj.supabase.co/auth/v1/token?grant_type=password'
+    await axios.post(url,{
+      "email": "a.kuliahin@csn.khai.edu",
+      "password": "4Science#",
+           },
+           {headers: {
+            'apiKey' : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpZGZnanF5d2NocWNxZGpobXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTQ3NzQzNTUsImV4cCI6MTk3MDM1MDM1NX0.HY0mpzolDkg5TZ7_gim6i0mzXKbhCtIMJptgLcvdZv8',
+                              
+          }}).catch(error => console.log(error))
+      
+   
+  }
   return (
     <View style={styles.root}>
       <Text style={styles.title}>Choose options to login</Text>
@@ -68,6 +80,9 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
         <Text style={styles.text}>or</Text>
         <TouchableOpacity style={styles.touchable} onPress={easyAuth}>
+          <Text style={styles.btnText}>Easy Keyri Auth</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.touchable} onPress={supabaseEasyAuth}>
           <Text style={styles.btnText}>Easy Keyri Auth</Text>
         </TouchableOpacity>
       </View>

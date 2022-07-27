@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   btnView: {
-    height: 220,
+    height: 260,
     justifyContent: 'space-between',
     marginBottom: 70,
   },
