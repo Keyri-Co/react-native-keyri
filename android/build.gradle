@@ -131,4 +131,5 @@ dependencies {
   implementation 'com.github.Keyri-Co.keyri-android-whitelabel-sdk:scanner:1.0.14'
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1"
   implementation 'androidx.activity:activity-ktx:1.4.0'
+  implementation("com.squareup.okhttp3:okhttp-urlconnection:4.4.1")
 }

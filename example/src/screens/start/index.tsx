@@ -2,9 +2,9 @@
 import React, { useEffect } from 'react';
 import { Text, TouchableOpacity, View, Linking } from 'react-native';
 import Keyri from 'react-native-keyri';
-const axios = require('axios');
+const axios = require('axios').default;
 
-import { APP_KEY } from '../../utils/constants';
+import { APP_KEY, SUPABASE_API_KEY, SUPABASE_APP_KEY, SUPABASE_PASS, SUPABASE_URL, SUPABASE_USER_EMAIL } from '../../utils/constants';
 import type {
   RootNavigationProps,
   RootNavigatorParams,
@@ -49,17 +49,23 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
   };
 
   const supabaseEasyAuth = async () => {
-    const url =  'https://pidfgjqywchqcqdjhmsj.supabase.co/auth/v1/token?grant_type=password'
-    await axios.post(url,{
-      "email": "a.kuliahin@csn.khai.edu",
-      "password": "4Science#",
+    const url =  SUPABASE_URL
+    const response = await axios.post(url,{
+      email: SUPABASE_USER_EMAIL,
+      password: SUPABASE_PASS
            },
            {headers: {
-            'apiKey' : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpZGZnanF5d2NocWNxZGpobXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTQ3NzQzNTUsImV4cCI6MTk3MDM1MDM1NX0.HY0mpzolDkg5TZ7_gim6i0mzXKbhCtIMJptgLcvdZv8',
-                              
+            'apiKey' : SUPABASE_API_KEY             
           }}).catch(error => console.log(error))
+      if(response){
+        const data = {
+          publicUserId: SUPABASE_USER_EMAIL,
+          appKey: SUPABASE_APP_KEY,
+          payload: JSON.stringify({refreshToken: response?.data?.refresh_token}), 
+        };
+        await Keyri.easyKeyriAuth(data);
+      }
       
-   
   }
   return (
     <View style={styles.root}>
@@ -82,8 +88,9 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
         <TouchableOpacity style={styles.touchable} onPress={easyAuth}>
           <Text style={styles.btnText}>Easy Keyri Auth</Text>
         </TouchableOpacity>
+        <Text style={styles.text}>or</Text>
         <TouchableOpacity style={styles.touchable} onPress={supabaseEasyAuth}>
-          <Text style={styles.btnText}>Easy Keyri Auth</Text>
+          <Text style={styles.btnText}>Supabase Easy Keyri Auth</Text>
         </TouchableOpacity>
       </View>
     </View>
