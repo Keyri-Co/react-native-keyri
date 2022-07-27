@@ -1,8 +1,5 @@
 import * as React from 'react';
-import Keyri from 'react-native-keyri';
-
 import {
-  StyleSheet,
   View,
   Text,
   Dimensions,
@@ -11,27 +8,28 @@ import {
   Animated,
   Image,
 } from 'react-native';
+
 import { IWidgetTypes } from '../../utils/types';
 import { ICONS } from '../../assets/index';
 import type { KeyriSession } from '../../../../src/types';
-const { width, height } = Dimensions.get('window');
+import styles from './popup-modal-styles';
+
+const { height } = Dimensions.get('window');
+
 interface IPopupModalProps {
   session: KeyriSession | null;
-  setSession: () => void;
-  id: string;
-  customLoginVisible: boolean;
-  setCustomLoginVisible: (visible: boolean) => void;
+  isPopUpVisible: boolean;
+  denySession: () => void;
+  confirmSession: () => void;
 }
 
 const PopupModal: React.FC<IPopupModalProps> = ({
+  isPopUpVisible,
+  denySession,
+  confirmSession,
   session,
-  setSession,
-  id,
-  customLoginVisible,
-  setCustomLoginVisible,
 }) => {
   const value = React.useRef(new Animated.Value(height)).current;
-
   const animateOpen = () => {
     Animated.timing(value, {
       toValue: 0,
@@ -40,23 +38,18 @@ const PopupModal: React.FC<IPopupModalProps> = ({
     }).start();
   };
   const onCustomLoginDeny = () => {
-    Keyri.denySession(id, 'payload');
-    closeModal();
+    closeModal(denySession);
   };
 
-  const closeModal = () => {
+  const closeModal = (func: () => void) => {
     Animated.timing(value, {
       toValue: height,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => {
-      setSession();
-      setCustomLoginVisible(false);
-    });
+    }).start(() => func());
   };
   const onCustomLoginOk = () => {
-    Keyri.confirmSession(id, 'payload');
-    closeModal();
+    closeModal(confirmSession);
   };
 
   const getSource = (widgetType: IWidgetTypes) => {
@@ -79,6 +72,7 @@ const PopupModal: React.FC<IPopupModalProps> = ({
   const browser = session?.widgetUserAgent?.browser;
   const authenticationDenied =
     session?.riskAnalytics?.riskAttributes?.isAnonymous;
+
   const Widget = ({
     type,
     text,
@@ -107,10 +101,10 @@ const PopupModal: React.FC<IPopupModalProps> = ({
   return (
     <Modal
       presentationStyle="overFullScreen"
-      visible={customLoginVisible}
+      visible={isPopUpVisible}
       animationType="fade"
       transparent={true}
-      onRequestClose={closeModal}
+      onRequestClose={() => closeModal(denySession)}
       onShow={animateOpen}
     >
       <View style={styles.modalRoot}>
@@ -166,85 +160,4 @@ const PopupModal: React.FC<IPopupModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  modalRoot: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    alignItems: 'center',
-  },
-  modalBottom: {
-    backgroundColor: '#FFFFFF',
-    borderTopRightRadius: 30,
-    borderTopLeftRadius: 30,
-    paddingVertical: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  touchableText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#9887CB',
-  },
-  title: {
-    fontSize: 18,
-    color: '#5A4384',
-    textAlign: 'center',
-  },
-  customPopupButtonView: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    width: width,
-  },
-  yesBtn: {
-    borderColor: '#9887CB',
-    backgroundColor: '#9887CB',
-  },
-  noBtn: {
-    borderColor: '#9887CB',
-    backgroundColor: '#FFFFFF',
-  },
-  btn: {
-    borderRadius: 8,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 3,
-    height: 50,
-    width: 100,
-    marginTop: 50,
-  },
-  widget: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    width: width * 0.8,
-    height: 40,
-    marginTop: 20,
-  },
-  image: {
-    width: 18,
-    height: 18,
-    marginRight: 20,
-  },
-  widgetTextview: {
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  widgetText: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#595959',
-  },
-  red: {
-    color: '#EF4D52',
-  },
-  green: {
-    color: '#5A4384',
-  },
-  white: {
-    color: '#FFFFFF',
-  },
-});
 export default PopupModal;
