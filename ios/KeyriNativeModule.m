@@ -7,11 +7,22 @@
 //
 
 #import "KeyriNativeModule.h"
-@import keyri_pod;
+@import keyri;
+
+NSString *const KeyriNativeModuleDomain;
+
+enum {
+    KeyriNativeModuleInitializeError = 1000,
+    KeyriNativeModuleGenerateAssociationKeyError,
+    KeyriNativeModuleGetUserSignatureError,
+    KeyriNativeModuleGetAssociationKeyError,
+    KeyriNativeModuleEasyKeyriAuthError,
+};
 
 @interface KeyriNativeModule ()
 
 @property (nonatomic, strong) KeyriObjC *keyri;
+@property (nonatomic, strong) NSMutableArray<Session *> *sessions;
 
 @end
 
@@ -24,87 +35,150 @@ RCT_EXPORT_MODULE()
 {
     if (self = [super init]) {
         _keyri = [[KeyriObjC alloc] init];
+        _sessions = [NSMutableArray array];
     }
     
     return  self;
 }
 
-RCT_EXPORT_METHOD(initialize:(NSDictionary *)params resolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    id username = [params objectForKey:@"username"];
-    id sessionId = [params objectForKey:@"sessionId"];
-    id appKey = [params objectForKey:@"appKey"];
+    id publicUserId = [data objectForKey:@"publicUserId"];
+    id sessionId = [data objectForKey:@"sessionId"];
+    id appKey = [data objectForKey:@"appKey"];
     
-    if ([username isKindOfClass:[NSString class]] && [sessionId isKindOfClass:[NSString class]] && [appKey isKindOfClass:[NSString class]]) {
-        Session *session = [self.keyri initializeQrSessionWithUsername:username sessionId:sessionId appKey:appKey];
-#warning to be defined return values and marked it as @objc public inside Session object
-        NSDictionary *resultData = @{
-        };
-
-        resolve(resultData);
+    if ([publicUserId isKindOfClass:[NSString class]] && [sessionId isKindOfClass:[NSString class]] && [appKey isKindOfClass:[NSString class]]) {
+        Session *session = [self.keyri initializeQrSessionWithUsername:publicUserId sessionId:sessionId appKey:appKey];
+        [self.sessions addObject:session];
+        resolve(@"Success");
     } else {
-        NSLog(@"there was error during initialization of keyri sdk");
+        NSString *errorText = @"there was error during initialization of keyri sdk";
+        NSLog(@"%@", errorText);
+        NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+        reject(
+               @"Error",
+               errorText,
+               [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleInitializeError userInfo:details]
+        );
     }
 }
 
-RCT_EXPORT_METHOD(generateAssociationKey:(NSDictionary *)params resolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(generateAssociationKey:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    id username = [params objectForKey:@"username"];
+    if ([publicUserId isKindOfClass:[NSString class]]) {
+        NSString *generatedKey = [self.keyri generateAssociationKeyWithUsername:publicUserId];
+        resolve(generatedKey);
+    } else {
+        NSString *errorText = @"there was error during generation association key";
+        NSLog(@"%@", errorText);
+        NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+        reject(
+               @"Error",
+               errorText,
+               [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleGenerateAssociationKeyError userInfo:details]
+        );
+    }
+}
+
+RCT_EXPORT_METHOD(getUserSignature:(NSString *)publicUserId customSignedData:(NSString *)customSignedData resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSData *data = [customSignedData dataUsingEncoding:NSUTF8StringEncoding];
+    if ([publicUserId isKindOfClass:[NSString class]] && [data isKindOfClass:[NSData class]]) {
+        NSString *signature = [self.keyri generateUserSignatureWithUsername:publicUserId data:data];
+        resolve(signature);
+    } else {
+        NSString *errorText = @"there was error during generation user signature";
+        NSLog(@"%@", errorText);
+        NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+        reject(
+               @"Error",
+               errorText,
+               [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleGetUserSignatureError userInfo:details]
+        );
+    }
+}
+
+RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if ([publicUserId isKindOfClass:[NSString class]]) {
+        NSString *associationKey = [self.keyri getAssociationKeyWithUsername:publicUserId];
+        resolve(associationKey);
+    } else {
+        NSString *errorText = @"there was error during getting association key";
+        NSLog(@"%@", errorText);
+        NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+        reject(
+               @"Error",
+               errorText,
+               [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleGetAssociationKeyError userInfo:details]
+        );
+    }
+}
+
+RCT_EXPORT_METHOD(listAssociationKeyWithResolver:(RCTPromiseResolveBlock)resolve)
+{
+    NSDictionary *associationKeys = [self.keyri listAssociactionKeys];
+    resolve(associationKeys);
+}
+
+RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    id publicUserId = [data objectForKey:@"publicUserId"];
+    id payload = [data objectForKey:@"payload"];
+    id appKey = [data objectForKey:@"appKey"];
     
-    if ([username isKindOfClass:[NSString class]]) {
-        NSString *associationKey = [self.keyri generateAssociationKeyWithUsername:username];
-        NSMutableDictionary *resultData = [[NSMutableDictionary alloc] init];
-        if (associationKey) {
-            [resultData setValue:associationKey forKey:@"associationKey"];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSString *errorText = @"there was error during easy keyri auth";
+        if ([publicUserId isKindOfClass:[NSString class]] && [payload isKindOfClass:[NSString class]] && [appKey isKindOfClass:[NSString class]]) {
+            [self.keyri easyKeyriAuthWithPublicUserId:publicUserId appKey:appKey payload:payload completion:^(BOOL success) {
+                if (success) {
+                    resolve(@(success));
+                } else {
+                    NSLog(@"%@", errorText);
+                    NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+                    reject(
+                           @"Error",
+                           errorText,
+                           [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleEasyKeyriAuthError userInfo:details]
+                    );
+                }
+            }];
+        } else {
+            NSLog(@"%@", errorText);
+            NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+            reject(
+                   @"Error",
+                   errorText,
+                   [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleEasyKeyriAuthError userInfo:details]
+            );
         }
-        
-        resolve(resultData);
-    } else {
-        NSLog(@"there was error during generation association key");
-    }
+    });
 }
 
-RCT_EXPORT_METHOD(generateUserSignature:(NSDictionary *)params resolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(confirmSession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve)
 {
-    id username = [params objectForKey:@"username"];
-    id data = [params objectForKey:@"data"];
-    
-    if ([username isKindOfClass:[NSString class]] && [data isKindOfClass:[NSData class]]) {
-        NSString *signature = [self.keyri generateUserSignatureWithUsername:username data:data];
-        
-        NSMutableDictionary *resultData = [[NSMutableDictionary alloc] init];
-        if (signature) {
-            [resultData setValue:signature forKey:@"signature"];
+    [self finishSession:sessionId payload:payload isApproved:YES resolver:resolve];
+}
+
+RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve)
+{
+    [self finishSession:sessionId payload:payload isApproved:NO resolver:resolve];
+}
+
+- (void)finishSession:(NSString *)sessionId payload:(NSString *)payload isApproved:(BOOL)isApproved resolver:(RCTPromiseResolveBlock)resolve {
+    NSString *result;
+    for (Session *session in self.sessions) {
+        if (session.sessionId == sessionId) {
+            if (isApproved) {
+                result = session.confirm;
+            } else {
+                result = session.deny;
+            }
+            break;
         }
-        
-        resolve(resultData);
-    } else {
-        NSLog(@"there was error during generation user signature");
     }
-}
-
-RCT_EXPORT_METHOD(getAssociationKey:(NSDictionary *)params resolver:(RCTPromiseResolveBlock)resolve)
-{
-    id username = [params objectForKey:@"username"];
     
-    if ([username isKindOfClass:[NSString class]]) {
-        NSString *associationKey = [self.keyri getAssociationKeyWithUsername:username];
-        
-        NSMutableDictionary *resultData = [[NSMutableDictionary alloc] init];
-        if (associationKey) {
-            [resultData setValue:associationKey forKey:@"associationKey"];
-        }
-        
-        resolve(resultData);
-    } else {
-        NSLog(@"there was error during getting association key");
-    }
-}
-
-RCT_EXPORT_METHOD(listAssociactionKeysWithResolver:(RCTPromiseResolveBlock)resolve)
-{
-    NSDictionary *resultData = [self.keyri listAssociactionKeys];
-    resolve(resultData);
+    resolve(@([result isEqualToString:@"success"]));
 }
 
 @end
