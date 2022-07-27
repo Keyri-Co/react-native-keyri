@@ -1,10 +1,17 @@
-
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from 'react';
 import { Text, TouchableOpacity, View, Linking } from 'react-native';
 import Keyri from 'react-native-keyri';
-const axios = require('axios').default;
+import axios from 'axios';
 
-import { APP_KEY, SUPABASE_API_KEY, SUPABASE_APP_KEY, SUPABASE_PASS, SUPABASE_URL, SUPABASE_USER_EMAIL } from '../../utils/constants';
+import { 
+  APP_KEY,
+  SUPABASE_API_KEY,
+  SUPABASE_APP_KEY,
+  SUPABASE_PASS,
+  SUPABASE_URL,
+  SUPABASE_USER_EMAIL
+} from '../../utils/constants';
 import type {
   RootNavigationProps,
   RootNavigatorParams,
@@ -38,30 +45,36 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
     const data = {
       publicUserId: 'user@email',
       appKey: APP_KEY,
-      payload: '',
-      
+      payload: '', 
     };
     try {
       await Keyri.easyKeyriAuth(data);
-    } catch {
-      
+    } catch {   
     }
   };
 
   const supabaseEasyAuth = async () => {
-    const url =  SUPABASE_URL
-    const response = await axios.post(url,{
-      email: SUPABASE_USER_EMAIL,
-      password: SUPABASE_PASS
-           },
-           {headers: {
+    const url =  SUPABASE_URL;
+    const response = await axios
+    .post(
+      url,
+      {
+        email: SUPABASE_USER_EMAIL,
+        password: SUPABASE_PASS,
+      },
+      {
+        headers: {
             'apiKey' : SUPABASE_API_KEY             
-          }}).catch(error => console.log(error))
+                  }
+    }
+    ).catch(error => console.log(error))
       if(response){
         const data = {
           publicUserId: SUPABASE_USER_EMAIL,
           appKey: SUPABASE_APP_KEY,
-          payload: JSON.stringify({refreshToken: response?.data?.refresh_token}), 
+          payload: JSON.stringify({
+            refreshToken: response?.data?.refresh_token
+          }), 
         };
         await Keyri.easyKeyriAuth(data);
       }
