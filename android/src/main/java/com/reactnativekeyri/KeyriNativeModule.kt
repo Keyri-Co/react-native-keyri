@@ -276,9 +276,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         val payload: String =
           data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
 
-        val sessionId = Uri.parse(url)
+        val uri = Uri.parse(url)
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
-        val isSuccess = keyri.easyKeyriAuth(fm, sessionId, appKey, payload, publicUserId).getOrThrow()
+        val isSuccess = keyri.easyKeyriAuth(fm, uri, appKey, payload, publicUserId).getOrThrow()
 
         withContext(Dispatchers.Main) {
           promise.resolve(isSuccess)
