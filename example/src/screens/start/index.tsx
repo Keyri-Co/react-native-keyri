@@ -4,13 +4,13 @@ import { Text, TouchableOpacity, View, Linking } from 'react-native';
 import Keyri from 'react-native-keyri';
 import axios from 'axios';
 
-import { 
+import {
   APP_KEY,
   SUPABASE_API_KEY,
   SUPABASE_APP_KEY,
   SUPABASE_PASS,
   SUPABASE_URL,
-  SUPABASE_USER_EMAIL
+  SUPABASE_USER_EMAIL,
 } from '../../utils/constants';
 import type {
   RootNavigationProps,
@@ -45,41 +45,40 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
     const data = {
       publicUserId: 'user@email',
       appKey: APP_KEY,
-      payload: '', 
+      payload: '',
     };
     try {
       await Keyri.easyKeyriAuth(data);
-    } catch {   
-    }
+    } catch {}
   };
 
   const supabaseEasyAuth = async () => {
     const url =  SUPABASE_URL;
     const response = await axios
-    .post(
-      url,
-      {
-        email: SUPABASE_USER_EMAIL,
-        password: SUPABASE_PASS,
-      },
-      {
-        headers: {
-            'apiKey' : SUPABASE_API_KEY             
+      .post(
+        url,
+        {
+          email: SUPABASE_USER_EMAIL,
+          password: SUPABASE_PASS,
+        },
+        {
+          headers: {
+            'apiKey' : SUPABASE_API_KEY,            
                   }
+}
+    )
+    .catch(error => console.log(error))
+    if(response){
+      const data = {
+        publicUserId: SUPABASE_USER_EMAIL,
+        appKey: SUPABASE_APP_KEY,
+        payload: JSON.stringify({
+          refreshToken: response?.data?.refresh_token,
+        }), 
+      };
+      await Keyri.easyKeyriAuth(data);
     }
-    ).catch(error => console.log(error))
-      if(response){
-        const data = {
-          publicUserId: SUPABASE_USER_EMAIL,
-          appKey: SUPABASE_APP_KEY,
-          payload: JSON.stringify({
-            refreshToken: response?.data?.refresh_token
-          }), 
-        };
-        await Keyri.easyKeyriAuth(data);
-      }
-      
-  }
+}
   return (
     <View style={styles.root}>
       <Text style={styles.title}>Choose options to login</Text>
