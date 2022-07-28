@@ -2,6 +2,7 @@ package com.reactnativekeyri
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.Promise
@@ -12,7 +13,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
-import com.keyrico.scanner.AuthWithScannerActivity
+import com.keyrico.scanner.easyKeyriAuth
 import com.keyrico.keyrisdk.entity.session.Session
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -260,13 +261,31 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       val payload: String =
         data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
 
-      val intent = Intent(activity, AuthWithScannerActivity::class.java).apply {
-        putExtra(AuthWithScannerActivity.APP_KEY, appKey)
-        putExtra(AuthWithScannerActivity.PUBLIC_USER_ID, publicUserId)
-        putExtra(AuthWithScannerActivity.PAYLOAD, payload)
-      }
+      easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, payload, publicUserId)
+    }
+  }
 
-      activity.startActivityForResult(intent, AUTH_REQUEST_CODE)
+  @ReactMethod
+  fun processLink(data: ReadableMap, promise: Promise) {
+    keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val publicUserId: String? = data.getString("publicUserId")
+        val url: String = data.getString("url") ?: throw java.lang.IllegalStateException("You need to provide url")
+        val appKey: String =
+          data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
+        val payload: String =
+          data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
+
+        val uri = Uri.parse(url)
+        val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
+        val isSuccess = keyri.easyKeyriAuth(fm, uri, appKey, payload, publicUserId).getOrThrow()
+
+        withContext(Dispatchers.Main) {
+          promise.resolve(isSuccess)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
     }
   }
 
