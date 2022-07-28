@@ -396,7 +396,7 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-KeyriExample/Pods-KeyriExample-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/keyri/keyri-pod.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/keyri-pod/keyri-pod.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
