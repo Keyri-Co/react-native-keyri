@@ -7,7 +7,7 @@
 //
 
 #import "KeyriNativeModule.h"
-@import keyri;
+@import keyri_pod;
 
 NSString *const KeyriNativeModuleDomain;
 
@@ -48,8 +48,22 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
     id appKey = [data objectForKey:@"appKey"];
     
     if ([publicUserId isKindOfClass:[NSString class]] && [sessionId isKindOfClass:[NSString class]] && [appKey isKindOfClass:[NSString class]]) {
-        Session *session = [self.keyri initializeQrSessionWithUsername:publicUserId sessionId:sessionId appKey:appKey];
-        [self.sessions addObject:session];
+        __weak typeof (self) weakSelf = self;
+        [self.keyri initializeQrSessionWithUsername:publicUserId sessionId:sessionId appKey:appKey completion:^(Session * _Nullable session, NSError * _Nullable error) {
+            typeof (self) strongSelf = weakSelf;
+            if (session != nil) {
+                [strongSelf.sessions addObject:session];
+            } else {
+                NSString *errorText = @"there was error during initialization of keyri sdk";
+                NSLog(@"%@", errorText);
+                NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+                reject(
+                       @"Error",
+                       errorText,
+                       [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleInitializeError userInfo:details]
+                );
+            }
+        }];
         resolve(@"Success");
     } else {
         NSString *errorText = @"there was error during initialization of keyri sdk";
