@@ -26,5 +26,17 @@ const styles = StyleSheet.create({
     color: '#777',
   },
   markerStyle: { borderColor: '#666' },
+  touchable: {
+    height: 50,
+    width: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0 ,0, 0, 0.1)',
+    position: 'absolute',
+    top: 30,
+    right: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10000,
+  },
 });
 export default styles;

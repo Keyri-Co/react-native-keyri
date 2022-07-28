@@ -38,7 +38,11 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
       appKey: APP_KEY,
       payload: '',
     };
-    await Keyri.easyKeyriAuth(data);
+    try {
+      await Keyri.easyKeyriAuth(data);
+    } catch {
+      (error: Error) => console.log(error);
+    }
   };
 
   const supabaseEasyAuth = async () => {
@@ -65,7 +69,11 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
           refreshToken: response?.data?.refresh_token,
         }),
       };
-      await Keyri.easyKeyriAuth(data);
+      try {
+        await Keyri.easyKeyriAuth(data);
+      } catch {
+        (error: Error) => console.log(error);
+      }
     }
   };
   return (
@@ -91,7 +99,14 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
         </TouchableOpacity>
         <Text style={styles.text}>or</Text>
         <TouchableOpacity style={styles.touchable} onPress={supabaseEasyAuth}>
-          <Text style={styles.btnText}>Supabase Easy Keyri Auth</Text>
+          <Text
+            adjustsFontSizeToFit={true}
+            style={styles.btnText}
+            numberOfLines={1}
+            minimumFontScale={0.7}
+          >
+            Supabase Easy Keyri Auth
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
