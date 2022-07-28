@@ -12,7 +12,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
-import com.keyrico.keyrisdk.ui.auth.AuthWithScannerActivity
+import com.keyrico.scanner.AuthWithScannerActivity
 import com.keyrico.keyrisdk.entity.session.Session
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -155,7 +155,6 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
             val userParametersMap = WritableNativeMap().also {
               session.userParameters?.let { userParameters ->
                 it.putString("custom", userParameters.custom)
-               
               }
             }
 
@@ -230,8 +229,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
 
-        val isApproved = keyri.initializeDefaultScreen(fm, session, payload)
-
+        val isApproved = keyri.initializeDefaultConfirmationScreen(fm, session, payload).getOrThrow()
         withContext(Dispatchers.Main) {
           promise.resolve(isApproved)
         }

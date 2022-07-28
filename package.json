@@ -113,5 +113,8 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.31.0"
   }
 }

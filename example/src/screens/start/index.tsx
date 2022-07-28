@@ -1,13 +1,72 @@
-import * as React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Text, TouchableOpacity, View, Linking } from 'react-native';
+import Keyri from 'react-native-keyri';
+import axios from 'axios';
 
-import type { RootNavigationProps } from 'example/src/navigation';
-import { ILoginType } from '../../utils/types';
-interface LogInScreenProps extends RootNavigationProps<'Start'> {}
+import {
+  APP_KEY,
+  SUPABASE_API_KEY,
+  SUPABASE_APP_KEY,
+  SUPABASE_PASS,
+  SUPABASE_URL,
+  SUPABASE_USER_EMAIL,
+} from '../../utils/constants';
+import type {
+  RootNavigationProps,
+  RootNavigatorParams,
+} from 'example/src/navigation';
+import { AppLinkContext } from '../../context/linking-context';
+import styles from './start-styles';
+interface StartScreenProps extends RootNavigationProps<'Start'> {}
 
-const StartScreen: React.FC<LogInScreenProps> = ({ navigation }) => {
-  const goNext = (type: ILoginType) => {
-    navigation.navigate('Initial', { type: type });
+const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
+  const { setDeepLink } = React.useContext(AppLinkContext);
+  const goNext = (screenName: keyof RootNavigatorParams) => {
+    navigation.navigate(screenName);
+  };
+  useEffect(() => {
+    const handleUrl = ({ url }: { url: string }) => {
+      setDeepLink(url);
+    };
+    Linking.addEventListener('url', handleUrl);
+    return () => Linking.removeAllListeners('url');
+  }, [setDeepLink]);
+
+  const easyAuth = async () => {
+    const data = {
+      publicUserId: 'user@email',
+      appKey: APP_KEY,
+      payload: '',
+    };
+    await Keyri.easyKeyriAuth(data);
+  };
+
+  const supabaseEasyAuth = async () => {
+    const url = SUPABASE_URL;
+    const response = await axios
+      .post(
+        url,
+        {
+          email: SUPABASE_USER_EMAIL,
+          password: SUPABASE_PASS,
+        },
+        {
+          headers: {
+            apiKey: SUPABASE_API_KEY,
+          },
+        }
+      )
+      .catch((error) => console.log(error));
+    if (response) {
+      const data = {
+        publicUserId: SUPABASE_USER_EMAIL,
+        appKey: SUPABASE_APP_KEY,
+        payload: JSON.stringify({
+          refreshToken: response?.data?.refresh_token,
+        }),
+      };
+      await Keyri.easyKeyriAuth(data);
+    }
   };
   return (
     <View style={styles.root}>
@@ -15,58 +74,28 @@ const StartScreen: React.FC<LogInScreenProps> = ({ navigation }) => {
       <View style={styles.btnView}>
         <TouchableOpacity
           style={styles.touchable}
-          onPress={() => goNext(ILoginType.default)}
+          onPress={() => goNext('Default')}
         >
           <Text style={styles.btnText}>Default popup</Text>
         </TouchableOpacity>
         <Text style={styles.text}>or</Text>
         <TouchableOpacity
           style={styles.touchable}
-          onPress={() => goNext(ILoginType.custom)}
+          onPress={() => goNext('Custom')}
         >
           <Text style={styles.btnText}>Custom popup</Text>
+        </TouchableOpacity>
+        <Text style={styles.text}>or</Text>
+        <TouchableOpacity style={styles.touchable} onPress={easyAuth}>
+          <Text style={styles.btnText}>Easy Keyri Auth</Text>
+        </TouchableOpacity>
+        <Text style={styles.text}>or</Text>
+        <TouchableOpacity style={styles.touchable} onPress={supabaseEasyAuth}>
+          <Text style={styles.btnText}>Supabase Easy Keyri Auth</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  text: {
-    color: '#666',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  btnView: {
-    height: 170,
-    justifyContent: 'space-between',
-    marginBottom: 70,
-  },
-  touchable: {
-    width: 250,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#9887CB',
-    paddingBottom: 3,
-  },
-  btnText: {
-    fontWeight: '700',
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  title: {
-    color: '#666',
-    fontSize: 18,
-    textAlign: 'center',
-    marginTop: 50,
-  },
-});
 
 export default StartScreen;
