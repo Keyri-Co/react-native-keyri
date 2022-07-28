@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import type { RootNavigationProps } from 'example/src/navigation';
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
@@ -49,7 +48,7 @@ const CustomScreen: React.FC<CustomScreenProps> = () => {
         setLoading(false);
       }
     },
-    []
+    [setActiveSession, setActiveSessionId]
   );
 
   useEffect(() => {

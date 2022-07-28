@@ -18,3 +18,7 @@ export interface ISessionContext {
   setActiveSession: (session: KeyriSession | null) => void;
   setActiveSessionId: (sessionId: string) => void;
 }
+export interface IAppLinkContext {
+  deepLink: string;
+  setDeepLink: (_link: string) => void;
+}

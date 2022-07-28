@@ -8,10 +8,10 @@ import {
   Animated,
   Image,
 } from 'react-native';
+import type { KeyriSession } from 'react-native-keyri';
 
 import { IWidgetTypes } from '../../utils/types';
 import { ICONS } from '../../assets/index';
-import type { KeyriSession } from '../../../../src/types';
 import styles from './popup-modal-styles';
 
 const { height } = Dimensions.get('window');

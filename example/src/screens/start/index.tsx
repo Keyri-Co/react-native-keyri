@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from 'react';
 import { Text, TouchableOpacity, View, Linking } from 'react-native';
 import Keyri from 'react-native-keyri';
@@ -31,15 +30,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
     };
     Linking.addEventListener('url', handleUrl);
     return () => Linking.removeAllListeners('url');
-  }, []);
-
-  const getInitialUrl = async () => {
-    const initialUrl = await Linking.getInitialURL();
-    if (initialUrl) {
-      setDeepLink(initialUrl);
-    }
-  };
-  getInitialUrl();
+  }, [setDeepLink]);
 
   const easyAuth = async () => {
     const data = {
@@ -47,13 +38,11 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
       appKey: APP_KEY,
       payload: '',
     };
-    try {
-      await Keyri.easyKeyriAuth(data);
-    } catch {}
+    await Keyri.easyKeyriAuth(data);
   };
 
   const supabaseEasyAuth = async () => {
-    const url =  SUPABASE_URL;
+    const url = SUPABASE_URL;
     const response = await axios
       .post(
         url,
@@ -63,22 +52,22 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
         },
         {
           headers: {
-            'apiKey' : SUPABASE_API_KEY,            
-                  }
-}
-    )
-    .catch(error => console.log(error))
-    if(response){
+            apiKey: SUPABASE_API_KEY,
+          },
+        }
+      )
+      .catch((error) => console.log(error));
+    if (response) {
       const data = {
         publicUserId: SUPABASE_USER_EMAIL,
         appKey: SUPABASE_APP_KEY,
         payload: JSON.stringify({
           refreshToken: response?.data?.refresh_token,
-        }), 
+        }),
       };
       await Keyri.easyKeyriAuth(data);
     }
-}
+  };
   return (
     <View style={styles.root}>
       <Text style={styles.title}>Choose options to login</Text>
