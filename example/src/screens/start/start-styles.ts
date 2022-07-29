@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#9887CB',
     paddingBottom: 3,
+    paddingHorizontal: 20,
   },
   btnText: {
     fontWeight: '700',

@@ -2,7 +2,13 @@ import type { RootNavigationProps } from 'example/src/navigation';
 import React, { useEffect, useContext, useCallback } from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import type { BarCodeReadEvent } from 'react-native-camera';
-import { View, ActivityIndicator, Text } from 'react-native';
+import {
+  View,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import Keyri from 'react-native-keyri';
 
 import type { ISearchParam } from '../../utils/types';
@@ -10,10 +16,11 @@ import { parseUrlParams } from '../../utils/helpers';
 import { APP_KEY } from '../../utils/constants';
 import { AppLinkContext } from '../../context/linking-context';
 import styles from './default-styles';
+import { ICONS } from '../../assets';
 
 interface InitialScreenProps extends RootNavigationProps<'Default'> {}
 
-const DefaultScreen: React.FC<InitialScreenProps> = () => {
+const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
   const [loading, setLoading] = React.useState<boolean>(false);
 
   const { deepLink } = useContext(AppLinkContext);
@@ -49,8 +56,19 @@ const DefaultScreen: React.FC<InitialScreenProps> = () => {
     }
   }, [deepLink, onReadSuccess]);
 
+  const onClosePress = () => {
+    navigation.goBack();
+  };
   return (
     <View style={styles.root}>
+      <TouchableOpacity onPress={onClosePress} style={styles.touchable}>
+        <Image
+          source={ICONS.CLOSE}
+          height={35}
+          resizeMode="stretch"
+          width={35}
+        />
+      </TouchableOpacity>
       {loading ? (
         <View style={styles.indicator}>
           <ActivityIndicator size="large" color="#FFFFFF" />
