@@ -17,6 +17,7 @@ import type {
 } from 'example/src/navigation';
 import { AppLinkContext } from '../../context/linking-context';
 import styles from './start-styles';
+import toast from '../../components/toast';
 interface StartScreenProps extends RootNavigationProps<'Start'> {}
 
 const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
@@ -41,7 +42,10 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
     try {
       await Keyri.easyKeyriAuth(data);
     } catch {
-      (error: Error) => console.log(error);
+      (error: Error) => {
+        console.log(error);
+        toast.show(JSON.stringify(error));
+      };
     }
   };
 
@@ -60,7 +64,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
           },
         }
       )
-      .catch((error) => console.log(error));
+      .catch((error: Error) => toast.show(JSON.stringify(error)));
     if (response) {
       const data = {
         publicUserId: SUPABASE_USER_EMAIL,
@@ -72,7 +76,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
       try {
         await Keyri.easyKeyriAuth(data);
       } catch {
-        (error: Error) => console.log(error);
+        (error: Error) => toast.show(JSON.stringify(error));
       }
     }
   };

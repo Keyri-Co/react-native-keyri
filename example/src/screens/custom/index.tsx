@@ -19,7 +19,7 @@ import { APP_KEY } from '../../utils/constants';
 import { AppLinkContext } from '../../context/linking-context';
 import { AppSessionContext } from '../../context/session-context';
 import { ICONS } from '../../assets';
-
+import toast from '../../components/toast';
 interface CustomScreenProps extends RootNavigationProps<'Custom'> {}
 
 const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
@@ -51,7 +51,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
           setActiveSessionId(sessionId);
         }
       } catch (error) {
-        console.log(error, '==error initiate qr session');
+        toast.show(error?.message);
       } finally {
         setLoading(false);
       }
@@ -81,7 +81,11 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
   const confirmSession = async () => {
     if (activeSessionId) {
       closePopUp();
-      await Keyri.confirmSession(activeSessionId, 'payload');
+      try {
+        await Keyri.confirmSession(activeSessionId, 'payload');
+      } catch (error) {
+        toast.show(error?.message);
+      }
     }
   };
   const onClosePress = () => {
