@@ -1,5 +1,11 @@
-import React, { useEffect } from 'react';
-import { Text, TouchableOpacity, View, Linking } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  Linking,
+  ActivityIndicator,
+} from 'react-native';
 import Keyri from 'react-native-keyri';
 import axios from 'axios';
 
@@ -17,10 +23,11 @@ import type {
 } from 'example/src/navigation';
 import { AppLinkContext } from '../../context/linking-context';
 import styles from './start-styles';
-import toast from '../../components/toast';
+import toast from '../../services/toast';
 interface StartScreenProps extends RootNavigationProps<'Start'> {}
 
 const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
+  const [loading, setLoading] = useState<boolean>(false);
   const { setDeepLink } = React.useContext(AppLinkContext);
   const goNext = (screenName: keyof RootNavigatorParams) => {
     navigation.navigate(screenName);
@@ -39,45 +46,42 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
       appKey: APP_KEY,
       payload: '',
     };
-    try {
-      await Keyri.easyKeyriAuth(data);
-    } catch {
-      (error: Error) => {
-        console.log(error);
-        toast.show(JSON.stringify(error));
-      };
-    }
+    await Keyri.easyKeyriAuth(data).catch((error) =>
+      toast.show(error?.message)
+    );
   };
 
   const supabaseEasyAuth = async () => {
-    const url = SUPABASE_URL;
-    const response = await axios
-      .post(
-        url,
-        {
-          email: SUPABASE_USER_EMAIL,
-          password: SUPABASE_PASS,
-        },
-        {
-          headers: {
-            apiKey: SUPABASE_API_KEY,
+    try {
+      setLoading(true);
+      const response = await axios
+        .post(
+          SUPABASE_URL,
+          {
+            email: SUPABASE_USER_EMAIL,
+            password: SUPABASE_PASS,
           },
-        }
-      )
-      .catch((error: Error) => toast.show(error?.message));
-    if (response) {
-      const data = {
-        publicUserId: SUPABASE_USER_EMAIL,
-        appKey: SUPABASE_APP_KEY,
-        payload: JSON.stringify({
-          refreshToken: response?.data?.refresh_token,
-        }),
-      };
-      try {
-        await Keyri.easyKeyriAuth(data);
-      } catch {
-        (error: Error) => toast.show(JSON.stringify(error));
+          {
+            headers: {
+              apiKey: SUPABASE_API_KEY,
+            },
+          }
+        )
+        .catch((error: Error) => toast.show(error?.message));
+      if (response) {
+        const data = {
+          publicUserId: SUPABASE_USER_EMAIL,
+          appKey: SUPABASE_APP_KEY,
+          payload: JSON.stringify({
+            refreshToken: response?.data?.refresh_token,
+          }),
+        };
+        await Keyri.easyKeyriAuth(data).catch((error) =>
+          toast.show(error?.message)
+        );
       }
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -102,15 +106,23 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
           <Text style={styles.btnText}>Easy Keyri Auth</Text>
         </TouchableOpacity>
         <Text style={styles.text}>or</Text>
-        <TouchableOpacity style={styles.touchable} onPress={supabaseEasyAuth}>
-          <Text
-            adjustsFontSizeToFit={true}
-            style={styles.btnText}
-            numberOfLines={1}
-            minimumFontScale={0.7}
-          >
-            Supabase Easy Keyri Auth
-          </Text>
+        <TouchableOpacity
+          style={styles.touchable}
+          onPress={supabaseEasyAuth}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text
+              adjustsFontSizeToFit={true}
+              style={styles.btnText}
+              numberOfLines={1}
+              minimumFontScale={0.7}
+            >
+              Supabase Easy Keyri Auth
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

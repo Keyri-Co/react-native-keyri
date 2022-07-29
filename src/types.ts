@@ -111,7 +111,7 @@ export interface KeyriModule {
   ) => Promise<boolean>;
   confirmSession: (sessionId: string, payload: string) => Promise<boolean>;
   denySession: (sessionId: string, payload: string) => Promise<boolean>;
-  easyKeyriAuth: (data: EasyKeyriAuthOptions) => void;
+  easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<string>;
 }
 export interface InitiateQrSessionOptions {
   appKey: string;

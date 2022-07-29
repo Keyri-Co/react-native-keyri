@@ -19,7 +19,7 @@ import { APP_KEY } from '../../utils/constants';
 import { AppLinkContext } from '../../context/linking-context';
 import { AppSessionContext } from '../../context/session-context';
 import { ICONS } from '../../assets';
-import toast from '../../components/toast';
+import toast from '../../services/toast';
 interface CustomScreenProps extends RootNavigationProps<'Custom'> {}
 
 const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {

@@ -17,7 +17,7 @@ import { APP_KEY } from '../../utils/constants';
 import { AppLinkContext } from '../../context/linking-context';
 import styles from './default-styles';
 import { ICONS } from '../../assets';
-import toast from '../../components/toast';
+import toast from '../../services/toast';
 interface InitialScreenProps extends RootNavigationProps<'Default'> {}
 
 const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
@@ -41,7 +41,6 @@ const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
         );
         if (session) {
           setLoading(false);
-          //TO DO
           await Keyri.initializeDefaultScreen(sessionId, 'payload').catch(
             (error) => toast.show(error?.message)
           );

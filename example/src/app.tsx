@@ -4,7 +4,7 @@ import Toast from 'react-native-easy-toast';
 
 import { AppLinkContext, LinkContext } from './context/linking-context';
 import { AppSessionContext, SessionContext } from './context/session-context';
-import toast from './components/toast';
+import toast from './services/toast';
 export default function App() {
   return (
     <AppLinkContext.Provider value={LinkContext()}>
