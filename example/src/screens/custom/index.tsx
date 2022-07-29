@@ -44,14 +44,14 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
           sessionId: sessionId,
           publicUserId: '',
         };
-        const session = await Keyri.initiateQrSession(options);
+        const session = await Keyri.initiateQrSession(options).catch((error) =>
+          toast.show(error?.message)
+        );
         if (session) {
           setActiveSession(session);
           setIsPopUpVisible(true);
           setActiveSessionId(sessionId);
         }
-      } catch (error) {
-        toast.show(error?.message);
       } finally {
         setLoading(false);
       }
@@ -74,18 +74,19 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
   const denySession = async () => {
     if (activeSessionId) {
       closePopUp();
-      await Keyri.denySession(activeSessionId, 'payload');
+
+      await Keyri.denySession(activeSessionId, 'payload').catch((error) =>
+        toast.show(error?.message)
+      );
     }
   };
 
   const confirmSession = async () => {
     if (activeSessionId) {
       closePopUp();
-      try {
-        await Keyri.confirmSession(activeSessionId, 'payload');
-      } catch (error) {
-        toast.show(error?.message);
-      }
+      await Keyri.confirmSession(activeSessionId, 'payload').catch((error) =>
+        toast.show(error?.message)
+      );
     }
   };
   const onClosePress = () => {

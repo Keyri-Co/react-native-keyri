@@ -64,7 +64,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
           },
         }
       )
-      .catch((error: Error) => toast.show(JSON.stringify(error)));
+      .catch((error: Error) => toast.show(error?.message));
     if (response) {
       const data = {
         publicUserId: SUPABASE_USER_EMAIL,
