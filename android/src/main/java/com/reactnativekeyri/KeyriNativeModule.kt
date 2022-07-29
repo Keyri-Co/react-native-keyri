@@ -42,7 +42,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
           if (resultCode == Activity.RESULT_OK) {
             authWithScannerPromise?.resolve("Successfully authenticated")
           } else {
-            authWithScannerPromise?.reject("Couldn't auth with scanner")
+            authWithScannerPromise?.reject("Cancelled by user")
           }
         }
       }
