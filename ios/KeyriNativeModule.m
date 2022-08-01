@@ -9,7 +9,7 @@
 #import "KeyriNativeModule.h"
 @import keyri_pod;
 
-NSString *const KeyriNativeModuleDomain;
+NSString *const KeyriNativeModuleDomain = @"KeyriNativeModule";
 
 enum {
     KeyriNativeModuleInitializeError = 1000,
@@ -169,17 +169,17 @@ RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolve
     });
 }
 
-RCT_EXPORT_METHOD(confirmSession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(confirmSession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self finishSession:sessionId payload:payload isApproved:YES resolver:resolve];
+    [self finishSession:sessionId payload:payload isApproved:YES resolver:resolve rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self finishSession:sessionId payload:payload isApproved:NO resolver:resolve];
+    [self finishSession:sessionId payload:payload isApproved:NO resolver:resolve rejecter:reject];
 }
 
-- (void)finishSession:(NSString *)sessionId payload:(NSString *)payload isApproved:(BOOL)isApproved resolver:(RCTPromiseResolveBlock)resolve {
+- (void)finishSession:(NSString *)sessionId payload:(NSString *)payload isApproved:(BOOL)isApproved resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
     NSString *result;
     for (Session *session in self.sessions) {
         if (session.sessionId == sessionId) {
