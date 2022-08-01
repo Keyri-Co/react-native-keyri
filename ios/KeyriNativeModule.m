@@ -17,6 +17,7 @@ enum {
     KeyriNativeModuleGetUserSignatureError,
     KeyriNativeModuleGetAssociationKeyError,
     KeyriNativeModuleEasyKeyriAuthError,
+    KeyriNativeModuleProcessLinkError,
 };
 
 @interface KeyriNativeModule ()
@@ -167,6 +168,35 @@ RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolve
             );
         }
     });
+}
+
+RCT_EXPORT_METHOD(processLink:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    id urlString = [data objectForKey:@"url"];
+    id publicUserId = [data objectForKey:@"publicUserId"];
+    id appKey = [data objectForKey:@"appKey"];
+    id payload = [data objectForKey:@"payload"];
+    
+    if (
+        [publicUserId isKindOfClass:[NSString class]] &&
+        [payload isKindOfClass:[NSString class]] &&
+        [appKey isKindOfClass:[NSString class]] &&
+        [urlString isKindOfClass:[NSString class]] &&
+        [NSURL URLWithString:urlString] != nil
+    ) {
+        [self.keyri processLinkWithUrl:[NSURL URLWithString:urlString] publicUserId:publicUserId appKey:appKey payload:payload completion:^(BOOL success) {
+            resolve(@(success));
+        }];
+    } else {
+        NSString *errorText = @"there was error during process link";
+        NSLog(@"%@", errorText);
+        NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+        reject(
+               @"Error",
+               errorText,
+               [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleProcessLinkError userInfo:details]
+        );
+    }
 }
 
 RCT_EXPORT_METHOD(confirmSession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
