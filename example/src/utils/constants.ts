@@ -6,3 +6,4 @@ export const SUPABASE_URL =
   'https://pidfgjqywchqcqdjhmsj.supabase.co/auth/v1/token?grant_type=password';
 export const SUPABASE_APP_KEY = 'raB7SFWt27woKqkPhaUrmWAsCJIO8Moj';
 export const SUPABASE_PASS = '4Science#';
+export const DURATION = 1200;

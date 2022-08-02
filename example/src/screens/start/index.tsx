@@ -46,28 +46,28 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
       appKey: APP_KEY,
       payload: '',
     };
-    await Keyri.easyKeyriAuth(data).catch((error) =>
-      toast.show(error?.message)
-    );
+    try {
+      await Keyri.easyKeyriAuth(data);
+    } catch (error) {
+      toast.show(error);
+    }
   };
 
   const supabaseEasyAuth = async () => {
     try {
       setLoading(true);
-      const response = await axios
-        .post(
-          SUPABASE_URL,
-          {
-            email: SUPABASE_USER_EMAIL,
-            password: SUPABASE_PASS,
+      const response = await axios.post(
+        SUPABASE_URL,
+        {
+          email: SUPABASE_USER_EMAIL,
+          password: SUPABASE_PASS,
+        },
+        {
+          headers: {
+            apiKey: SUPABASE_API_KEY,
           },
-          {
-            headers: {
-              apiKey: SUPABASE_API_KEY,
-            },
-          }
-        )
-        .catch((error: Error) => toast.show(error?.message));
+        }
+      );
       if (response) {
         const data = {
           publicUserId: SUPABASE_USER_EMAIL,
@@ -76,10 +76,10 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
             refreshToken: response?.data?.refresh_token,
           }),
         };
-        await Keyri.easyKeyriAuth(data).catch((error) =>
-          toast.show(error?.message)
-        );
+        await Keyri.easyKeyriAuth(data);
       }
+    } catch (error) {
+      toast.show(error);
     } finally {
       setLoading(false);
     }
