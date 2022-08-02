@@ -36,7 +36,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
     const data = {
       publicUserId: 'user@email',
       appKey: APP_KEY,
-      payload: '',
+      payload: 'payload',
     };
     try {
       await Keyri.easyKeyriAuth(data);
