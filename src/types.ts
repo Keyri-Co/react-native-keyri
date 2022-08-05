@@ -96,30 +96,48 @@ export interface WhitelabelAuthOptions {
 
 export interface KeyriModule {
   generateAssociationKey: (publicUserId: string) => Promise<string>;
+
   getUserSignature: (
     publicUserId?: string,
     customSignedData?: string
   ) => Promise<string>;
+
   listAssociationKey: () => Promise<string[]>;
+
   getAssociationKey: (publicUserId?: string) => Promise<string>;
+
   initiateQrSession: (
     options: InitiateQrSessionOptions
   ) => Promise<KeyriSession>;
+
   initializeDefaultScreen: (
     sessionId: string,
     payload: string
   ) => Promise<boolean>;
+
   confirmSession: (sessionId: string, payload: string) => Promise<boolean>;
+
   denySession: (sessionId: string, payload: string) => Promise<boolean>;
+
   easyKeyriAuth: (data: EasyKeyriAuthOptions) => void;
+
+  processLink: (options: ProcessLinkOptions) => Promise<boolean>;
 }
+
 export interface InitiateQrSessionOptions {
   appKey: string;
   sessionId: string;
   publicUserId?: string;
 }
+
 export interface EasyKeyriAuthOptions {
   publicUserId: string;
   appKey: string;
   payload: string;
+}
+
+export interface ProcessLinkOptions {
+  appKey: string;
+  url: string;
+  publicUserId?: string;
 }
