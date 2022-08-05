@@ -130,7 +130,7 @@ RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromis
     }
 }
 
-RCT_EXPORT_METHOD(listAssociationKeyWithResolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(listAssociationKey:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSDictionary *associationKeys = [self.keyri listAssociactionKeys];
     resolve(associationKeys);
