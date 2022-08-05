@@ -140,13 +140,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
         withContext(Dispatchers.Main) {
           WritableNativeMap().apply {
-            putString("widgetOrigin", session.widgetOrigin)
+            putString("widgetOrigin", session.WidgetOrigin)
             putString("sessionId", session.sessionId)
-            putString("iPAddressMobile", session.iPAddressMobile)
-            putString("iPAddressWidget", session.iPAddressWidget)
+            putString("iPAddressMobile", session.IPAddressMobile)
+            putString("iPAddressWidget", session.IPAddressWidget)
 
             val widgetUserAgentMap = WritableNativeMap().also {
-              session.widgetUserAgent?.let { widgetUserAgent ->
+              session.WidgetUserAgent?.let { widgetUserAgent ->
                 it.putBoolean("isDesktop", widgetUserAgent.isDesktop)
                 it.putString("os", widgetUserAgent.os)
                 it.putString("browser", widgetUserAgent.browser)
@@ -278,7 +278,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
         val uri = Uri.parse(url)
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
-        val isSuccess = keyri.easyKeyriAuth(fm, uri, appKey, payload, publicUserId).getOrThrow()
+        val isSuccess = keyri.processLink(fm, uri, appKey, payload, publicUserId).getOrThrow()
 
         withContext(Dispatchers.Main) {
           promise.resolve(isSuccess)
