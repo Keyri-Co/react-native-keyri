@@ -115,10 +115,15 @@ RCT_EXPORT_METHOD(getUserSignature:(NSString *)publicUserId customSignedData:(NS
 
 RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
+    NSString *userId = @"";
     if ([publicUserId isKindOfClass:[NSString class]]) {
-        NSString *associationKey = [self.keyri getAssociationKeyWithUsername:publicUserId];
-        resolve(associationKey);
-    } else {
+        userId = publicUserId;
+    }
+    
+    NSString *associationKey = [self.keyri getAssociationKeyWithUsername:publicUserId];
+    resolve(associationKey);
+    
+    if (![associationKey isKindOfClass:[NSString class]]) {
         NSString *errorText = @"there was error during getting association key";
         NSLog(@"%@", errorText);
         NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
