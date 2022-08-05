@@ -130,7 +130,7 @@ RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromis
     }
 }
 
-RCT_EXPORT_METHOD(listAssociationKeyWithResolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(listAssociationKey:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSDictionary *associationKeys = [self.keyri listAssociactionKeys];
     resolve(associationKeys);
@@ -213,6 +213,7 @@ RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload 
     NSString *result;
     for (Session *session in self.sessions) {
         if ([session.sessionId isEqualToString:sessionId]) {
+            session.payload = payload;
             if (isApproved) {
                 result = session.confirm;
             } else {
