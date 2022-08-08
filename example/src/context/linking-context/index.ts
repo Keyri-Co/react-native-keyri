@@ -21,7 +21,9 @@ export function LinkContext() {
 
     const onPressPrecess = () => {
       const publicUserId = 'user@email';
-      Keyri.processLink({ appKey: APP_KEY, url: deepLink, publicUserId })
+      const payload = 'Custom payload';
+
+      Keyri.processLink({ appKey: APP_KEY, url: deepLink, publicUserId, payload })
         .then(() => Alert.alert('Success', 'The link has been processed'))
         .catch((e) => Alert.alert('Error', e?.message));
     };
