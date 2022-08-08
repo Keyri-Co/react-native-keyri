@@ -139,5 +139,6 @@ export interface EasyKeyriAuthOptions {
 export interface ProcessLinkOptions {
   appKey: string;
   url: string;
+  payload: string;
   publicUserId?: string;
 }
