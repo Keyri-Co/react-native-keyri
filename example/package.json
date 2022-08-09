@@ -15,6 +15,7 @@
     "react": "16.13.1",
     "react-native": "0.63.4",
     "react-native-camera": "^4.2.1",
+    "react-native-easy-toast": "^2.0.0",
     "react-native-keyri": "../",
     "react-native-permissions": "^3.4.0",
     "react-native-qrcode-scanner": "^1.5.5",

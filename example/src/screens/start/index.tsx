@@ -1,5 +1,11 @@
-import React, { useEffect } from 'react';
-import { Text, TouchableOpacity, View, Linking } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  Linking,
+  ActivityIndicator,
+} from 'react-native';
 import Keyri from 'react-native-keyri';
 import axios from 'axios';
 
@@ -17,9 +23,11 @@ import type {
 } from 'example/src/navigation';
 import { AppLinkContext } from '../../context/linking-context';
 import styles from './start-styles';
+import toast from '../../services/toast';
 interface StartScreenProps extends RootNavigationProps<'Start'> {}
 
 const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
+  const [loading, setLoading] = useState<boolean>(false);
   const { setDeepLink } = React.useContext(AppLinkContext);
   const goNext = (screenName: keyof RootNavigatorParams) => {
     navigation.navigate(screenName);
@@ -40,16 +48,16 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
     };
     try {
       await Keyri.easyKeyriAuth(data);
-    } catch {
-      (error: Error) => console.log(error);
+    } catch (error) {
+      toast.show(error);
     }
   };
 
   const supabaseEasyAuth = async () => {
-    const url = SUPABASE_URL;
-    const response = await axios
-      .post(
-        url,
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        SUPABASE_URL,
         {
           email: SUPABASE_USER_EMAIL,
           password: SUPABASE_PASS,
@@ -59,21 +67,21 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
             apiKey: SUPABASE_API_KEY,
           },
         }
-      )
-      .catch((error) => console.log(error));
-    if (response) {
-      const data = {
-        publicUserId: SUPABASE_USER_EMAIL,
-        appKey: SUPABASE_APP_KEY,
-        payload: JSON.stringify({
-          refreshToken: response?.data?.refresh_token,
-        }),
-      };
-      try {
+      );
+      if (response) {
+        const data = {
+          publicUserId: SUPABASE_USER_EMAIL,
+          appKey: SUPABASE_APP_KEY,
+          payload: JSON.stringify({
+            refreshToken: response?.data?.refresh_token,
+          }),
+        };
         await Keyri.easyKeyriAuth(data);
-      } catch {
-        (error: Error) => console.log(error);
       }
+    } catch (error) {
+      toast.show(error);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -98,15 +106,23 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
           <Text style={styles.btnText}>Easy Keyri Auth</Text>
         </TouchableOpacity>
         <Text style={styles.text}>or</Text>
-        <TouchableOpacity style={styles.touchable} onPress={supabaseEasyAuth}>
-          <Text
-            adjustsFontSizeToFit={true}
-            style={styles.btnText}
-            numberOfLines={1}
-            minimumFontScale={0.7}
-          >
-            Supabase Easy Keyri Auth
-          </Text>
+        <TouchableOpacity
+          style={styles.touchable}
+          onPress={supabaseEasyAuth}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text
+              adjustsFontSizeToFit={true}
+              style={styles.btnText}
+              numberOfLines={1}
+              minimumFontScale={0.7}
+            >
+              Supabase Easy Keyri Auth
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

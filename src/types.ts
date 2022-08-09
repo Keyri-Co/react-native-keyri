@@ -119,7 +119,7 @@ export interface KeyriModule {
 
   denySession: (sessionId: string, payload: string) => Promise<boolean>;
 
-  easyKeyriAuth: (data: EasyKeyriAuthOptions) => void;
+  easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<string>;
 
   processLink: (options: ProcessLinkOptions) => Promise<boolean>;
 }
