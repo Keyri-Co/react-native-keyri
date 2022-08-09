@@ -3,6 +3,7 @@ import type {
   InitiateQrSessionOptions,
   EasyKeyriAuthOptions,
   KeyriModule,
+  ProcessLinkOptions,
 } from './types';
 
 const LINKING_ERROR =
@@ -19,9 +20,11 @@ const Keyri: KeyriModule = {
   generateAssociationKey: (publicUserId: string) => {
     return Module.generateAssociationKey(publicUserId);
   },
+
   getUserSignature: (publicUserId?: string, customSignedData?: string) => {
     return Module.getUserSignature(publicUserId, customSignedData);
   },
+
   listAssociationKey: () => {
     return Module.listAssociationKey();
   },
@@ -33,17 +36,25 @@ const Keyri: KeyriModule = {
   initiateQrSession: (options: InitiateQrSessionOptions) => {
     return Module.initiateQrSession(options);
   },
+
   initializeDefaultScreen: (sessionId: string, payload: string) => {
     return Module.initializeDefaultScreen(sessionId, payload);
   },
+
   confirmSession: (sessionId: string, payload: string) => {
     return Module.confirmSession(sessionId, payload);
   },
+
   denySession: (sessionId: string, payload: string) => {
     return Module.denySession(sessionId, payload);
   },
+
   easyKeyriAuth: (data: EasyKeyriAuthOptions) => {
     return Module.easyKeyriAuth(data);
+  },
+
+  processLink: (options: ProcessLinkOptions) => {
+    return Module.processLink(options);
   },
 };
 

@@ -37,7 +37,7 @@ jobs:
         run: yarn example
 
       - name: Run linter
-        run: yarn lint
+        run: yarn lint --max-warnings 0
 
       - name: Check typescript
         run: yarn typescript

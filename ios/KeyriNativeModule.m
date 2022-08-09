@@ -9,7 +9,7 @@
 #import "KeyriNativeModule.h"
 @import keyri_pod;
 
-NSString *const KeyriNativeModuleDomain;
+NSString *const KeyriNativeModuleDomain = @"KeyriNativeModule";
 
 enum {
     KeyriNativeModuleInitializeError = 1000,
@@ -17,6 +17,7 @@ enum {
     KeyriNativeModuleGetUserSignatureError,
     KeyriNativeModuleGetAssociationKeyError,
     KeyriNativeModuleEasyKeyriAuthError,
+    KeyriNativeModuleProcessLinkError,
 };
 
 @interface KeyriNativeModule ()
@@ -114,8 +115,8 @@ RCT_EXPORT_METHOD(getUserSignature:(NSString *)publicUserId customSignedData:(NS
 
 RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
+    NSString *associationKey = [self.keyri getAssociationKeyWithUsername:publicUserId];
     if ([publicUserId isKindOfClass:[NSString class]]) {
-        NSString *associationKey = [self.keyri getAssociationKeyWithUsername:publicUserId];
         resolve(associationKey);
     } else {
         NSString *errorText = @"there was error during getting association key";
@@ -129,7 +130,7 @@ RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromis
     }
 }
 
-RCT_EXPORT_METHOD(listAssociationKeyWithResolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(listAssociationKey:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSDictionary *associationKeys = [self.keyri listAssociactionKeys];
     resolve(associationKeys);
@@ -169,20 +170,50 @@ RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolve
     });
 }
 
-RCT_EXPORT_METHOD(confirmSession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(processLink:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self finishSession:sessionId payload:payload isApproved:YES resolver:resolve];
+    id urlString = [data objectForKey:@"url"];
+    id publicUserId = [data objectForKey:@"publicUserId"];
+    id appKey = [data objectForKey:@"appKey"];
+    id payload = [data objectForKey:@"payload"];
+    
+    if (
+        [publicUserId isKindOfClass:[NSString class]] &&
+        [payload isKindOfClass:[NSString class]] &&
+        [appKey isKindOfClass:[NSString class]] &&
+        [urlString isKindOfClass:[NSString class]] &&
+        [NSURL URLWithString:urlString] != nil
+    ) {
+        [self.keyri processLinkWithUrl:[NSURL URLWithString:urlString] publicUserId:publicUserId appKey:appKey payload:payload completion:^(BOOL success) {
+            resolve(@(success));
+        }];
+    } else {
+        NSString *errorText = @"there was error during process link";
+        NSLog(@"%@", errorText);
+        NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+        reject(
+               @"Error",
+               errorText,
+               [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleProcessLinkError userInfo:details]
+        );
+    }
 }
 
-RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve)
+RCT_EXPORT_METHOD(confirmSession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self finishSession:sessionId payload:payload isApproved:NO resolver:resolve];
+    [self finishSession:sessionId payload:payload isApproved:YES resolver:resolve rejecter:reject];
 }
 
-- (void)finishSession:(NSString *)sessionId payload:(NSString *)payload isApproved:(BOOL)isApproved resolver:(RCTPromiseResolveBlock)resolve {
+RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self finishSession:sessionId payload:payload isApproved:NO resolver:resolve rejecter:reject];
+}
+
+- (void)finishSession:(NSString *)sessionId payload:(NSString *)payload isApproved:(BOOL)isApproved resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
     NSString *result;
     for (Session *session in self.sessions) {
-        if (session.sessionId == sessionId) {
+        if ([session.sessionId isEqualToString:sessionId]) {
+            session.payload = payload;
             if (isApproved) {
                 result = session.confirm;
             } else {

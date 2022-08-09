@@ -42,7 +42,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
         const options = {
           appKey: APP_KEY,
           sessionId: sessionId,
-          publicUserId: '',
+          publicUserId: 'user@email',
         };
         const session = await Keyri.initiateQrSession(options);
         if (session) {
