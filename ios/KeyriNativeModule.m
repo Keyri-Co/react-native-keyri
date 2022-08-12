@@ -54,6 +54,7 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
             typeof (self) strongSelf = weakSelf;
             if (session != nil) {
                 [strongSelf.sessions addObject:session];
+                resolve(@"Success");
             } else {
                 NSString *errorText = @"there was error during initialization of keyri sdk";
                 NSLog(@"%@", errorText);
@@ -65,7 +66,6 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
                 );
             }
         }];
-        resolve(@"Success");
     } else {
         NSString *errorText = @"there was error during initialization of keyri sdk";
         NSLog(@"%@", errorText);
