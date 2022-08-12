@@ -14,6 +14,7 @@ NSString *const KeyriNativeModuleDomain = @"KeyriNativeModule";
 
 enum {
     KeyriNativeModuleInitializeError = 1000,
+    KeyriNativeModuleDefaultScreenInitializeError,
     KeyriNativeModuleGenerateAssociationKeyError,
     KeyriNativeModuleGetUserSignatureError,
     KeyriNativeModuleGetAssociationKeyError,
@@ -41,33 +42,6 @@ RCT_EXPORT_MODULE()
     }
     
     return  self;
-}
-
-- (NSDictionary *)dictionaryWithPropertiesOfObject:(id)object
-{
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-
-    unsigned count;
-    objc_property_t *properties = class_copyPropertyList([object class], &count);
-
-    for (int i = 0; i < count; i++) {
-        NSString *key = [NSString stringWithUTF8String:property_getName(properties[i])];
-        id value = [object valueForKey:key];
-        if ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]]) {
-            [dict setObject:value forKey:key];
-        } else {
-            id valueDict = [self dictionaryWithPropertiesOfObject:value];
-            if (valueDict && [[valueDict allKeys] count] > 0) {
-                [dict setObject:valueDict forKey:key];
-            } else if (value) {
-                [dict setObject:value forKey:key];
-            }
-        }
-    }
-
-    free(properties);
-
-    return [NSDictionary dictionaryWithDictionary:dict];
 }
 
 RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
@@ -103,6 +77,34 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
                @"Error",
                errorText,
                [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleInitializeError userInfo:details]
+        );
+    }
+}
+
+RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    Session *session;
+    for (Session *_session in self.sessions) {
+        if ([_session.sessionId isEqualToString:sessionId]) {
+            session = _session;
+            break;
+        }
+    }
+    
+    if (session) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.keyri initializeDefaultScreenWithSessionId:session.sessionId completion:^(BOOL isApproved) {
+                resolve(@(isApproved));
+            }];
+        });
+    } else {
+        NSString *errorText = @"there was error during default screen initialization of keyri sdk";
+        NSLog(@"%@", errorText);
+        NSDictionary *details = @{ NSLocalizedDescriptionKey : errorText };
+        reject(
+               @"Error",
+               errorText,
+               [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleDefaultScreenInitializeError userInfo:details]
         );
     }
 }
@@ -253,6 +255,33 @@ RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload 
     }
     
     resolve(@([result isEqualToString:@"success"]));
+}
+
+- (NSDictionary *)dictionaryWithPropertiesOfObject:(id)object
+{
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+
+    unsigned count;
+    objc_property_t *properties = class_copyPropertyList([object class], &count);
+
+    for (int i = 0; i < count; i++) {
+        NSString *key = [NSString stringWithUTF8String:property_getName(properties[i])];
+        id value = [object valueForKey:key];
+        if ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]]) {
+            [dict setObject:value forKey:key];
+        } else {
+            id valueDict = [self dictionaryWithPropertiesOfObject:value];
+            if (valueDict && [[valueDict allKeys] count] > 0) {
+                [dict setObject:valueDict forKey:key];
+            } else if (value) {
+                [dict setObject:value forKey:key];
+            }
+        }
+    }
+
+    free(properties);
+
+    return [NSDictionary dictionaryWithDictionary:dict];
 }
 
 @end
