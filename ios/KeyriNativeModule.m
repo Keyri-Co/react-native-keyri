@@ -273,8 +273,6 @@ RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload 
             id valueDict = [self dictionaryWithPropertiesOfObject:value];
             if (valueDict && [[valueDict allKeys] count] > 0) {
                 [dict setObject:valueDict forKey:key];
-            } else if (value) {
-                [dict setObject:value forKey:key];
             }
         }
     }
