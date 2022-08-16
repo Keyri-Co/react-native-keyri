@@ -62,65 +62,47 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun generateAssociationKey(publicUserId: String, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val generatedKey = keyri.generateAssociationKey(publicUserId)
+    try {
+      val generatedKey = keyri.generateAssociationKey(publicUserId)
 
-        withContext(Dispatchers.Main) {
-          promise.resolve(generatedKey)
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
+      promise.resolve(generatedKey)
+    } catch (e: Throwable) {
+      promise.reject(handleException(e))
     }
   }
 
   @ReactMethod
   fun getUserSignature(publicUserId: String?, customSignedData: String, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val signature = keyri.getUserSignature(publicUserId, customSignedData)
+    try {
+      val signature = keyri.getUserSignature(publicUserId, customSignedData)
 
-        withContext(Dispatchers.Main) {
-          promise.resolve(signature)
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
+      promise.resolve(signature)
+    } catch (e: Throwable) {
+      promise.reject(handleException(e))
     }
   }
 
   @ReactMethod
   fun listAssociationKey(promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val associationKeys = keyri.listAssociationKey()
+    try {
+      val associationKeys = keyri.listAssociationKey()
+      val resultData = WritableNativeArray()
 
-        val resultData = WritableNativeArray()
-
-        associationKeys.forEach(resultData::pushString)
-
-        withContext(Dispatchers.Main) {
-          promise.resolve(resultData)
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
+      associationKeys.forEach(resultData::pushString)
+      promise.resolve(resultData)
+    } catch (e: Throwable) {
+      promise.reject(handleException(e))
     }
   }
 
   @ReactMethod
   fun getAssociationKey(publicUserId: String?, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val associationKey = keyri.getAssociationKey(publicUserId)
+    try {
+      val associationKey = keyri.getAssociationKey(publicUserId)
 
-        withContext(Dispatchers.Main) {
-          promise.resolve(associationKey)
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
+      promise.resolve(associationKey)
+    } catch (e: Throwable) {
+      promise.reject(handleException(e))
     }
   }
 
