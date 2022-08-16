@@ -50,7 +50,7 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
     id sessionId = [data objectForKey:@"sessionId"];
     id appKey = [data objectForKey:@"appKey"];
     
-    if ([publicUserId isKindOfClass:[NSString class]] && [sessionId isKindOfClass:[NSString class]] && [appKey isKindOfClass:[NSString class]]) {
+    if ([sessionId isKindOfClass:[NSString class]] && [appKey isKindOfClass:[NSString class]]) {
         __weak typeof (self) weakSelf = self;
         [self.keyri initializeQrSessionWithUsername:publicUserId sessionId:sessionId appKey:appKey completion:^(Session * _Nullable session, NSError * _Nullable error) {
             typeof (self) strongSelf = weakSelf;
