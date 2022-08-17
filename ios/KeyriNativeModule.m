@@ -52,7 +52,7 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
     
     if ([sessionId isKindOfClass:[NSString class]] && [appKey isKindOfClass:[NSString class]]) {
         __weak typeof (self) weakSelf = self;
-        [self.keyri initializeQrSessionWithUsername:publicUserId sessionId:sessionId appKey:appKey completion:^(Session * _Nullable session, NSError * _Nullable error) {
+        [self.keyri initiateQrSessionWithUsername:publicUserId sessionId:sessionId appKey:appKey completion:^(Session * _Nullable session, NSError * _Nullable error) {
             typeof (self) strongSelf = weakSelf;
             if (session != nil) {
                 [strongSelf.sessions addObject:session];
@@ -93,7 +93,7 @@ RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)sessionId payload:(NSStrin
     
     if (session) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.keyri initializeDefaultScreenWithSessionId:session.sessionId completion:^(BOOL isApproved) {
+            [self.keyri initializeDefaultConfirmationScreenWithSession:session payload:payload completion:^(BOOL isApproved) {
                 resolve(@(isApproved));
             }];
         });
