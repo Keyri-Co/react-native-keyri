@@ -135,7 +135,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
           data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
         val sessionId: String =
           data.getString("sessionId") ?: throw java.lang.IllegalStateException("You need to provide sessionId")
-        val publicUserId: String? = data.getString("publicUserId")
+        val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
 
         val session = keyri.initiateQrSession(appKey, sessionId, publicUserId).getOrThrow()
 
