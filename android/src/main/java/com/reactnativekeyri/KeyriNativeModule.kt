@@ -10,7 +10,6 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
 import com.keyrico.scanner.easyKeyriAuth
@@ -61,9 +60,11 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun generateAssociationKey(publicUserId: String, promise: Promise) {
+  fun generateAssociationKey(publicUserId: String?, promise: Promise) {
     try {
-      val generatedKey = keyri.generateAssociationKey(publicUserId)
+      val generatedKey = publicUserId?.let {
+        keyri.generateAssociationKey(it)
+      } ?: keyri.generateAssociationKey()
 
       promise.resolve(generatedKey)
     } catch (e: Throwable) {
@@ -74,7 +75,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun getUserSignature(publicUserId: String?, customSignedData: String, promise: Promise) {
     try {
-      val signature = keyri.getUserSignature(publicUserId, customSignedData)
+      val signature = publicUserId?.let {
+        keyri.generateUserSignature(it, customSignedData)
+      } ?: keyri.generateUserSignature(data = customSignedData)
 
       promise.resolve(signature)
     } catch (e: Throwable) {
@@ -86,9 +89,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun listAssociationKey(promise: Promise) {
     try {
       val associationKeys = keyri.listAssociationKey()
-      val resultData = WritableNativeArray()
+      val resultData = WritableNativeMap()
 
-      associationKeys.forEach(resultData::pushString)
+      associationKeys.forEach {
+        resultData.putString(it.key, it.value)
+      }
+
       promise.resolve(resultData)
     } catch (e: Throwable) {
       promise.reject(handleException(e))
@@ -98,7 +104,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun getAssociationKey(publicUserId: String?, promise: Promise) {
     try {
-      val associationKey = keyri.getAssociationKey(publicUserId)
+      val associationKey = publicUserId?.let {
+        keyri.getAssociationKey(it)
+      } ?: keyri.getAssociationKey()
 
       promise.resolve(associationKey)
     } catch (e: Throwable) {
@@ -122,14 +130,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
         withContext(Dispatchers.Main) {
           WritableNativeMap().apply {
-            putString("widgetOrigin", session.WidgetOrigin)
+            putString("widgetOrigin", session.widgetOrigin)
             putString("sessionId", session.sessionId)
-            putString("iPAddressMobile", session.IPAddressMobile)
-            putString("iPAddressWidget", session.IPAddressWidget)
+            putString("iPAddressMobile", session.iPAddressMobile)
+            putString("iPAddressWidget", session.iPAddressWidget)
 
             val widgetUserAgentMap = WritableNativeMap().also {
-              session.WidgetUserAgent?.let { widgetUserAgent ->
-                it.putBoolean("isDesktop", widgetUserAgent.isDesktop)
+              session.widgetUserAgent?.let { widgetUserAgent ->
                 it.putString("os", widgetUserAgent.os)
                 it.putString("browser", widgetUserAgent.browser)
               }
@@ -137,27 +144,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
             val userParametersMap = WritableNativeMap().also {
               session.userParameters?.let { userParameters ->
-                it.putString("custom", userParameters.custom)
+                it.putString("base64EncodedData", userParameters.base64EncodedData)
               }
             }
 
             val riskAnalyticsMap = WritableNativeMap().also { riskAnalyticsMap ->
               session.riskAnalytics?.let { riskAnalytics ->
-                val riskAttributesMap = WritableNativeMap().also {
-                  riskAnalytics.riskAttributes?.let { riskAttributes ->
-                    it.putBoolean("isKnownAbuser", riskAttributes.isKnownAbuser ?: false)
-                    it.putBoolean("isIcloudRelay", riskAttributes.isIcloudRelay ?: false)
-                    it.putBoolean("isKnownAttacker", riskAttributes.isKnownAttacker ?: false)
-                    it.putBoolean("isAnonymous", riskAttributes.isAnonymous ?: false)
-                    it.putBoolean("isThreat", riskAttributes.isThreat ?: false)
-                    it.putBoolean("isBogon", riskAttributes.isBogon ?: false)
-                    it.putBoolean("blocklists", riskAttributes.blocklists ?: false)
-                    it.putBoolean("isDatacenter", riskAttributes.isDatacenter ?: false)
-                    it.putBoolean("isTor", riskAttributes.isTor ?: false)
-                    it.putBoolean("isProxy", riskAttributes.isProxy ?: false)
-                  }
-                }
-
                 val geoDataMap = WritableNativeMap().also { geoDataMap ->
                   val mobileMap = WritableNativeMap().also {
                     riskAnalytics.geoData?.mobile?.let { mobile ->
@@ -185,7 +177,6 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
                   geoDataMap.putMap("browser", browserMap)
                 }
 
-                riskAnalyticsMap.putMap("riskAttributes", riskAttributesMap)
                 riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
                 riskAnalyticsMap.putString("riskFlagString", riskAnalytics.riskFlagString)
                 riskAnalyticsMap.putMap("geoData", geoDataMap)
@@ -211,8 +202,8 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
           ?: throw java.lang.IllegalStateException("Session not found")
 
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
-
         val isApproved = keyri.initializeDefaultConfirmationScreen(fm, session, payload).getOrThrow()
+
         withContext(Dispatchers.Main) {
           promise.resolve(isApproved)
         }
