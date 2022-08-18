@@ -122,7 +122,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
           data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
         val sessionId: String =
           data.getString("sessionId") ?: throw java.lang.IllegalStateException("You need to provide sessionId")
-        val publicUserId: String? = data.getString("publicUserId")
+        val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
 
         val session = keyri.initiateQrSession(appKey, sessionId, publicUserId).getOrThrow()
 
@@ -148,44 +148,58 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
               }
             }
 
-            val riskAnalyticsMap = WritableNativeMap().also { riskAnalyticsMap ->
-              session.riskAnalytics?.let { riskAnalytics ->
-                val geoDataMap = WritableNativeMap().also { geoDataMap ->
-                  val mobileMap = WritableNativeMap().also {
-                    riskAnalytics.geoData?.mobile?.let { mobile ->
-                      it.putString("continentCode", mobile.continentCode)
-                      it.putString("countryCode", mobile.countryCode)
-                      it.putString("city", mobile.city)
-                      it.putDouble("latitude", mobile.latitude)
-                      it.putDouble("longitude", mobile.longitude)
-                      it.putString("regionCode", mobile.regionCode)
+            if (session.riskAnalytics?.riskStatus != null && session.riskAnalytics?.riskFlagString != null) {
+              val riskAnalyticsMap = WritableNativeMap().also { riskAnalyticsMap ->
+                session.riskAnalytics?.let { riskAnalytics ->
+                  val hasMobile = riskAnalytics.geoData?.mobile != null
+                  val hasBrowser = riskAnalytics.geoData?.browser != null
+
+                  if (hasMobile) {
+                    val geoDataMap = WritableNativeMap().also { geoDataMap ->
+                      val mobileMap = WritableNativeMap().also {
+                        riskAnalytics.geoData?.mobile?.let { mobile ->
+                          it.putString("continentCode", mobile.continentCode)
+                          it.putString("countryCode", mobile.countryCode)
+                          it.putString("city", mobile.city)
+                          it.putDouble("latitude", mobile.latitude)
+                          it.putDouble("longitude", mobile.longitude)
+                          it.putString("regionCode", mobile.regionCode)
+                        }
+                      }
+
+                      geoDataMap.putMap("mobile", mobileMap)
+                    }
+
+                    if (hasBrowser) {
+                      val browserMap = WritableNativeMap().also {
+                        riskAnalytics.geoData?.browser?.let { browser ->
+                          it.putString("continentCode", browser.continentCode)
+                          it.putString("countryCode", browser.countryCode)
+                          it.putString("city", browser.city)
+                          it.putDouble("latitude", browser.latitude)
+                          it.putDouble("longitude", browser.longitude)
+                          it.putString("regionCode", browser.regionCode)
+                        }
+                      }
+
+                      geoDataMap.putMap("browser", browserMap)
+                    }
+
+                    if (hasMobile || hasBrowser) {
+                      riskAnalyticsMap.putMap("geoData", geoDataMap)
                     }
                   }
 
-                  val browserMap = WritableNativeMap().also {
-                    riskAnalytics.geoData?.browser?.let { browser ->
-                      it.putString("continentCode", browser.continentCode)
-                      it.putString("countryCode", browser.countryCode)
-                      it.putString("city", browser.city)
-                      it.putDouble("latitude", browser.latitude)
-                      it.putDouble("longitude", browser.longitude)
-                      it.putString("regionCode", browser.regionCode)
-                    }
-                  }
-
-                  geoDataMap.putMap("mobile", mobileMap)
-                  geoDataMap.putMap("browser", browserMap)
+                  riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
+                  riskAnalyticsMap.putString("riskFlagString", riskAnalytics.riskFlagString)
                 }
-
-                riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
-                riskAnalyticsMap.putString("riskFlagString", riskAnalytics.riskFlagString)
-                riskAnalyticsMap.putMap("geoData", geoDataMap)
               }
+
+              putMap("riskAnalytics", riskAnalyticsMap)
             }
 
             putMap("widgetUserAgent", widgetUserAgentMap)
             putMap("userParameters", userParametersMap)
-            putMap("riskAnalytics", riskAnalyticsMap)
           }.let(promise::resolve)
         }
       } catch (e: Throwable) {
