@@ -115,6 +115,19 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun removeAssociationKey(publicUserId: String?, promise: Promise) {
+    try {
+      publicUserId?.let {
+        keyri.removeAssociationKey(it)
+      } ?: keyri.removeAssociationKey()
+
+      promise.resolve(Unit)
+    } catch (e: Throwable) {
+      promise.reject(handleException(e))
+    }
+  }
+
+  @ReactMethod
   fun initiateQrSession(data: ReadableMap, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
