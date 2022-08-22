@@ -44,6 +44,11 @@ RCT_EXPORT_MODULE()
     return  self;
 }
 
++ (BOOL)requiresMainQueueSetup
+{
+    return NO;
+}
+
 RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     id publicUserId = [data objectForKey:@"publicUserId"];
