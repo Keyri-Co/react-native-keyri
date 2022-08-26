@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  Linking,
-  ActivityIndicator,
-} from 'react-native';
+import { Text, TouchableOpacity, View, Linking, ActivityIndicator } from 'react-native';
 import Keyri from 'react-native-keyri';
 import axios from 'axios';
 
@@ -17,10 +11,7 @@ import {
   SUPABASE_URL,
   SUPABASE_USER_EMAIL,
 } from '../../utils/constants';
-import type {
-  RootNavigationProps,
-  RootNavigatorParams,
-} from 'example/src/navigation';
+import type { RootNavigationProps, RootNavigatorParams } from 'example/src/navigation';
 import { AppLinkContext } from '../../context/linking-context';
 import styles from './start-styles';
 import toast from '../../services/toast';
@@ -88,17 +79,11 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
     <View style={styles.root}>
       <Text style={styles.title}>Choose options to login</Text>
       <View style={styles.btnView}>
-        <TouchableOpacity
-          style={styles.touchable}
-          onPress={() => goNext('Default')}
-        >
+        <TouchableOpacity style={styles.touchable} onPress={() => goNext('Default')}>
           <Text style={styles.btnText}>Default popup</Text>
         </TouchableOpacity>
         <Text style={styles.text}>or</Text>
-        <TouchableOpacity
-          style={styles.touchable}
-          onPress={() => goNext('Custom')}
-        >
+        <TouchableOpacity style={styles.touchable} onPress={() => goNext('Custom')}>
           <Text style={styles.btnText}>Custom popup</Text>
         </TouchableOpacity>
         <Text style={styles.text}>or</Text>
@@ -106,11 +91,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
           <Text style={styles.btnText}>Easy Keyri Auth</Text>
         </TouchableOpacity>
         <Text style={styles.text}>or</Text>
-        <TouchableOpacity
-          style={styles.touchable}
-          onPress={supabaseEasyAuth}
-          disabled={loading}
-        >
+        <TouchableOpacity style={styles.touchable} onPress={supabaseEasyAuth} disabled={loading}>
           {loading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (

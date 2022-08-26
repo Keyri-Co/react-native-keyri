@@ -5,10 +5,8 @@ class ToastService {
   ref = React.createRef<Toast>();
 
   show = (error: unknown) => {
-    if (error instanceof Error)
-      return this.ref.current?.show(error.message, DURATION);
-    else if (typeof error === 'string')
-      return this.ref.current?.show(error, DURATION);
+    if (error instanceof Error) return this.ref.current?.show(error.message, DURATION);
+    else if (typeof error === 'string') return this.ref.current?.show(error, DURATION);
     else this.ref.current?.show('Unknown error');
   };
 }

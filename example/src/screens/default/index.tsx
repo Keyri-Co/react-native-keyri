@@ -2,13 +2,7 @@ import type { RootNavigationProps } from 'example/src/navigation';
 import React, { useEffect, useContext, useCallback } from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import type { BarCodeReadEvent } from 'react-native-camera';
-import {
-  View,
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity, Image } from 'react-native';
 import Keyri from 'react-native-keyri';
 
 import type { ISearchParam } from '../../utils/types';
@@ -25,30 +19,27 @@ const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
 
   const { deepLink } = useContext(AppLinkContext);
 
-  const onReadSuccess = useCallback(
-    async (scan: BarCodeReadEvent | { data: string }) => {
-      try {
-        setLoading(true);
-        const params: ISearchParam = parseUrlParams(scan.data);
-        const sessionId: string = params?.sessionId ?? '';
-        const options = {
-          appKey: APP_KEY,
-          sessionId: sessionId,
-          publicUserId: 'user@email',
-        };
-        const session = await Keyri.initiateQrSession(options);
-        if (session) {
-          setLoading(false);
-          await Keyri.initializeDefaultScreen(sessionId, 'payload');
-        }
-      } catch (error) {
-        toast.show(error);
-      } finally {
+  const onReadSuccess = useCallback(async (scan: BarCodeReadEvent | { data: string }) => {
+    try {
+      setLoading(true);
+      const params: ISearchParam = parseUrlParams(scan.data);
+      const sessionId: string = params?.sessionId ?? '';
+      const options = {
+        appKey: APP_KEY,
+        sessionId: sessionId,
+        publicUserId: 'user@email',
+      };
+      const session = await Keyri.initiateQrSession(options);
+      if (session) {
         setLoading(false);
+        await Keyri.initializeDefaultScreen(sessionId, 'payload');
       }
-    },
-    []
-  );
+    } catch (error) {
+      toast.show(error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (deepLink) {
@@ -62,12 +53,7 @@ const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
   return (
     <View style={styles.root}>
       <TouchableOpacity onPress={onClosePress} style={styles.touchable}>
-        <Image
-          source={ICONS.CLOSE}
-          height={35}
-          resizeMode="stretch"
-          width={35}
-        />
+        <Image source={ICONS.CLOSE} height={35} resizeMode="stretch" width={35} />
       </TouchableOpacity>
       {loading ? (
         <View style={styles.indicator}>

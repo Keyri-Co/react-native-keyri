@@ -3,13 +3,7 @@ import React, { useState, useEffect, useContext, useCallback } from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import type { BarCodeReadEvent } from 'react-native-camera';
 import styles from './custom-styles';
-import {
-  View,
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity, Image } from 'react-native';
 import Keyri from 'react-native-keyri';
 
 import type { ISearchParam } from '../../utils/types';
@@ -26,12 +20,8 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
   const [loading, setLoading] = React.useState<boolean>(false);
   const [isPopUpVisible, setIsPopUpVisible] = useState<boolean>(false);
   const { deepLink } = useContext(AppLinkContext);
-  const {
-    activeSession,
-    activeSessionId,
-    setActiveSession,
-    setActiveSessionId,
-  } = useContext(AppSessionContext);
+  const { activeSession, activeSessionId, setActiveSession, setActiveSessionId } =
+    useContext(AppSessionContext);
 
   const onReadSuccess = useCallback(
     async (scan: BarCodeReadEvent | { data: string }) => {
@@ -104,12 +94,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
         session={activeSession}
       />
       <TouchableOpacity onPress={onClosePress} style={styles.touchable}>
-        <Image
-          source={ICONS.CLOSE}
-          height={35}
-          resizeMode="stretch"
-          width={35}
-        />
+        <Image source={ICONS.CLOSE} height={35} resizeMode="stretch" width={35} />
       </TouchableOpacity>
       {loading ? (
         <View style={styles.indicator}>
