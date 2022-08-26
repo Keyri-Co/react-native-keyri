@@ -1,119 +1,61 @@
-export interface KeyriInitializeOptions {
-  appKey: string;
-  rpPublicKey: string;
-  callbackUrl: string;
-  allowMultipleAccounts?: boolean;
-}
-
-export interface KeyriSessionLoginOptions {
-  publicAccountUsername: string;
-  publicAccountCustom?: string;
-  sessionId: string;
-  serviceId: string;
-  serviceName: string;
-  serviceLogo: string;
-  custom?: string;
-}
-
-export interface KeyriSessionSignupOptions {
-  username: string;
-  sessionId: string;
-  serviceId: string;
-  serviceName: string;
-  serviceLogo: string;
-  custom?: string;
-}
-
 export interface KeyriSession {
-  serviceId: string;
-  serviceName: string;
-  serviceLogo?: string;
-  username?: string;
-  isNewUser: boolean;
-
-  widgetOrigin: string;
   sessionId: string;
+  publicUserId: string;
+  userParameters?: KeyriUserParameters;
   iPAddressMobile: string;
   iPAddressWidget: string;
-  widgetUserAgent: {
-    isDesktop: boolean;
-    os: string;
-    browser: string;
-  };
-  userParameters: {
-    custom: string | null;
-  };
-  riskAnalytics: {
-    riskFlagString: string;
-    riskStatus: string;
-    riskAttributes: {
-      isKnownAbuser: boolean;
-      isIcloudRelay: boolean;
-      isKnownAttacker: boolean;
-      isAnonymous: boolean;
-      isThreat: boolean;
-      isBogon: boolean;
-      blocklists: boolean;
-      isDatacenter: boolean;
-      isTor: boolean;
-      isProxy: boolean;
-    };
-    geoData: {
-      mobile: {
-        continentCode: string;
-        countryCode: string;
-        city: string;
-        latitude: number;
-        longitude: number;
-        regionCode: number;
-      };
-      browser: {
-        city: string;
-        continentCode: string;
-        countryCode: string;
-        latitude: number;
-        longitude: number;
-        regionCode: string;
-      };
-    };
+  widgetOrigin: string;
+  widgetUserAgent?: KeyriWidgetUserAgent;
+  riskAnalytics?: KeyriRiskAnalytics;
+}
+
+export interface KeyriUserParameters {
+  base64EncodedData?: string;
+}
+
+export interface KeyriWidgetUserAgent {
+  electronVersion: string;
+  isDesktop: boolean;
+  os: string;
+  browser: string;
+  isAuthoritative: boolean;
+  isWindows: boolean;
+  source: string;
+  version: string;
+  platform: string;
+  isChrome: boolean;
+}
+
+export interface KeyriRiskAnalytics {
+  riskStatus?: string;
+  riskFlagString: string;
+  geoData: {
+    mobile?: KeyriGeoData;
+    browser?: KeyriGeoData;
   };
 }
 
-export interface KeyriPublicAccount {
-  username: string;
-  custom?: string;
-}
-
-export interface ExtendedHeaders {
-  [key: string]: string;
-}
-
-export interface WhitelabelAuthOptions {
-  sessionId: string;
-  custom: string;
-  aesKey?: string;
+export interface KeyriGeoData {
+  continentCode: string;
+  countryCode: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+  regionCode: string;
 }
 
 export interface KeyriModule {
-  generateAssociationKey: (publicUserId: string) => Promise<string>;
+  generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
-  getUserSignature: (
-    publicUserId?: string,
-    customSignedData?: string
-  ) => Promise<string>;
+  getUserSignature: (publicUserId?: string, customSignedData?: string) => Promise<string>;
 
   listAssociationKey: () => Promise<string[]>;
 
   getAssociationKey: (publicUserId?: string) => Promise<string>;
 
-  initiateQrSession: (
-    options: InitiateQrSessionOptions
-  ) => Promise<KeyriSession>;
+  initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
 
-  initializeDefaultScreen: (
-    sessionId: string,
-    payload: string
-  ) => Promise<boolean>;
+  initializeDefaultScreen: (sessionId: string, payload: string) => Promise<boolean>;
 
   confirmSession: (sessionId: string, payload: string) => Promise<boolean>;
 
