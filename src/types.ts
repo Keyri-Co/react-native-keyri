@@ -53,6 +53,8 @@ export interface KeyriModule {
 
   getAssociationKey: (publicUserId?: string) => Promise<string>;
 
+  removeAssociationKey: (publicUserId?: string) => Promise<void>;
+
   initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
 
   initializeDefaultScreen: (sessionId: string, payload: string) => Promise<boolean>;

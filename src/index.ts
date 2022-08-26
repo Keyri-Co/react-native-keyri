@@ -33,6 +33,10 @@ const Keyri: KeyriModule = {
     return Module.getAssociationKey(publicUserId);
   },
 
+  removeAssociationKey: (publicUserId?: string) => {
+    return Module.removeAssociationKey(publicUserId);
+  },
+
   initiateQrSession: (options: InitiateQrSessionOptions) => {
     return Module.initiateQrSession(options);
   },
