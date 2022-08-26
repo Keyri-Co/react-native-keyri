@@ -1,13 +1,5 @@
 import * as React from 'react';
-import {
-  View,
-  Text,
-  Dimensions,
-  Modal,
-  TouchableOpacity,
-  Animated,
-  Image,
-} from 'react-native';
+import { View, Text, Dimensions, Modal, TouchableOpacity, Animated, Image } from 'react-native';
 import type { KeyriSession } from 'react-native-keyri';
 
 import { IWidgetTypes } from '../../utils/types';
@@ -63,15 +55,13 @@ const PopupModal: React.FC<IPopupModalProps> = ({
     }
   };
 
-  const countryCodeLaptop =
-    session?.riskAnalytics?.geoData?.browser?.countryCode;
+  const countryCodeLaptop = session?.riskAnalytics?.geoData?.browser?.countryCode;
   const cityBrowserLaptop = session?.riskAnalytics?.geoData?.browser?.city;
   const countryMobile = session?.riskAnalytics?.geoData?.mobile?.countryCode;
   const cityMobile = session?.riskAnalytics?.geoData?.mobile?.city;
   const os = session?.widgetUserAgent?.os;
   const browser = session?.widgetUserAgent?.browser;
-  const authenticationDenied =
-    session?.riskAnalytics?.riskAttributes?.isAnonymous;
+  const authenticationDenied = session?.riskAnalytics?.riskStatus === 'deny';
 
   const Widget = ({
     type,
@@ -84,16 +74,10 @@ const PopupModal: React.FC<IPopupModalProps> = ({
   }) => {
     return (
       <View style={styles.widget}>
-        <Image
-          source={getSource(type)}
-          style={styles.image}
-          resizeMode="contain"
-        />
+        <Image source={getSource(type)} style={styles.image} resizeMode="contain" />
         <View style={styles.widgetTextview}>
           <Text style={[styles.widgetText, vpn && styles.red]}>{text}</Text>
-          {vpn ? (
-            <Text style={[styles.widgetText, styles.red]}>VPN detected</Text>
-          ) : null}
+          {vpn ? <Text style={[styles.widgetText, styles.red]}>VPN detected</Text> : null}
         </View>
       </View>
     );
@@ -108,15 +92,13 @@ const PopupModal: React.FC<IPopupModalProps> = ({
       onShow={animateOpen}
     >
       <View style={styles.modalRoot}>
-        <Animated.View
-          style={[styles.modalBottom, { transform: [{ translateY: value }] }]}
-        >
+        <Animated.View style={[styles.modalBottom, { transform: [{ translateY: value }] }]}>
           <Text style={styles.title}>Your custom popup </Text>
           <Text style={styles.title}>Are you trying to log in? </Text>
           {authenticationDenied ? (
             <Text style={styles.title}>
-              Your login attempt was denied. If you would still like to log in,
-              please turn off your VPN then rescan the QR code{' '}
+              Your login attempt was denied. If you would still like to log in, please turn off your
+              VPN then rescan the QR code{' '}
             </Text>
           ) : null}
           {countryCodeLaptop && cityBrowserLaptop ? (
@@ -141,16 +123,10 @@ const PopupModal: React.FC<IPopupModalProps> = ({
             />
           ) : null}
           <View style={styles.customPopupButtonView}>
-            <TouchableOpacity
-              style={[styles.noBtn, styles.btn]}
-              onPress={onCustomLoginDeny}
-            >
+            <TouchableOpacity style={[styles.noBtn, styles.btn]} onPress={onCustomLoginDeny}>
               <Text style={[styles.touchableText]}>No</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.yesBtn, styles.btn]}
-              onPress={onCustomLoginOk}
-            >
+            <TouchableOpacity style={[styles.yesBtn, styles.btn]} onPress={onCustomLoginOk}>
               <Text style={[styles.touchableText, styles.white]}>Yes</Text>
             </TouchableOpacity>
           </View>
