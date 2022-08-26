@@ -166,6 +166,12 @@ RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromis
     }
 }
 
+RCT_EXPORT_METHOD(removeAssociationKey:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.keyri removeAssociationKeyWithPublicUserId:publicUserId];
+    resolve(nil);
+}
+
 RCT_EXPORT_METHOD(listAssociationKey:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSDictionary *associationKeys = [self.keyri listAssociactionKeys];

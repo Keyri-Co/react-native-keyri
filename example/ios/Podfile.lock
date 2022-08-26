@@ -19,7 +19,7 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.5)
-  - keyri-pod (1.5.4)
+  - keyri-pod (1.6.0)
   - Permission-Camera (3.4.0):
     - RNPermissions
   - RCTRequired (0.63.4)
@@ -382,7 +382,7 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: f2c97f2529dd79c083355182cc158c9f98f4bd6e
   Folly: b73c3869541e86821df3c387eb0af5f65addfab4
   glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
-  keyri-pod: 2ea9e76b73703cbae588b4cf07047d4a8c01c18d
+  keyri-pod: ac9cab0e28a7f14ff5c0e0af6fa70ecabf09cee8
   Permission-Camera: 40f43388fa8a648dc6ced73f145ef329ab3ff3fe
   RCTRequired: 082f10cd3f905d6c124597fd1c14f6f2655ff65e
   RCTTypeSafety: 8c9c544ecbf20337d069e4ae7fd9a377aadf504b
