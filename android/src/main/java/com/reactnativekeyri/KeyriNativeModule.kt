@@ -121,7 +121,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         keyri.removeAssociationKey(it)
       } ?: keyri.removeAssociationKey()
 
-      promise.resolve(Unit)
+      promise.resolve("Success")
     } catch (e: Throwable) {
       promise.reject(handleException(e))
     }
