@@ -2,6 +2,10 @@
 
 React Native Keyri SDK
 
+## Documentation
+
+Check out our documentation to learn how to install and use `react-native-keyri`: https://docs.keyri.com/react-native
+
 ## Installation
 
 ```sh
@@ -32,21 +36,3 @@ buildscript {
 ```xml
 <uses-permission android:name="android.permission.CAMERA" />
 ```
-
-<!-- ## Usage
-
-```js
-import { KeyriView } from 'react-native-keyri';
-
-// ...
-
-<KeyriView color="tomato" />;
-``` -->
-
-<!-- ## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow. -->
-
-<!-- ## License
-
-MIT -->
