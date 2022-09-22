@@ -211,6 +211,44 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
               putMap("riskAnalytics", riskAnalyticsMap)
             }
 
+            val mobileTemplateResponse = session.mobileTemplateResponse
+
+            if (mobileTemplateResponse != null) {
+              val mobileTemplateMap = WritableNativeMap().also { mobileTemplateMap ->
+                mobileTemplateMap.putString("title", mobileTemplateResponse.title)
+                mobileTemplateMap.putMap("message", mobileTemplateResponse.message)
+
+                mobileTemplateResponse.widget?.let { widget ->
+                  val widgetMap = WritableNativeMap().also {
+                    it.putString("location", widget.location)
+                    it.putString("issue", widget.issue)
+                  }
+
+                  mobileTemplateMap.putMap("widget", widgetMap)
+                }
+
+                mobileTemplateResponse.mobile?.let { mobile ->
+                  val widgetMap = WritableNativeMap().also {
+                    it.putString("location", mobile.location)
+                    it.putString("issue", mobile.issue)
+                  }
+
+                  mobileTemplateMap.putMap("mobile", widgetMap)
+                }
+
+                mobileTemplateResponse.userAgent?.let { userAgent ->
+                  val widgetMap = WritableNativeMap().also {
+                    it.putString("name", userAgent.name)
+                    it.putString("issue", userAgent.issue)
+                  }
+
+                  mobileTemplateMap.putMap("userAgent", widgetMap)
+                }
+              }
+
+              putMap("mobileTemplateResponse", mobileTemplateMap)
+            }
+
             putMap("widgetUserAgent", widgetUserAgentMap)
             putMap("userParameters", userParametersMap)
           }.let(promise::resolve)
