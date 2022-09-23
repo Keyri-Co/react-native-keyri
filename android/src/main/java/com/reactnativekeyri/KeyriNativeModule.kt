@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
-  private val keyri by lazy(::Keyri)
+  private val keyri by lazy { Keyri(reactContext) }
 
   private var authWithScannerPromise: Promise? = null
 
@@ -216,7 +216,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
             if (mobileTemplateResponse != null) {
               val mobileTemplateMap = WritableNativeMap().also { mobileTemplateMap ->
                 mobileTemplateMap.putString("title", mobileTemplateResponse.title)
-                mobileTemplateMap.putMap("message", mobileTemplateResponse.message)
+                mobileTemplateMap.putString("message", mobileTemplateResponse.message)
 
                 mobileTemplateResponse.widget?.let { widget ->
                   val widgetMap = WritableNativeMap().also {
