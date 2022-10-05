@@ -293,13 +293,19 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
     reactContext.currentActivity?.let { activity ->
       authWithScannerPromise = promise
 
-      val publicUserId: String? = data.getString("publicUserId")
-      val appKey: String =
-        data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
-      val payload: String =
-        data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
+      try {
+        val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
+        val appKey: String =
+          data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
+        val payload: String =
+          data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
 
-      easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, payload, publicUserId)
+        easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, payload, publicUserId)
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+
+        authWithScannerPromise = null
+      }
     }
   }
 
@@ -307,7 +313,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   fun processLink(data: ReadableMap, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val publicUserId: String? = data.getString("publicUserId")
+        val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
         val url: String = data.getString("url") ?: throw java.lang.IllegalStateException("You need to provide url")
         val appKey: String =
           data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
