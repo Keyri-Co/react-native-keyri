@@ -94,6 +94,9 @@
     "github": {
       "release": true
     },
+    "hooks": {
+      "after:bump": "yarn bootstrap"
+    },
     "plugins": {
       "@release-it/conventional-changelog": {
         "preset": "angular"
