@@ -228,21 +228,30 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
                 }
 
                 mobileTemplateResponse.mobile?.let { mobile ->
-                  val widgetMap = WritableNativeMap().also {
+                  val mobileMap = WritableNativeMap().also {
                     it.putString("location", mobile.location)
                     it.putString("issue", mobile.issue)
                   }
 
-                  mobileTemplateMap.putMap("mobile", widgetMap)
+                  mobileTemplateMap.putMap("mobile", mobileMap)
                 }
 
                 mobileTemplateResponse.userAgent?.let { userAgent ->
-                  val widgetMap = WritableNativeMap().also {
+                  val userAgentMap = WritableNativeMap().also {
                     it.putString("name", userAgent.name)
                     it.putString("issue", userAgent.issue)
                   }
 
-                  mobileTemplateMap.putMap("userAgent", widgetMap)
+                  mobileTemplateMap.putMap("userAgent", userAgentMap)
+                }
+
+                mobileTemplateResponse.flags?.let { flags ->
+                  val flagsMap = WritableNativeMap().also {
+                    it.putBoolean("isDatacenter", flags.isDatacenter ?: false)
+                    it.putBoolean("isNewBrowser", flags.isNewBrowser ?: false)
+                  }
+
+                  mobileTemplateMap.putMap("flags", flagsMap)
                 }
               }
 
