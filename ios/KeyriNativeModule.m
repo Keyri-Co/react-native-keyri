@@ -62,8 +62,8 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
     id sessionId = [data objectForKey:@"sessionId"];
     id appKey = [data objectForKey:@"appKey"];
     
-    if ([appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
-    if ([sessionId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide sessionId" withRejecter:reject]; }
+    if (![appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
+    if (![sessionId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide sessionId" withRejecter:reject]; }
     
     __weak typeof (self) weakSelf = self;
     [self.keyri initiateQrSessionWithUsername:publicUserId sessionId:sessionId appKey:appKey completion:^(Session * _Nullable session, NSError * _Nullable error) {
@@ -117,7 +117,7 @@ RCT_EXPORT_METHOD(generateAssociationKey:(NSString *)publicUserId resolver:(RCTP
 RCT_EXPORT_METHOD(getUserSignature:(NSString *)publicUserId customSignedData:(NSString *)customSignedData resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSData *data = [customSignedData dataUsingEncoding:NSUTF8StringEncoding];
-    if ([data isKindOfClass:[NSData class]]) {
+    if (![data isKindOfClass:[NSData class]]) {
         return [self handleErrorText:@"You need to provide customSignedData" withRejecter:reject];
     }
     
@@ -164,9 +164,9 @@ RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolve
     id payload = [data objectForKey:@"payload"];
     id appKey = [data objectForKey:@"appKey"];
     
-    if ([appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
-    if ([payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
-    if ([publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
+    if (![appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
+    if (![payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
+    if (![publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
     
     dispatch_async(dispatch_get_main_queue(), ^{
         __weak typeof (self) weakSelf = self;
@@ -188,10 +188,10 @@ RCT_EXPORT_METHOD(processLink:(NSDictionary *)data resolver:(RCTPromiseResolveBl
     id appKey = [data objectForKey:@"appKey"];
     id payload = [data objectForKey:@"payload"];
         
-    if ([appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
-    if ([payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
-    if ([publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
-    if ([urlString isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide url" withRejecter:reject]; }
+    if (![appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
+    if (![payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
+    if (![publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
+    if (![urlString isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide url" withRejecter:reject]; }
     
     __weak typeof (self) weakSelf = self;
     [self.keyri processLinkWithUrl:[NSURL URLWithString:urlString] publicUserId:publicUserId appKey:appKey payload:payload completion:^(BOOL success, NSError * _Nullable error) {
