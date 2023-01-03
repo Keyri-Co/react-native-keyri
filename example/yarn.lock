@@ -3720,7 +3720,7 @@ react-native-easy-toast@^2.0.0:
     prop-types "^15.5.10"
 
 react-native-keyri@../:
-  version "0.1.0"
+  version "1.0.3"
 
 react-native-permissions@^2.0.2:
   version "2.2.2"
@@ -3754,10 +3754,10 @@ react-native-screens@3.13.1:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
-react-native@0.63.4:
-  version "0.63.4"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.63.4.tgz#2210fdd404c94a5fa6b423c6de86f8e48810ec36"
-  integrity sha512-I4kM8kYO2mWEYUFITMcpRulcy4/jd+j9T6PbIzR0FuMcz/xwd+JwHoLPa1HmCesvR1RDOw9o4D+OFLwuXXfmGw==
+react-native@0.63.5:
+  version "0.63.5"
+  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.63.5.tgz#2c0d5dca527fb69bb481e89b2c86068f2641b62d"
+  integrity sha512-unjHZOcHek2xxPkBbyqGO//2Z/AriKTwtDzGTT/ujGMRE3odDJk8wKtZregurQ9cpTUtu1Bj5R5bJv3gQIG5zw==
   dependencies:
     "@babel/runtime" "^7.0.0"
     "@react-native-community/cli" "^4.10.0"
