@@ -1,27 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View, Linking, ActivityIndicator } from 'react-native';
-import Keyri from 'react-native-keyri';
-import axios from 'axios';
-
-import {
-  APP_KEY,
-  SUPABASE_API_KEY,
-  SUPABASE_APP_KEY,
-  SUPABASE_PASS,
-  SUPABASE_URL,
-  SUPABASE_USER_EMAIL,
-} from '../../utils/constants';
-import type { RootNavigationProps, RootNavigatorParams } from 'example/src/navigation';
+import React, { useEffect } from 'react';
+import { Linking, ScrollView, Text, TouchableOpacity } from 'react-native';
+import type { RootNavigationProps } from 'example/src/navigation';
 import { AppLinkContext } from '../../context/linking-context';
-import styles from './start-styles';
-import toast from '../../services/toast';
+import styles from '../styles/common-styles';
+import { AccountsType, AuthenticationType, KeyOperationType } from '../../utils/types';
+
 interface StartScreenProps extends RootNavigationProps<'Start'> {}
 
 const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
-  const [loading, setLoading] = useState<boolean>(false);
   const { setDeepLink } = React.useContext(AppLinkContext);
-  const goNext = (screenName: keyof RootNavigatorParams) => {
-    navigation.navigate(screenName);
+  const goNextAuthentication = (type: AuthenticationType) => {
+    navigation.navigate('Authentication', { type: type });
+  };
+  const goNextKeyOperation = (type: KeyOperationType) => {
+    navigation.navigate('KeyOperation', { type: type });
+  };
+  const goNextAccounts = (type: AccountsType) => {
+    navigation.navigate('Accounts', { type: type });
   };
   useEffect(() => {
     const handleUrl = ({ url }: { url: string }) => {
@@ -30,83 +25,65 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
     Linking.addEventListener('url', handleUrl);
     return () => Linking.removeAllListeners('url');
   }, [setDeepLink]);
-
-  const easyAuth = async () => {
-    const data = {
-      publicUserId: 'user@email',
-      appKey: APP_KEY,
-      payload: 'payload',
-    };
-    try {
-      await Keyri.easyKeyriAuth(data);
-    } catch (error) {
-      toast.show(error);
-    }
-  };
-
-  const supabaseEasyAuth = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.post(
-        SUPABASE_URL,
-        {
-          email: SUPABASE_USER_EMAIL,
-          password: SUPABASE_PASS,
-        },
-        {
-          headers: {
-            apiKey: SUPABASE_API_KEY,
-          },
-        }
-      );
-      if (response) {
-        const data = {
-          publicUserId: SUPABASE_USER_EMAIL,
-          appKey: SUPABASE_APP_KEY,
-          payload: JSON.stringify({
-            refreshToken: response?.data?.refresh_token,
-          }),
-        };
-        await Keyri.easyKeyriAuth(data);
-      }
-    } catch (error) {
-      toast.show(error);
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
-    <View style={styles.root}>
-      <Text style={styles.title}>Choose options to login</Text>
-      <View style={styles.btnView}>
-        <TouchableOpacity style={styles.touchable} onPress={() => goNext('Default')}>
-          <Text style={styles.btnText}>Default popup</Text>
-        </TouchableOpacity>
-        <Text style={styles.text}>or</Text>
-        <TouchableOpacity style={styles.touchable} onPress={() => goNext('Custom')}>
-          <Text style={styles.btnText}>Custom popup</Text>
-        </TouchableOpacity>
-        <Text style={styles.text}>or</Text>
-        <TouchableOpacity style={styles.touchable} onPress={easyAuth}>
-          <Text style={styles.btnText}>Easy Keyri Auth</Text>
-        </TouchableOpacity>
-        <Text style={styles.text}>or</Text>
-        <TouchableOpacity style={styles.touchable} onPress={supabaseEasyAuth} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text
-              adjustsFontSizeToFit={true}
-              style={styles.btnText}
-              numberOfLines={1}
-              minimumFontScale={0.7}
-            >
-              Supabase Easy Keyri Auth
-            </Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </View>
+    <ScrollView contentContainerStyle={styles.root}>
+      <Text style={styles.title}>Auth example</Text>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => goNextAuthentication(AuthenticationType.DefaultConfirmation)}
+      >
+        <Text style={styles.btnText}>Default confirmation screen</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => goNextAuthentication(AuthenticationType.CustomConfirmation)}
+      >
+        <Text style={styles.btnText}>Custom confirmation screen</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => goNextAuthentication(AuthenticationType.EasyKeyriAuth)}
+      >
+        <Text style={styles.btnText}>Easy Keyri Auth</Text>
+      </TouchableOpacity>
+      <Text style={styles.title}>SDK methods</Text>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => goNextKeyOperation(KeyOperationType.GenerateAssociationKey)}
+      >
+        <Text style={styles.btnText}>Generate association key</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => navigation.navigate('GenerateSignature')}
+      >
+        <Text style={styles.btnText}>Get user signature</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => goNextAccounts(AccountsType.ListAssociationKey)}
+      >
+        <Text style={styles.btnText}>List association key</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => goNextAccounts(AccountsType.ListUniqueAccounts)}
+      >
+        <Text style={styles.btnText}>List unique accounts</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => goNextKeyOperation(KeyOperationType.GetAssociationKey)}
+      >
+        <Text style={styles.btnText}>Get association key</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.touchable}
+        onPress={() => goNextKeyOperation(KeyOperationType.RemoveAssociationKey)}
+      >
+        <Text style={styles.btnText}>Remove association key</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 

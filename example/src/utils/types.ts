@@ -22,3 +22,21 @@ export interface IAppLinkContext {
   deepLink: string;
   setDeepLink: (_link: string) => void;
 }
+export interface AuthParams {
+  publicUserId?: string;
+  payload: string;
+}
+export enum KeyOperationType {
+  GenerateAssociationKey = 'Generate Association Key',
+  GetAssociationKey = 'Get Association Key',
+  RemoveAssociationKey = 'Remove Association Key',
+}
+export enum AuthenticationType {
+  CustomConfirmation,
+  DefaultConfirmation,
+  EasyKeyriAuth,
+}
+export enum AccountsType {
+  ListAssociationKey = 'List Association Key',
+  ListUniqueAccounts = 'List Unique Accounts',
+}

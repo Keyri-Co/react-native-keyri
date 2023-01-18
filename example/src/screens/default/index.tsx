@@ -9,37 +9,40 @@ import type { ISearchParam } from '../../utils/types';
 import { parseUrlParams } from '../../utils/helpers';
 import { APP_KEY } from '../../utils/constants';
 import { AppLinkContext } from '../../context/linking-context';
-import styles from './default-styles';
+import styles from '../styles/common-styles';
 import { ICONS } from '../../assets';
 import toast from '../../services/toast';
 interface InitialScreenProps extends RootNavigationProps<'Default'> {}
 
-const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
+const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation, route }) => {
   const [loading, setLoading] = React.useState<boolean>(false);
 
   const { deepLink } = useContext(AppLinkContext);
 
-  const onReadSuccess = useCallback(async (scan: BarCodeReadEvent | { data: string }) => {
-    try {
-      setLoading(true);
-      const params: ISearchParam = parseUrlParams(scan.data);
-      const sessionId: string = params?.sessionId ?? '';
-      const options = {
-        appKey: APP_KEY,
-        sessionId: sessionId,
-        publicUserId: 'user@email',
-      };
-      const session = await Keyri.initiateQrSession(options);
-      if (session) {
+  const onReadSuccess = useCallback(
+    async (scan: BarCodeReadEvent | { data: string }) => {
+      try {
+        setLoading(true);
+        const params: ISearchParam = parseUrlParams(scan.data);
+        const sessionId: string = params?.sessionId ?? '';
+        const options = {
+          appKey: APP_KEY,
+          sessionId: sessionId,
+          publicUserId: route.params.authParams.publicUserId,
+        };
+        const session = await Keyri.initiateQrSession(options);
+        if (session) {
+          setLoading(false);
+          await Keyri.initializeDefaultScreen(sessionId, route.params.authParams.payload);
+        }
+      } catch (error) {
+        toast.show(error);
+      } finally {
         setLoading(false);
-        await Keyri.initializeDefaultScreen(sessionId, 'payload');
       }
-    } catch (error) {
-      toast.show(error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [route.params.authParams.payload, route.params.authParams.publicUserId]
+  );
 
   useEffect(() => {
     if (deepLink) {

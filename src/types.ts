@@ -51,6 +51,8 @@ export interface KeyriModule {
 
   listAssociationKey: () => Promise<string[]>;
 
+  listUniqueAccounts: () => Promise<string[]>;
+
   getAssociationKey: (publicUserId?: string) => Promise<string>;
 
   removeAssociationKey: (publicUserId?: string) => Promise<void>;
@@ -75,7 +77,7 @@ export interface InitiateQrSessionOptions {
 }
 
 export interface EasyKeyriAuthOptions {
-  publicUserId: string;
+  publicUserId?: string;
   appKey: string;
   payload: string;
 }

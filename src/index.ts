@@ -29,6 +29,10 @@ const Keyri: KeyriModule = {
     return Module.listAssociationKey();
   },
 
+  listUniqueAccounts: () => {
+    return Module.listUniqueAccounts();
+  },
+
   getAssociationKey: (publicUserId?: string) => {
     return Module.getAssociationKey(publicUserId);
   },

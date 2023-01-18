@@ -2,7 +2,7 @@ import type { RootNavigationProps } from 'example/src/navigation';
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import type { BarCodeReadEvent } from 'react-native-camera';
-import styles from './custom-styles';
+import styles from '../styles/common-styles';
 import { View, ActivityIndicator, Text, TouchableOpacity, Image } from 'react-native';
 import Keyri from 'react-native-keyri';
 
@@ -16,8 +16,8 @@ import { ICONS } from '../../assets';
 import toast from '../../services/toast';
 interface CustomScreenProps extends RootNavigationProps<'Custom'> {}
 
-const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
-  const [loading, setLoading] = React.useState<boolean>(false);
+const CustomScreen: React.FC<CustomScreenProps> = ({ navigation, route }) => {
+  const [loading, setLoading] = useState<boolean>(false);
   const [isPopUpVisible, setIsPopUpVisible] = useState<boolean>(false);
   const { deepLink } = useContext(AppLinkContext);
   const { activeSession, activeSessionId, setActiveSession, setActiveSessionId } =
@@ -32,7 +32,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
         const options = {
           appKey: APP_KEY,
           sessionId: sessionId,
-          publicUserId: 'user@email',
+          publicUserId: route.params.authParams.publicUserId,
         };
         const session = await Keyri.initiateQrSession(options);
         if (session) {
@@ -46,7 +46,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
         setLoading(false);
       }
     },
-    [setActiveSession, setActiveSessionId]
+    [route.params.authParams.publicUserId, setActiveSession, setActiveSessionId]
   );
 
   useEffect(() => {
@@ -65,7 +65,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
     if (activeSessionId) {
       closePopUp();
       try {
-        await Keyri.denySession(activeSessionId, 'payload');
+        await Keyri.denySession(activeSessionId, route.params.authParams.payload);
       } catch (error) {
         toast.show(error);
       }
@@ -76,7 +76,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
     if (activeSessionId) {
       closePopUp();
       try {
-        await Keyri.confirmSession(activeSessionId, 'payload');
+        await Keyri.confirmSession(activeSessionId, route.params.authParams.payload);
       } catch (error) {
         toast.show(error);
       }
