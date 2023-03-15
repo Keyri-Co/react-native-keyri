@@ -17,6 +17,10 @@ const Module = NativeModules.KeyriNativeModule;
 if (!Module) throw new Error(LINKING_ERROR);
 
 const Keyri: KeyriModule = {
+  initKeyri: (appKey: string) => {
+    return Module.initKeyri(appKey);
+  },
+
   generateAssociationKey: (publicUserId?: string) => {
     return Module.generateAssociationKey(publicUserId);
   },

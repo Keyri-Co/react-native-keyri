@@ -45,6 +45,8 @@ export interface KeyriGeoData {
 }
 
 export interface KeyriModule {
+  initKeyri: (appKey: string) => Promise<void>;
+
   generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
   getUserSignature: (publicUserId?: string, customSignedData?: string) => Promise<string>;

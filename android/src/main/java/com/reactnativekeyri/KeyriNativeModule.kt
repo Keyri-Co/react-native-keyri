@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
-  private val keyri by lazy { Keyri(reactContext) }
+  private lateinit var keyri : Keyri
 
   private var authWithScannerPromise: Promise? = null
 
@@ -57,6 +57,11 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
   override fun getName(): String {
     return "KeyriNativeModule"
+  }
+
+  @ReactMethod
+  fun initKeyri(appKey: String) {
+    keyri = Keyri(reactContext, appKey)
   }
 
   @ReactMethod
@@ -153,7 +158,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
           data.getString("sessionId") ?: throw java.lang.IllegalStateException("You need to provide sessionId")
         val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
 
-        val session = keyri.initiateQrSession(appKey, sessionId, publicUserId).getOrThrow()
+        val session = keyri.initiateQrSession(sessionId, publicUserId).getOrThrow()
 
         sessions.add(session)
 
@@ -347,7 +352,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
         val uri = Uri.parse(url)
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
-        val isSuccess = keyri.processLink(fm, uri, appKey, payload, publicUserId).getOrThrow()
+        val isSuccess = keyri.processLink(fm, uri, payload, publicUserId).getOrThrow()
 
         withContext(Dispatchers.Main) {
           promise.resolve(isSuccess)
