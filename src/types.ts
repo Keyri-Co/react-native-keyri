@@ -7,6 +7,7 @@ export interface KeyriSession {
   widgetOrigin: string;
   widgetUserAgent?: KeyriWidgetUserAgent;
   riskAnalytics?: KeyriRiskAnalytics;
+  mobileTemplateResponse?: KeyriMobileTemplateResponse;
 }
 
 export interface KeyriUserParameters {
@@ -14,16 +15,8 @@ export interface KeyriUserParameters {
 }
 
 export interface KeyriWidgetUserAgent {
-  electronVersion: string;
-  isDesktop: boolean;
   os: string;
   browser: string;
-  isAuthoritative: boolean;
-  isWindows: boolean;
-  source: string;
-  version: string;
-  platform: string;
-  isChrome: boolean;
 }
 
 export interface KeyriRiskAnalytics {
@@ -33,6 +26,30 @@ export interface KeyriRiskAnalytics {
     mobile?: KeyriGeoData;
     browser?: KeyriGeoData;
   };
+}
+
+export interface KeyriMobileTemplateResponse {
+  title: string;
+  message?: string;
+  widget?: KeyriTemplate;
+  mobile?: KeyriTemplate;
+  userAgent?: KeyriUserAgent;
+  flags?: KeyriFlags;
+}
+
+export interface KeyriTemplate {
+  location?: string;
+  issue?: string;
+}
+
+export interface KeyriUserAgent {
+  name?: string;
+  issue?: string;
+}
+
+export interface KeyriFlags {
+  isDatacenter?: boolean;
+  isNewBrowser?: boolean;
 }
 
 export interface KeyriGeoData {

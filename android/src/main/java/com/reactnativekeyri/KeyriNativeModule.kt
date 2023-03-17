@@ -102,6 +102,22 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun listUniqueAccounts(promise: Promise) {
+    try {
+      val uniqueAccounts = keyri.listUniqueAccounts()
+      val resultData = WritableNativeMap()
+
+      uniqueAccounts.forEach {
+        resultData.putString(it.key, it.value)
+      }
+
+      promise.resolve(resultData)
+    } catch (e: Throwable) {
+      promise.reject(handleException(e))
+    }
+  }
+
+  @ReactMethod
   fun getAssociationKey(publicUserId: String?, promise: Promise) {
     try {
       val associationKey = publicUserId?.let {
@@ -349,9 +365,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
           ?: throw java.lang.IllegalStateException("Session not found")
 
         val isSuccess = if (isApproved) {
-          session.confirm(payload)
+          session.confirm(payload, reactContext)
         } else {
-          session.deny(payload)
+          session.deny(payload, reactContext)
         }.getOrThrow()
 
         withContext(Dispatchers.Main) {
