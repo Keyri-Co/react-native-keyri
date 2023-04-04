@@ -4,6 +4,8 @@ import type {
   EasyKeyriAuthOptions,
   KeyriModule,
   ProcessLinkOptions,
+  InitializeKeyriOptions,
+  SendEventOptions,
 } from './types';
 
 const LINKING_ERROR =
@@ -17,6 +19,10 @@ const Module = NativeModules.KeyriNativeModule;
 if (!Module) throw new Error(LINKING_ERROR);
 
 const Keyri: KeyriModule = {
+  initializeKeyri: (options: InitializeKeyriOptions) => {
+    return Module.initializeKeyri(options);
+  },
+
   generateAssociationKey: (publicUserId?: string) => {
     return Module.generateAssociationKey(publicUserId);
   },
@@ -29,12 +35,20 @@ const Keyri: KeyriModule = {
     return Module.listAssociationKey();
   },
 
+  listUniqueAccounts: () => {
+    return Module.listUniqueAccounts();
+  },
+
   getAssociationKey: (publicUserId?: string) => {
     return Module.getAssociationKey(publicUserId);
   },
 
   removeAssociationKey: (publicUserId?: string) => {
     return Module.removeAssociationKey(publicUserId);
+  },
+
+  sendEvent: (data: SendEventOptions) => {
+    return Module.sendEvent(data);
   },
 
   initiateQrSession: (options: InitiateQrSessionOptions) => {

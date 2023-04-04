@@ -62,15 +62,21 @@ export interface KeyriGeoData {
 }
 
 export interface KeyriModule {
+  initializeKeyri: (data: InitializeKeyriOptions) => Promise<void>;
+
   generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
   getUserSignature: (publicUserId?: string, customSignedData?: string) => Promise<string>;
 
   listAssociationKey: () => Promise<string[]>;
 
+  listUniqueAccounts: () => Promise<string[]>;
+
   getAssociationKey: (publicUserId?: string) => Promise<string>;
 
   removeAssociationKey: (publicUserId?: string) => Promise<void>;
+
+  sendEvent: (data: SendEventOptions) => Promise<boolean>;
 
   initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
 
@@ -102,4 +108,16 @@ export interface ProcessLinkOptions {
   url: string;
   payload: string;
   publicUserId?: string;
+}
+
+export interface InitializeKeyriOptions {
+  appKey: string;
+  publicApiKey?: string;
+  blockEmulatorDetection?: boolean;
+}
+
+export interface SendEventOptions {
+  publicUserId?: string;
+  eventType: string;
+  eventResult: string;
 }

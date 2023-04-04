@@ -14,6 +14,8 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
 import com.keyrico.scanner.easyKeyriAuth
 import com.keyrico.keyrisdk.entity.session.Session
+import com.keyrico.keyrisdk.sec.fingerprint.enums.EventType
+import com.keyrico.keyrisdk.sec.fingerprint.enums.FingerprintLogResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,7 +25,7 @@ import kotlinx.coroutines.withContext
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
-  private val keyri by lazy { Keyri(reactContext) }
+  private lateinit var keyri: Keyri
 
   private var authWithScannerPromise: Promise? = null
 
@@ -57,6 +59,21 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
 
   override fun getName(): String {
     return "KeyriNativeModule"
+  }
+
+  @ReactMethod
+  fun initializeKeyri(data: ReadableMap, promise: Promise) {
+    try {
+      val appKey: String = data.getString("appKey")
+        ?: throw java.lang.IllegalStateException("You need to provide appKey")
+      val publicApiKey: String? = data.takeIf { it.hasKey("publicApiKey") }?.getString("publicApiKey")
+      val blockEmulatorDetection: Boolean = data.takeIf { it.hasKey("blockEmulatorDetection") }
+        ?.getBoolean("blockEmulatorDetection") ?: true
+
+      keyri = Keyri(reactContext, appKey, publicApiKey, blockEmulatorDetection)
+    } catch (e: Throwable) {
+      promise.reject(handleException(e))
+    }
   }
 
   @ReactMethod
@@ -144,16 +161,35 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun sendEvent(data: ReadableMap, promise: Promise) {
+    keyriCoroutineScope.launch(Dispatchers.IO) {
+      try {
+        val publicUserId = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId") ?: "ANON"
+        val eventType = data.getString("eventType")
+          ?: throw java.lang.IllegalStateException("You need to provide eventType")
+        val eventResult = data.getString("eventResult")
+          ?: throw java.lang.IllegalStateException("You need to provide eventResult")
+
+        keyri.sendEvent(publicUserId, EventType.valueOf(eventType), FingerprintLogResult.valueOf(eventResult))
+
+        withContext(Dispatchers.Main) {
+          promise.resolve(true)
+        }
+      } catch (e: Throwable) {
+        promise.reject(handleException(e))
+      }
+    }
+  }
+
+  @ReactMethod
   fun initiateQrSession(data: ReadableMap, promise: Promise) {
     keyriCoroutineScope.launch(Dispatchers.IO) {
       try {
-        val appKey: String =
-          data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
         val sessionId: String =
           data.getString("sessionId") ?: throw java.lang.IllegalStateException("You need to provide sessionId")
         val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
 
-        val session = keyri.initiateQrSession(appKey, sessionId, publicUserId).getOrThrow()
+        val session = keyri.initiateQrSession(sessionId, publicUserId).getOrThrow()
 
         sessions.add(session)
 
@@ -325,7 +361,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
         val payload: String =
           data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
 
-        easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, payload, publicUserId)
+        easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, null, payload, publicUserId)
       } catch (e: Throwable) {
         promise.reject(handleException(e))
 
@@ -340,14 +376,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) :
       try {
         val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
         val url: String = data.getString("url") ?: throw java.lang.IllegalStateException("You need to provide url")
-        val appKey: String =
-          data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
         val payload: String =
           data.getString("payload") ?: throw java.lang.IllegalStateException("You need to provide payload")
 
         val uri = Uri.parse(url)
         val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
-        val isSuccess = keyri.processLink(fm, uri, appKey, payload, publicUserId).getOrThrow()
+        val isSuccess = keyri.processLink(fm, uri, payload, publicUserId).getOrThrow()
 
         withContext(Dispatchers.Main) {
           promise.resolve(isSuccess)
