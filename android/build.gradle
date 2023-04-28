@@ -33,7 +33,6 @@ android {
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
     versionCode 1
     versionName "1.0"
-
   }
 
   buildTypes {
@@ -127,8 +126,8 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "com.keyri:keyrisdk:3.0.0"
-  implementation "com.keyri:scanner:3.0.0"
+  implementation "com.keyri:keyrisdk:3.0.2"
+  implementation "com.keyri:scanner:3.0.2"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1"
   implementation 'androidx.activity:activity-ktx:1.5.0'
   implementation("com.squareup.okhttp3:okhttp-urlconnection:4.9.1")

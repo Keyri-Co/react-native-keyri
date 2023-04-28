@@ -61,36 +61,6 @@ export interface KeyriGeoData {
   regionCode: string;
 }
 
-export interface BaseFingerprintResponse {
-  result: boolean;
-  error?: string;
-  data?: FingerprintEventResponse;
-}
-
-export interface FingerprintEventResponse {
-  id?: string;
-  event?: string;
-  location?: FingerprintLocation;
-  ip?: string;
-  result?: string;
-  signals?: [string];
-  fingerprintId?: string;
-  applicationId?: string;
-  userId?: string;
-  updatedAt?: string;
-  createdAt?: string;
-}
-
-export interface FingerprintLocation {
-  city?: string;
-  country?: string;
-  countryCode?: string;
-  continent_name?: string;
-  continent_code?: string;
-  latitude?: number;
-  longitude?: number;
-}
-
 export interface KeyriModule {
   initializeKeyri: (data: InitializeKeyriOptions) => Promise<void>;
 
@@ -106,7 +76,7 @@ export interface KeyriModule {
 
   removeAssociationKey: (publicUserId?: string) => Promise<void>;
 
-  sendEvent: (data: SendEventOptions) => Promise<BaseFingerprintResponse>;
+  sendEvent: (data: SendEventOptions) => Promise<void>;
 
   initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
 

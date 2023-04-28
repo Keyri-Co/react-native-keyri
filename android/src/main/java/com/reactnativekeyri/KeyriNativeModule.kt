@@ -179,52 +179,10 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
         val type = EventType.values().first { it.type == eventType }
         val result = FingerprintLogResult.values().first { it.type == eventResult }
 
-        val fingerprintEventResult = keyri.sendEvent(publicUserId, type, result).getOrThrow()
-
-        val sessionResultMap = WritableNativeMap().apply {
-          putBoolean("result", fingerprintEventResult.result)
-          putString("error", fingerprintEventResult.error)
-
-          val fingerprintData = fingerprintEventResult.data
-
-          val fingerprintEventResponseMap = if (fingerprintData != null) {
-            WritableNativeMap().also {
-              putString("id", fingerprintData.id)
-              putString("event", fingerprintData.event)
-              putString("ip", fingerprintData.ip)
-              putString("result", fingerprintData.result)
-              putString("fingerprintId", fingerprintData.fingerprintId)
-              putString("applicationId", fingerprintData.applicationId)
-              putString("userId", fingerprintData.userId)
-              putString("updatedAt", fingerprintData.updatedAt)
-              putString("createdAt", fingerprintData.createdAt)
-
-              val resultSignalsData = WritableNativeArray()
-
-              fingerprintEventResult.data?.signals?.forEach {
-                resultSignalsData.pushString(it)
-              }
-
-              putArray("signals", resultSignalsData)
-
-              val fingerprintLocationMap = WritableNativeMap().also {
-                putString("city", fingerprintData.location?.city)
-                putString("country", fingerprintData.location?.country)
-                putString("countryCode", fingerprintData.location?.countryCode)
-                putString("continent_name", fingerprintData.location?.countryCode)
-                putDouble("latitude", fingerprintData.location?.latitude)
-                putDouble("longitude", fingerprintData.location?.longitude)
-              }
-
-              putMap("location", fingerprintLocationMap)
-            }
-          } else null
-
-          putMap("data", fingerprintEventResponseMap)
-        }
+        keyri.sendEvent(publicUserId, type, result).getOrThrow()
 
         withContext(Dispatchers.Main) {
-          promise.resolve(sessionResultMap)
+          promise.resolve("Success")
         }
       } catch (e: Throwable) {
         promise.reject(handleException(e))
