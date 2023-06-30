@@ -107,6 +107,8 @@ export interface InitiateQrSessionOptions {
 export interface EasyKeyriAuthOptions {
   publicUserId: string;
   appKey: string;
+  publicApiKey?: string;
+  serviceEncryptionKey?: string;
   payload: string;
 }
 
@@ -120,6 +122,7 @@ export interface ProcessLinkOptions {
 export interface InitializeKeyriOptions {
   appKey: string;
   publicApiKey?: string;
+  serviceEncryptionKey?: string;
   blockEmulatorDetection?: boolean;
 }
 
