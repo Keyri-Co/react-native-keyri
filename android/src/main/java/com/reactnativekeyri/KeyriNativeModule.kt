@@ -10,18 +10,11 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.ReadableMap
-import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
-import com.keyrico.scanner.easyKeyriAuth
 import com.keyrico.keyrisdk.entity.session.Session
 import com.keyrico.keyrisdk.sec.fingerprint.enums.EventType
-import com.keyrico.keyrisdk.sec.fingerprint.enums.FingerprintLogResult
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -35,17 +28,15 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
     override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, intent: Intent?) {
       if (requestCode == AUTH_REQUEST_CODE) {
         if (resultCode == Activity.RESULT_OK) {
-          authWithScannerPromise?.resolve("Successfully authenticated")
+          authWithScannerPromise?.resolve(Unit)
         } else {
-          authWithScannerPromise?.reject("Cancelled by user")
+          authWithScannerPromise?.reject(Exception("Cancelled by user"))
         }
       }
     }
 
     override fun onNewIntent(intent: Intent?) = Unit
   }
-
-  private val keyriCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
   init {
     reactContext.addActivityEventListener(activityEventListener)
@@ -56,296 +47,266 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun initializeKeyri(data: ReadableMap, promise: Promise) {
+  fun initialize(data: ReadableMap, promise: Promise) {
     try {
       val appKey: String = data.getString("appKey")
         ?: throw java.lang.IllegalStateException("You need to provide appKey")
       val publicApiKey: String? = data.takeIf { it.hasKey("publicApiKey") }?.getString("publicApiKey")
+      val serviceEncryptionKey: String? = data.takeIf { it.hasKey("serviceEncryptionKey") }?.getString("serviceEncryptionKey")
       val blockEmulatorDetection: Boolean = data.takeIf { it.hasKey("blockEmulatorDetection") }?.getBoolean("blockEmulatorDetection")
         ?: true
 
-      keyri = Keyri(reactContext, appKey, publicApiKey, blockEmulatorDetection)
+      keyri = Keyri(reactContext, appKey, publicApiKey, serviceEncryptionKey, blockEmulatorDetection)
     } catch (e: Throwable) {
-      promise.reject(handleException(e))
+      promise.reject(e)
     }
   }
 
   @ReactMethod
   fun generateAssociationKey(publicUserId: String?, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val generatedKey = publicUserId?.let {
-          keyri.generateAssociationKey(it)
-        } ?: keyri.generateAssociationKey()
+    keyriCoroutineScope(promise::reject).launch {
+      val generatedKey = publicUserId?.let {
+        keyri.generateAssociationKey(it).getOrThrow()
+      } ?: keyri.generateAssociationKey().getOrThrow()
 
-        promise.resolve(generatedKey)
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
+      promise.resolve(generatedKey)
     }
   }
 
   @ReactMethod
   fun getUserSignature(publicUserId: String?, customSignedData: String, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val signature = publicUserId?.let {
-          keyri.generateUserSignature(it, customSignedData)
-        } ?: keyri.generateUserSignature(data = customSignedData)
+    keyriCoroutineScope(promise::reject).launch {
+      val signature = publicUserId?.let {
+        keyri.generateUserSignature(it, customSignedData).getOrThrow()
+      } ?: keyri.generateUserSignature(data = customSignedData).getOrThrow()
 
-        promise.resolve(signature)
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
+      promise.resolve(signature)
     }
   }
 
   @ReactMethod
   fun listAssociationKey(promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val associationKeys = keyri.listAssociationKey()
-        val resultData = WritableNativeMap()
+    keyriCoroutineScope(promise::reject).launch {
+      val associationKeys = keyri.listAssociationKey().getOrThrow()
+      val resultData = WritableNativeMap()
 
-        associationKeys.forEach {
-          resultData.putString(it.key, it.value)
-        }
-
-        promise.resolve(resultData)
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
+      associationKeys.forEach {
+        resultData.putString(it.key, it.value)
       }
+
+      promise.resolve(resultData)
     }
   }
 
   @ReactMethod
   fun listUniqueAccounts(promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val uniqueAccounts = keyri.listUniqueAccounts()
-        val resultData = WritableNativeMap()
+    keyriCoroutineScope(promise::reject).launch {
+      val uniqueAccounts = keyri.listUniqueAccounts().getOrThrow()
+      val resultData = WritableNativeMap()
 
-        uniqueAccounts.forEach {
-          resultData.putString(it.key, it.value)
-        }
-
-        promise.resolve(resultData)
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
+      uniqueAccounts.forEach {
+        resultData.putString(it.key, it.value)
       }
+
+      promise.resolve(resultData)
     }
   }
 
   @ReactMethod
   fun getAssociationKey(publicUserId: String?, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val associationKey = publicUserId?.let {
-          keyri.getAssociationKey(it)
-        } ?: keyri.getAssociationKey()
+    keyriCoroutineScope(promise::reject).launch {
+      val associationKey = publicUserId?.let {
+        keyri.getAssociationKey(it).getOrThrow()
+      } ?: keyri.getAssociationKey().getOrThrow()
 
-        promise.resolve(associationKey)
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
+      promise.resolve(associationKey)
     }
   }
 
   @ReactMethod
   fun removeAssociationKey(publicUserId: String?, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        publicUserId?.let {
-          keyri.removeAssociationKey(it)
-        } ?: keyri.removeAssociationKey()
+    keyriCoroutineScope(promise::reject).launch {
+      publicUserId?.let {
+        keyri.removeAssociationKey(it).getOrThrow()
+      } ?: keyri.removeAssociationKey().getOrThrow()
 
-        promise.resolve("Success")
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
-      }
+      promise.resolve(Unit)
     }
   }
 
   @ReactMethod
   fun sendEvent(data: ReadableMap, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val publicUserId = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId") ?: "ANON"
-        val eventType = data.getString("eventType")
-          ?: throw java.lang.IllegalStateException("You need to provide eventType")
-        val eventResult = data.getString("eventResult")
-          ?: throw java.lang.IllegalStateException("You need to provide eventResult")
+    keyriCoroutineScope(promise::reject).launch {
+      val publicUserId = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId") ?: "ANON"
+      val eventType = data.getString("eventType")
+        ?: throw java.lang.IllegalStateException("You need to provide eventType")
+      val success = data.getBoolean("success")
 
-        val type = EventType.values().first { it.type == eventType }
-        val result = FingerprintLogResult.values().first { it.type == eventResult }
+      val type = EventType.values().first { it.type == eventType }
 
-        keyri.sendEvent(publicUserId, type, result).getOrThrow()
+      val fingerprintEventResponse = keyri.sendEvent(publicUserId, type, success).getOrThrow()
 
-        withContext(Dispatchers.Main) {
-          promise.resolve("Success")
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
+      val fingerprintEventResponseMap = WritableNativeMap().apply {
+        putString("keyriEncryptionPublicKey", fingerprintEventResponse.keyriEncryptionPublicKey)
+        putString("encryptedPayload", fingerprintEventResponse.encryptedPayload)
+        putString("iv", fingerprintEventResponse.iv)
+        putString("salt", fingerprintEventResponse.salt)
+      }
+
+      withContext(Dispatchers.Main) {
+        promise.resolve(fingerprintEventResponseMap)
       }
     }
   }
 
   @ReactMethod
   fun initiateQrSession(data: ReadableMap, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val sessionId: String = data.getString("sessionId")
-          ?: throw java.lang.IllegalStateException("You need to provide sessionId")
-        val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
+    keyriCoroutineScope(promise::reject).launch {
+      val sessionId: String = data.getString("sessionId")
+        ?: throw java.lang.IllegalStateException("You need to provide sessionId")
+      val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
 
-        val session = keyri.initiateQrSession(sessionId, publicUserId).getOrThrow()
+      val session = keyri.initiateQrSession(sessionId, publicUserId).getOrThrow()
 
-        sessions.add(session)
+      sessions.add(session)
 
-        val sessionResultMap = WritableNativeMap().apply {
-          putString("widgetOrigin", session.widgetOrigin)
-          putString("sessionId", session.sessionId)
-          putString("iPAddressMobile", session.iPAddressMobile)
-          putString("iPAddressWidget", session.iPAddressWidget)
+      val sessionResultMap = WritableNativeMap().apply {
+        putString("widgetOrigin", session.widgetOrigin)
+        putString("sessionId", session.sessionId)
+        putString("iPAddressMobile", session.iPAddressMobile)
+        putString("iPAddressWidget", session.iPAddressWidget)
 
-          val widgetUserAgentMap = WritableNativeMap().also {
-            session.widgetUserAgent?.let { widgetUserAgent ->
-              it.putString("os", widgetUserAgent.os)
-              it.putString("browser", widgetUserAgent.browser)
-            }
+        val widgetUserAgentMap = WritableNativeMap().also {
+          session.widgetUserAgent?.let { widgetUserAgent ->
+            it.putString("os", widgetUserAgent.os)
+            it.putString("browser", widgetUserAgent.browser)
           }
-
-          val userParametersMap = WritableNativeMap().also {
-            session.userParameters?.let { userParameters ->
-              it.putString("base64EncodedData", userParameters.base64EncodedData)
-            }
-          }
-
-          if (session.riskAnalytics?.riskStatus != null && session.riskAnalytics?.riskFlagString != null) {
-            val riskAnalyticsMap = WritableNativeMap().also { riskAnalyticsMap ->
-              session.riskAnalytics?.let { riskAnalytics ->
-                val hasMobile = riskAnalytics.geoData?.mobile != null
-                val hasBrowser = riskAnalytics.geoData?.browser != null
-
-                if (hasMobile) {
-                  val geoDataMap = WritableNativeMap().also { geoDataMap ->
-                    val mobileMap = WritableNativeMap().also {
-                      riskAnalytics.geoData?.mobile?.let { mobile ->
-                        it.putString("continentCode", mobile.continentCode)
-                        it.putString("countryCode", mobile.countryCode)
-                        it.putString("city", mobile.city)
-                        it.putDouble("latitude", mobile.latitude)
-                        it.putDouble("longitude", mobile.longitude)
-                        it.putString("regionCode", mobile.regionCode)
-                      }
-                    }
-
-                    geoDataMap.putMap("mobile", mobileMap)
-                  }
-
-                  if (hasBrowser) {
-                    val browserMap = WritableNativeMap().also {
-                      riskAnalytics.geoData?.browser?.let { browser ->
-                        it.putString("continentCode", browser.continentCode)
-                        it.putString("countryCode", browser.countryCode)
-                        it.putString("city", browser.city)
-                        it.putDouble("latitude", browser.latitude)
-                        it.putDouble("longitude", browser.longitude)
-                        it.putString("regionCode", browser.regionCode)
-                      }
-                    }
-
-                    geoDataMap.putMap("browser", browserMap)
-                  }
-
-                  if (hasMobile || hasBrowser) {
-                    riskAnalyticsMap.putMap("geoData", geoDataMap)
-                  }
-                }
-
-                riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
-                riskAnalyticsMap.putString("riskFlagString", riskAnalytics.riskFlagString)
-              }
-            }
-
-            putMap("riskAnalytics", riskAnalyticsMap)
-          }
-
-          val mobileTemplateResponse = session.mobileTemplateResponse
-
-          if (mobileTemplateResponse != null) {
-            val mobileTemplateMap = WritableNativeMap().also { mobileTemplateMap ->
-              mobileTemplateMap.putString("title", mobileTemplateResponse.title)
-              mobileTemplateMap.putString("message", mobileTemplateResponse.message)
-
-              mobileTemplateResponse.widget?.let { widget ->
-                val widgetMap = WritableNativeMap().also {
-                  it.putString("location", widget.location)
-                  it.putString("issue", widget.issue)
-                }
-
-                mobileTemplateMap.putMap("widget", widgetMap)
-              }
-
-              mobileTemplateResponse.mobile?.let { mobile ->
-                val mobileMap = WritableNativeMap().also {
-                  it.putString("location", mobile.location)
-                  it.putString("issue", mobile.issue)
-                }
-
-                mobileTemplateMap.putMap("mobile", mobileMap)
-              }
-
-              mobileTemplateResponse.userAgent?.let { userAgent ->
-                val userAgentMap = WritableNativeMap().also {
-                  it.putString("name", userAgent.name)
-                  it.putString("issue", userAgent.issue)
-                }
-
-                mobileTemplateMap.putMap("userAgent", userAgentMap)
-              }
-
-              mobileTemplateResponse.flags?.let { flags ->
-                val flagsMap = WritableNativeMap().also {
-                  it.putBoolean("isDatacenter", flags.isDatacenter ?: false)
-                  it.putBoolean("isNewBrowser", flags.isNewBrowser ?: false)
-                }
-
-                mobileTemplateMap.putMap("flags", flagsMap)
-              }
-            }
-
-            putMap("mobileTemplateResponse", mobileTemplateMap)
-          }
-
-          putMap("widgetUserAgent", widgetUserAgentMap)
-          putMap("userParameters", userParametersMap)
         }
 
-        withContext(Dispatchers.Main) {
-          promise.resolve(sessionResultMap)
+        val userParametersMap = WritableNativeMap().also {
+          session.userParameters?.let { userParameters ->
+            it.putString("base64EncodedData", userParameters.base64EncodedData)
+          }
         }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
+
+        if (session.riskAnalytics?.riskStatus != null && session.riskAnalytics?.riskFlagString != null) {
+          val riskAnalyticsMap = WritableNativeMap().also { riskAnalyticsMap ->
+            session.riskAnalytics?.let { riskAnalytics ->
+              val hasMobile = riskAnalytics.geoData?.mobile != null
+              val hasBrowser = riskAnalytics.geoData?.browser != null
+
+              if (hasMobile) {
+                val geoDataMap = WritableNativeMap().also { geoDataMap ->
+                  val mobileMap = WritableNativeMap().also {
+                    riskAnalytics.geoData?.mobile?.let { mobile ->
+                      it.putString("continentCode", mobile.continentCode)
+                      it.putString("countryCode", mobile.countryCode)
+                      it.putString("city", mobile.city)
+                      it.putDouble("latitude", mobile.latitude)
+                      it.putDouble("longitude", mobile.longitude)
+                      it.putString("regionCode", mobile.regionCode)
+                    }
+                  }
+
+                  geoDataMap.putMap("mobile", mobileMap)
+                }
+
+                if (hasBrowser) {
+                  val browserMap = WritableNativeMap().also {
+                    riskAnalytics.geoData?.browser?.let { browser ->
+                      it.putString("continentCode", browser.continentCode)
+                      it.putString("countryCode", browser.countryCode)
+                      it.putString("city", browser.city)
+                      it.putDouble("latitude", browser.latitude)
+                      it.putDouble("longitude", browser.longitude)
+                      it.putString("regionCode", browser.regionCode)
+                    }
+                  }
+
+                  geoDataMap.putMap("browser", browserMap)
+                }
+
+                if (hasMobile || hasBrowser) {
+                  riskAnalyticsMap.putMap("geoData", geoDataMap)
+                }
+              }
+
+              riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
+              riskAnalyticsMap.putString("riskFlagString", riskAnalytics.riskFlagString)
+            }
+          }
+
+          putMap("riskAnalytics", riskAnalyticsMap)
+        }
+
+        val mobileTemplateResponse = session.mobileTemplateResponse
+
+        if (mobileTemplateResponse != null) {
+          val mobileTemplateMap = WritableNativeMap().also { mobileTemplateMap ->
+            mobileTemplateMap.putString("title", mobileTemplateResponse.title)
+            mobileTemplateMap.putString("message", mobileTemplateResponse.message)
+
+            mobileTemplateResponse.widget?.let { widget ->
+              val widgetMap = WritableNativeMap().also {
+                it.putString("location", widget.location)
+                it.putString("issue", widget.issue)
+              }
+
+              mobileTemplateMap.putMap("widget", widgetMap)
+            }
+
+            mobileTemplateResponse.mobile?.let { mobile ->
+              val mobileMap = WritableNativeMap().also {
+                it.putString("location", mobile.location)
+                it.putString("issue", mobile.issue)
+              }
+
+              mobileTemplateMap.putMap("mobile", mobileMap)
+            }
+
+            mobileTemplateResponse.userAgent?.let { userAgent ->
+              val userAgentMap = WritableNativeMap().also {
+                it.putString("name", userAgent.name)
+                it.putString("issue", userAgent.issue)
+              }
+
+              mobileTemplateMap.putMap("userAgent", userAgentMap)
+            }
+
+            mobileTemplateResponse.flags?.let { flags ->
+              val flagsMap = WritableNativeMap().also {
+                it.putBoolean("isDatacenter", flags.isDatacenter ?: false)
+                it.putBoolean("isNewBrowser", flags.isNewBrowser ?: false)
+              }
+
+              mobileTemplateMap.putMap("flags", flagsMap)
+            }
+          }
+
+          putMap("mobileTemplateResponse", mobileTemplateMap)
+        }
+
+        putMap("widgetUserAgent", widgetUserAgentMap)
+        putMap("userParameters", userParametersMap)
+      }
+
+      withContext(Dispatchers.Main) {
+        promise.resolve(sessionResultMap)
       }
     }
   }
 
   @ReactMethod
   fun initializeDefaultScreen(sessionId: String, payload: String, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val session = sessions.firstOrNull { it.sessionId == sessionId }
-          ?: throw java.lang.IllegalStateException("Session not found")
+    keyriCoroutineScope(promise::reject).launch {
+      val session = sessions.firstOrNull { it.sessionId == sessionId }
+        ?: throw java.lang.IllegalStateException("Session not found")
 
-        val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
-        val isApproved = keyri.initializeDefaultConfirmationScreen(fm, session, payload).getOrThrow()
+      val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
+      keyri.initializeDefaultConfirmationScreen(fm, session, payload).getOrThrow()
 
-        withContext(Dispatchers.Main) {
-          promise.resolve(isApproved)
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
+      withContext(Dispatchers.Main) {
+        promise.resolve(Unit)
       }
     }
   }
@@ -369,12 +330,16 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
         val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
         val appKey: String = data.getString("appKey")
           ?: throw java.lang.IllegalStateException("You need to provide appKey")
+        val publicApiKey: String = data.getString("publicApiKey")
+          ?: throw java.lang.IllegalStateException("You need to provide publicApiKey")
+        val serviceEncryptionKey: String = data.getString("serviceEncryptionKey")
+          ?: throw java.lang.IllegalStateException("You need to provide serviceEncryptionKey")
         val payload: String = data.getString("payload")
           ?: throw java.lang.IllegalStateException("You need to provide payload")
 
-        easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, null, payload, publicUserId)
+        easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, publicApiKey, serviceEncryptionKey, payload, publicUserId)
       } catch (e: Throwable) {
-        promise.reject(handleException(e))
+        promise.reject(e)
 
         authWithScannerPromise = null
       }
@@ -383,49 +348,46 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
   @ReactMethod
   fun processLink(data: ReadableMap, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
-        val url: String = data.getString("url") ?: throw java.lang.IllegalStateException("You need to provide url")
-        val payload: String = data.getString("payload")
-          ?: throw java.lang.IllegalStateException("You need to provide payload")
+    keyriCoroutineScope(promise::reject).launch {
+      val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
+      val url: String = data.getString("url") ?: throw java.lang.IllegalStateException("You need to provide url")
+      val payload: String = data.getString("payload")
+        ?: throw java.lang.IllegalStateException("You need to provide payload")
 
-        val uri = Uri.parse(url)
-        val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
-        val isSuccess = keyri.processLink(fm, uri, payload, publicUserId).getOrThrow()
+      val uri = Uri.parse(url)
+      val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
 
-        withContext(Dispatchers.Main) {
-          promise.resolve(isSuccess)
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
+      keyri.processLink(fm, uri, payload, publicUserId).getOrThrow()
+
+      withContext(Dispatchers.Main) {
+        promise.resolve(Unit)
       }
     }
   }
 
   private fun finishSession(sessionId: String, payload: String, isApproved: Boolean, promise: Promise) {
-    keyriCoroutineScope.launch(Dispatchers.IO) {
-      try {
-        val session = sessions.firstOrNull { it.sessionId == sessionId }
-          ?: throw java.lang.IllegalStateException("Session not found")
+    keyriCoroutineScope(promise::reject).launch {
+      val session = sessions.firstOrNull { it.sessionId == sessionId }
+        ?: throw java.lang.IllegalStateException("Session not found")
 
-        val isSuccess = if (isApproved) {
-          session.confirm(payload, reactContext)
-        } else {
-          session.deny(payload, reactContext)
-        }.getOrThrow()
+      if (isApproved) {
+        session.confirm(payload, reactContext)
+      } else {
+        session.deny(payload, reactContext)
+      }.getOrThrow()
 
-        withContext(Dispatchers.Main) {
-          promise.resolve(isSuccess)
-        }
-      } catch (e: Throwable) {
-        promise.reject(handleException(e))
+      withContext(Dispatchers.Main) {
+        promise.resolve(Unit)
       }
     }
   }
 
-  private fun handleException(throwable: Throwable): String {
-    return throwable.message ?: "Something went wrong"
+  private fun keyriCoroutineScope(errorCallback: (e: Throwable) -> Unit): CoroutineScope {
+    val exceptionHandler = CoroutineExceptionHandler { _, e ->
+      errorCallback(e)
+    }
+
+    return CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler)
   }
 
   companion object {

@@ -10,6 +10,13 @@ export interface KeyriSession {
   mobileTemplateResponse?: KeyriMobileTemplateResponse;
 }
 
+export interface KeyriFingerprintEventResponse {
+  keyriEncryptionPublicKey: string;
+  encryptedPayload: string;
+  iv: string;
+  salt: string;
+}
+
 export interface KeyriUserParameters {
   base64EncodedData?: string;
 }
@@ -62,7 +69,7 @@ export interface KeyriGeoData {
 }
 
 export interface KeyriModule {
-  initializeKeyri: (data: InitializeKeyriOptions) => Promise<void>;
+  initialize: (data: InitializeKeyriOptions) => Promise<void>;
 
   generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
@@ -76,19 +83,19 @@ export interface KeyriModule {
 
   removeAssociationKey: (publicUserId?: string) => Promise<void>;
 
-  sendEvent: (data: SendEventOptions) => Promise<void>;
+  sendEvent: (data: SendEventOptions) => Promise<KeyriFingerprintEventResponse>;
 
   initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
 
-  initializeDefaultScreen: (sessionId: string, payload: string) => Promise<boolean>;
+  initializeDefaultScreen: (sessionId: string, payload: string) => Promise<void>;
 
-  confirmSession: (sessionId: string, payload: string) => Promise<boolean>;
+  confirmSession: (sessionId: string, payload: string) => Promise<void>;
 
-  denySession: (sessionId: string, payload: string) => Promise<boolean>;
+  denySession: (sessionId: string, payload: string) => Promise<void>;
 
-  easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<string>;
+  easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<void>;
 
-  processLink: (options: ProcessLinkOptions) => Promise<boolean>;
+  processLink: (options: ProcessLinkOptions) => Promise<void>;
 }
 
 export interface InitiateQrSessionOptions {
@@ -119,13 +126,7 @@ export interface InitializeKeyriOptions {
 export interface SendEventOptions {
   publicUserId?: string;
   eventType: EventType;
-  eventResult: FingerprintResultType;
-}
-
-export enum FingerprintResultType {
-  Success = 'success',
-  Fail = 'fail',
-  Incomplete = 'incomplete',
+  success: boolean;
 }
 
 export enum EventType {
