@@ -11,8 +11,9 @@ export interface KeyriSession {
 }
 
 export interface KeyriFingerprintEventResponse {
-  keyriEncryptionPublicKey: string;
-  encryptedPayload: string;
+  apiCiphertextSignature: string;
+  publicEncryptionKey: string;
+  ciphertext: string;
   iv: string;
   salt: string;
 }
@@ -81,7 +82,7 @@ export interface KeyriModule {
 
   getAssociationKey: (publicUserId?: string) => Promise<string>;
 
-  removeAssociationKey: (publicUserId?: string) => Promise<void>;
+  removeAssociationKey: (publicUserId: string) => Promise<void>;
 
   sendEvent: (data: SendEventOptions) => Promise<KeyriFingerprintEventResponse>;
 

@@ -14,6 +14,7 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
 import com.keyrico.keyrisdk.entity.session.Session
 import com.keyrico.keyrisdk.sec.fingerprint.enums.EventType
+import com.keyrico.scanner.easyKeyriAuth
 import kotlinx.coroutines.*
 
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -124,12 +125,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun removeAssociationKey(publicUserId: String?, promise: Promise) {
+  fun removeAssociationKey(publicUserId: String, promise: Promise) {
     keyriCoroutineScope(promise::reject).launch {
-      publicUserId?.let {
-        keyri.removeAssociationKey(it).getOrThrow()
-      } ?: keyri.removeAssociationKey().getOrThrow()
-
+      keyri.removeAssociationKey(publicUserId).getOrThrow()
       promise.resolve(Unit)
     }
   }
@@ -147,8 +145,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
       val fingerprintEventResponse = keyri.sendEvent(publicUserId, type, success).getOrThrow()
 
       val fingerprintEventResponseMap = WritableNativeMap().apply {
-        putString("keyriEncryptionPublicKey", fingerprintEventResponse.keyriEncryptionPublicKey)
-        putString("encryptedPayload", fingerprintEventResponse.encryptedPayload)
+        putString("apiCiphertextSignature", fingerprintEventResponse.apiCiphertextSignature)
+        putString("publicEncryptionKey", fingerprintEventResponse.publicEncryptionKey)
+        putString("ciphertext", fingerprintEventResponse.ciphertext)
         putString("iv", fingerprintEventResponse.iv)
         putString("salt", fingerprintEventResponse.salt)
       }
