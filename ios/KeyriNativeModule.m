@@ -94,6 +94,26 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
     }];
 }
 
+RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    id publicUserId = [data objectForKey:@"publicUserId"];
+    id eventType = [data objectForKey:@"eventType"];
+    id success = [data objectForKey:@"success"];
+
+    if (![eventType isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide eventType" withRejecter:reject]; }
+    if (![success isKindOfClass:[BOOL class]]) { return [self handleErrorText:@"You need to provide success" withRejecter:reject]; }
+
+        __weak typeof (self) weakSelf = self;
+        [self.keyri sendEvent:publicUserId publicUserId:publicUserId eventType:eventType success:success completion:^(BOOL success, NSError * _Nullable error) {
+            typeof (self) strongSelf = weakSelf;
+            if (error != nil) {
+                return [strongSelf handleError:error withRejecter:reject];
+            }
+
+            resolve(@(success));
+        }];
+}
+
 RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     Session *session;
