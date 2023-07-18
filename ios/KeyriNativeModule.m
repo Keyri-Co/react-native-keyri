@@ -32,7 +32,7 @@ RCT_EXPORT_MODULE()
         _keyri = [[KeyriObjC alloc] init];
         _sessions = [NSMutableArray array];
     }
-    
+
     return  self;
 }
 
@@ -56,23 +56,34 @@ RCT_EXPORT_MODULE()
     [self handleErrorText:error.localizedDescription withRejecter:reject];
 }
 
+RCT_EXPORT_METHOD(initialize:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    id appKey = [data objectForKey:@"appKey"];
+    id publicApiKey = [data objectForKey:@"publicApiKey"];
+    id serviceEncryptionKey = [data objectForKey:@"serviceEncryptionKey"];
+    id blockEmulatorDetection = [data objectForKey:@"blockEmulatorDetection"];
+
+  // TODO Init Keyri obj (pass args)
+
+    NSDictionary *associationKeys = [self.keyri listAssociactionKeys];
+    resolve(associationKeys);
+}
+
 RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     id publicUserId = [data objectForKey:@"publicUserId"];
     id sessionId = [data objectForKey:@"sessionId"];
-    id appKey = [data objectForKey:@"appKey"];
-    
-    if (![appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
+
     if (![sessionId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide sessionId" withRejecter:reject]; }
-    
+
     __weak typeof (self) weakSelf = self;
-    [self.keyri initiateQrSessionWithUsername:publicUserId sessionId:sessionId appKey:appKey completion:^(Session * _Nullable session, NSError * _Nullable error) {
+    [self.keyri initiateQrSessionWithUsername:publicUserId sessionId:sessionId completion:^(Session * _Nullable session, NSError * _Nullable error) {
         typeof (self) strongSelf = weakSelf;
-        
+
         if (error != nil) {
             return [self handleError:error withRejecter:reject];
         }
-        
+
         if (session != nil) {
             [strongSelf.sessions addObject:session];
             NSDictionary *dict = [self dictionaryWithPropertiesOfObject:session];
@@ -92,11 +103,11 @@ RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)sessionId payload:(NSStrin
             break;
         }
     }
-        
+
     if (session == nil) {
         return [self handleErrorText:@"Session not found" withRejecter:reject];
     }
-    
+
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.keyri initializeDefaultConfirmationScreenWithSession:session payload:payload completion:^(BOOL isApproved) {
             resolve(@(isApproved));
@@ -120,7 +131,7 @@ RCT_EXPORT_METHOD(getUserSignature:(NSString *)publicUserId customSignedData:(NS
     if (![data isKindOfClass:[NSData class]]) {
         return [self handleErrorText:@"You need to provide customSignedData" withRejecter:reject];
     }
-    
+
     NSError *error;
     NSString *signature = [self.keyri generateUserSignatureWithUsername:publicUserId data:data error:&error];
     if (error != nil) {
@@ -137,7 +148,7 @@ RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromis
     if (error != nil) {
         return [self handleError:error withRejecter:reject];
     }
-    
+
     resolve(associationKey);
 }
 
@@ -148,7 +159,7 @@ RCT_EXPORT_METHOD(removeAssociationKey:(NSString *)publicUserId resolver:(RCTPro
     if (error != nil) {
         return [self handleError:error withRejecter:reject];
     }
-    
+
     resolve(@"Success");
 }
 
@@ -158,24 +169,32 @@ RCT_EXPORT_METHOD(listAssociationKey:(RCTPromiseResolveBlock)resolve rejecter:(R
     resolve(associationKeys);
 }
 
+RCT_EXPORT_METHOD(listUniqueAccounts:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSDictionary *associationKeys = [self.keyri listUniqueAccounts];
+    resolve(associationKeys);
+}
+
 RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     id publicUserId = [data objectForKey:@"publicUserId"];
     id payload = [data objectForKey:@"payload"];
     id appKey = [data objectForKey:@"appKey"];
-    
+    id publicApiKey = [data objectForKey:@"publicApiKey"];
+
     if (![appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
     if (![payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
     if (![publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
-    
+    if (![publicApiKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicApiKey" withRejecter:reject]; }
+
     dispatch_async(dispatch_get_main_queue(), ^{
         __weak typeof (self) weakSelf = self;
-        [self.keyri easyKeyriAuthWithPublicUserId:publicUserId appKey:appKey payload:payload completion:^(BOOL success, NSError * _Nullable error) {
+        [self.keyri easyKeyriAuthWithPublicUserId:publicUserId appKey:appKey publicApiKey:publicApiKey payload:payload completion:^(BOOL success, NSError * _Nullable error) {
             typeof (self) strongSelf = weakSelf;
             if (error != nil) {
                 return [strongSelf handleError:error withRejecter:reject];
             }
-            
+
             resolve(@(success));
         }];
     });
@@ -185,21 +204,19 @@ RCT_EXPORT_METHOD(processLink:(NSDictionary *)data resolver:(RCTPromiseResolveBl
 {
     id urlString = [data objectForKey:@"url"];
     id publicUserId = [data objectForKey:@"publicUserId"];
-    id appKey = [data objectForKey:@"appKey"];
     id payload = [data objectForKey:@"payload"];
-        
-    if (![appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
+
     if (![payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
     if (![publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
     if (![urlString isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide url" withRejecter:reject]; }
-    
+
     __weak typeof (self) weakSelf = self;
-    [self.keyri processLinkWithUrl:[NSURL URLWithString:urlString] publicUserId:publicUserId appKey:appKey payload:payload completion:^(BOOL success, NSError * _Nullable error) {
+    [self.keyri processLinkWithUrl:[NSURL URLWithString:urlString] publicUserId:publicUserId payload:payload completion:^(BOOL success, NSError * _Nullable error) {
         typeof (self) strongSelf = weakSelf;
         if (error != nil) {
             return [strongSelf handleError:error withRejecter:reject];
         }
-        
+
         resolve(@(success));
     }];
 }
@@ -227,7 +244,7 @@ RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload 
             break;
         }
     }
-    
+
     resolve(@([result isEqualToString:@"success"]));
 }
 

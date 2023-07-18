@@ -3,6 +3,7 @@ package com.reactnativekeyri
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.Promise
@@ -65,29 +66,29 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
   @ReactMethod
   fun generateAssociationKey(publicUserId: String?, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val generatedKey = publicUserId?.let {
         keyri.generateAssociationKey(it).getOrThrow()
       } ?: keyri.generateAssociationKey().getOrThrow()
 
-      promise.resolve(generatedKey)
+      generatedKey
     }
   }
 
   @ReactMethod
   fun getUserSignature(publicUserId: String?, customSignedData: String, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val signature = publicUserId?.let {
         keyri.generateUserSignature(it, customSignedData).getOrThrow()
       } ?: keyri.generateUserSignature(data = customSignedData).getOrThrow()
 
-      promise.resolve(signature)
+      signature
     }
   }
 
   @ReactMethod
   fun listAssociationKey(promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val associationKeys = keyri.listAssociationKey().getOrThrow()
       val resultData = WritableNativeMap()
 
@@ -95,13 +96,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
         resultData.putString(it.key, it.value)
       }
 
-      promise.resolve(resultData)
+      resultData
     }
   }
 
   @ReactMethod
   fun listUniqueAccounts(promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val uniqueAccounts = keyri.listUniqueAccounts().getOrThrow()
       val resultData = WritableNativeMap()
 
@@ -109,32 +110,31 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
         resultData.putString(it.key, it.value)
       }
 
-      promise.resolve(resultData)
+      resultData
     }
   }
 
   @ReactMethod
   fun getAssociationKey(publicUserId: String?, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val associationKey = publicUserId?.let {
         keyri.getAssociationKey(it).getOrThrow()
       } ?: keyri.getAssociationKey().getOrThrow()
 
-      promise.resolve(associationKey)
+      associationKey
     }
   }
 
   @ReactMethod
   fun removeAssociationKey(publicUserId: String, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       keyri.removeAssociationKey(publicUserId).getOrThrow()
-      promise.resolve(Unit)
     }
   }
 
   @ReactMethod
   fun sendEvent(data: ReadableMap, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val publicUserId = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId") ?: "ANON"
       val eventType = data.getString("eventType")
         ?: throw java.lang.IllegalStateException("You need to provide eventType")
@@ -144,23 +144,19 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
       val fingerprintEventResponse = keyri.sendEvent(publicUserId, type, success).getOrThrow()
 
-      val fingerprintEventResponseMap = WritableNativeMap().apply {
+      WritableNativeMap().apply {
         putString("apiCiphertextSignature", fingerprintEventResponse.apiCiphertextSignature)
         putString("publicEncryptionKey", fingerprintEventResponse.publicEncryptionKey)
         putString("ciphertext", fingerprintEventResponse.ciphertext)
         putString("iv", fingerprintEventResponse.iv)
         putString("salt", fingerprintEventResponse.salt)
       }
-
-      withContext(Dispatchers.Main) {
-        promise.resolve(fingerprintEventResponseMap)
-      }
     }
   }
 
   @ReactMethod
   fun initiateQrSession(data: ReadableMap, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val sessionId: String = data.getString("sessionId")
         ?: throw java.lang.IllegalStateException("You need to provide sessionId")
       val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
@@ -169,7 +165,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
       sessions.add(session)
 
-      val sessionResultMap = WritableNativeMap().apply {
+      WritableNativeMap().apply {
         putString("widgetOrigin", session.widgetOrigin)
         putString("sessionId", session.sessionId)
         putString("iPAddressMobile", session.iPAddressMobile)
@@ -288,25 +284,17 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
         putMap("widgetUserAgent", widgetUserAgentMap)
         putMap("userParameters", userParametersMap)
       }
-
-      withContext(Dispatchers.Main) {
-        promise.resolve(sessionResultMap)
-      }
     }
   }
 
   @ReactMethod
   fun initializeDefaultScreen(sessionId: String, payload: String, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val session = sessions.firstOrNull { it.sessionId == sessionId }
         ?: throw java.lang.IllegalStateException("Session not found")
 
       val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
       keyri.initializeDefaultConfirmationScreen(fm, session, payload).getOrThrow()
-
-      withContext(Dispatchers.Main) {
-        promise.resolve(Unit)
-      }
     }
   }
 
@@ -347,7 +335,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
   @ReactMethod
   fun processLink(data: ReadableMap, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
       val url: String = data.getString("url") ?: throw java.lang.IllegalStateException("You need to provide url")
       val payload: String = data.getString("payload")
@@ -357,15 +345,11 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
       val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
 
       keyri.processLink(fm, uri, payload, publicUserId).getOrThrow()
-
-      withContext(Dispatchers.Main) {
-        promise.resolve(Unit)
-      }
     }
   }
 
   private fun finishSession(sessionId: String, payload: String, isApproved: Boolean, promise: Promise) {
-    keyriCoroutineScope(promise::reject).launch {
+    keyriCoroutineScope(promise) {
       val session = sessions.firstOrNull { it.sessionId == sessionId }
         ?: throw java.lang.IllegalStateException("Session not found")
 
@@ -374,19 +358,21 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
       } else {
         session.deny(payload, reactContext)
       }.getOrThrow()
-
-      withContext(Dispatchers.Main) {
-        promise.resolve(Unit)
-      }
     }
   }
 
-  private fun keyriCoroutineScope(errorCallback: (e: Throwable) -> Unit): CoroutineScope {
+  private fun <T> keyriCoroutineScope(promise: Promise, block: suspend () -> T) {
     val exceptionHandler = CoroutineExceptionHandler { _, e ->
-      errorCallback(e)
+      promise.reject(e)
     }
 
-    return CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler)
+    CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler).launch {
+      val result = block()
+
+      withContext(Dispatchers.Main) {
+        promise.resolve(result)
+      }
+    }
   }
 
   companion object {
