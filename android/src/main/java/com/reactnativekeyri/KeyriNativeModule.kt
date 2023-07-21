@@ -3,7 +3,6 @@ package com.reactnativekeyri
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.Promise
@@ -14,7 +13,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
 import com.keyrico.keyrisdk.entity.session.Session
-import com.keyrico.keyrisdk.sec.fingerprint.enums.EventType
+import com.keyrico.keyrisdk.sec.fraud.enums.EventType
 import com.keyrico.scanner.easyKeyriAuth
 import kotlinx.coroutines.*
 
