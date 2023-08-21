@@ -70,7 +70,7 @@ export interface KeyriGeoData {
 }
 
 export interface KeyriModule {
-  initialize: (data: InitializeKeyriOptions) => Promise<void>;
+  initialize: (data: InitializeKeyriOptions) => Promise<boolean>;
 
   generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
@@ -82,21 +82,21 @@ export interface KeyriModule {
 
   getAssociationKey: (publicUserId?: string) => Promise<string>;
 
-  removeAssociationKey: (publicUserId: string) => Promise<void>;
+  removeAssociationKey: (publicUserId: string) => Promise<boolean>;
 
   sendEvent: (data: SendEventOptions) => Promise<KeyriFingerprintEventResponse>;
 
   initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
 
-  initializeDefaultScreen: (sessionId: string, payload: string) => Promise<void>;
+  initializeDefaultScreen: (sessionId: string, payload: string) => Promise<boolean>;
 
-  confirmSession: (sessionId: string, payload: string) => Promise<void>;
+  confirmSession: (sessionId: string, payload: string) => Promise<boolean>;
 
-  denySession: (sessionId: string, payload: string) => Promise<void>;
+  denySession: (sessionId: string, payload: string) => Promise<boolean>;
 
-  easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<void>;
+  easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<boolean>;
 
-  processLink: (options: ProcessLinkOptions) => Promise<void>;
+  processLink: (options: ProcessLinkOptions) => Promise<boolean>;
 }
 
 export interface InitiateQrSessionOptions {

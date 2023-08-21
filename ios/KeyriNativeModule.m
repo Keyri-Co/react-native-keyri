@@ -8,7 +8,7 @@
 
 #import "KeyriNativeModule.h"
 #import <objc/runtime.h>
-@import keyri_pod;
+@import Keyri;
 
 NSString *const KeyriNativeModuleDomain = @"KeyriNativeModule";
 NSString *const KeyriNativeModuleGeneralCodeString = @"0";
@@ -17,6 +17,7 @@ NSInteger const KeyriNativeModuleGeneralCode = 0;
 @interface KeyriNativeModule ()
 
 @property (nonatomic, strong) KeyriObjC *keyri;
+@property (nonatomic, strong) NSString *appKey;
 @property (nonatomic, strong) NSMutableArray<Session *> *sessions;
 
 @end
@@ -29,8 +30,8 @@ RCT_EXPORT_MODULE()
 - (instancetype)init
 {
     if (self = [super init]) {
-        _keyri = [[KeyriObjC alloc] init];
         _sessions = [NSMutableArray array];
+        _keyri = [[KeyriObjC alloc] init];
     }
 
     return  self;
@@ -58,66 +59,73 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(initialize:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    id appKey = [data objectForKey:@"appKey"];
-    id publicApiKey = [data objectForKey:@"publicApiKey"];
-    id serviceEncryptionKey = [data objectForKey:@"serviceEncryptionKey"];
-    id blockEmulatorDetection = [data objectForKey:@"blockEmulatorDetection"];
+    _appKey = data[@"appKey"];
+    NSString *publicApiKey = data[@"publicAPIKey"];
+    NSString *serviceEncryptionKey = data[@"serviceEncryptionKey"];
 
-  // TODO Init Keyri obj (pass args)
+    if (_appKey == nil || ![_appKey isKindOfClass:[NSString class]]) {
+      reject(@"InvalidArguments", @"You need to provide appKey", nil);
+      return;
+    }
 
-    NSDictionary *associationKeys = [self.keyri listAssociactionKeys];
-    resolve(associationKeys);
+    [self.keyri initializeKeyriWithAppKey:_appKey publicAPIKey:publicApiKey, serviceEncryptionKey:serviceEncryptionKey];
+    resolve(@(YES));
 }
+
 
 RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    id publicUserId = [data objectForKey:@"publicUserId"];
-    id sessionId = [data objectForKey:@"sessionId"];
+    NSString *publicUserId = data[@"publicUserId"];
+    NSString *sessionId = data[@"sessionId"];
+    NSString *appKey = data[@"appKey"];
 
-    if (![sessionId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide sessionId" withRejecter:reject]; }
+    if (![sessionId isKindOfClass:[NSString class]]) {
+      return [self handleErrorText:@"You need to provide sessionId" withRejecter:reject];
+    }
 
     __weak typeof (self) weakSelf = self;
-    [self.keyri initiateQrSessionWithUsername:publicUserId sessionId:sessionId completion:^(Session * _Nullable session, NSError * _Nullable error) {
+    [self.keyri initiateQrSessionWithPublicUserId:publicUserId sessionId:sessionId appKey:appKey completion:^(Session * _Nullable session, NSError * _Nullable error) {
         typeof (self) strongSelf = weakSelf;
 
         if (error != nil) {
-            return [self handleError:error withRejecter:reject];
+            return [strongSelf handleError:error withRejecter:reject];
         }
 
         if (session != nil) {
             [strongSelf.sessions addObject:session];
-            NSDictionary *dict = [self dictionaryWithPropertiesOfObject:session];
+            NSDictionary *dict = [strongSelf dictionaryWithPropertiesOfObject:session];
             resolve(dict);
         } else {
-            [self handleErrorText:@"Session not found" withRejecter:reject];
+            [strongSelf handleErrorText:@"Session not found" withRejecter:reject];
         }
     }];
 }
 
-RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
-{
-    id publicUserId = [data objectForKey:@"publicUserId"];
-    id eventType = [data objectForKey:@"eventType"];
-    id success = [data objectForKey:@"success"];
-
-    if (![eventType isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide eventType" withRejecter:reject]; }
-    if (![success isKindOfClass:[BOOL class]]) { return [self handleErrorText:@"You need to provide success" withRejecter:reject]; }
-
-        __weak typeof (self) weakSelf = self;
-        [self.keyri sendEvent:publicUserId publicUserId:publicUserId eventType:eventType success:success completion:^(BOOL success, NSError * _Nullable error) {
-            typeof (self) strongSelf = weakSelf;
-            if (error != nil) {
-                return [strongSelf handleError:error withRejecter:reject];
-            }
-
-            resolve(@(success));
-        }];
-}
+// TODO Uncomment when available
+//RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+//{
+//    id publicUserId = [data objectForKey:@"publicUserId"];
+//    id eventType = [data objectForKey:@"eventType"];
+//    id success = [data objectForKey:@"success"];
+//
+//    if (![eventType isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide eventType" withRejecter:reject]; }
+//    if (![success isKindOfClass:[BOOL class]]) { return [self handleErrorText:@"You need to provide success" withRejecter:reject]; }
+//
+//        __weak typeof (self) weakSelf = self;
+//        [self.keyri sendEvent:publicUserId publicUserId:publicUserId eventType:eventType success:success completion:^(BOOL success, NSError * _Nullable error) {
+//            typeof (self) strongSelf = weakSelf;
+//            if (error != nil) {
+//                return [strongSelf handleError:error withRejecter:reject];
+//            }
+//
+//            resolve(@(success));
+//        }];
+//}
 
 RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     Session *session;
-    for (Session *_session in self.sessions) {
+    for (Session *_session in _sessions) {
         if ([_session.sessionId isEqualToString:sessionId]) {
             session = _session;
             break;
@@ -129,7 +137,7 @@ RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)sessionId payload:(NSStrin
     }
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.keyri initializeDefaultConfirmationScreenWithSession:session payload:payload completion:^(BOOL isApproved) {
+        [_keyri initializeDefaultConfirmationScreenWithSession:session payload:payload completion:^(BOOL isApproved) {
             resolve(@(isApproved));
         }];
     });
@@ -138,7 +146,7 @@ RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)sessionId payload:(NSStrin
 RCT_EXPORT_METHOD(generateAssociationKey:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSError *error;
-    NSString *generatedKey = [self.keyri generateAssociationKeyWithUsername:publicUserId error:&error];
+    NSString *generatedKey = [_keyri generateAssociationKeyWithPublicUserId:publicUserId error:&error];
     if (error != nil) {
         return [self handleError:error withRejecter:reject];
     }
@@ -153,7 +161,7 @@ RCT_EXPORT_METHOD(getUserSignature:(NSString *)publicUserId customSignedData:(NS
     }
 
     NSError *error;
-    NSString *signature = [self.keyri generateUserSignatureWithUsername:publicUserId data:data error:&error];
+    NSString *signature = [_keyri generateUserSignatureWithPublicUserId:publicUserId data:data error:&error];
     if (error != nil) {
         return [self handleError:error withRejecter:reject];
     }
@@ -164,7 +172,7 @@ RCT_EXPORT_METHOD(getUserSignature:(NSString *)publicUserId customSignedData:(NS
 RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSError *error;
-    NSString *associationKey = [self.keyri getAssociationKeyWithUsername:publicUserId error:&error];
+    NSString *associationKey = [_keyri getAssociationKeyWithUsername:publicUserId error:&error];
     if (error != nil) {
         return [self handleError:error withRejecter:reject];
     }
@@ -199,17 +207,17 @@ RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolve
 {
     id publicUserId = [data objectForKey:@"publicUserId"];
     id payload = [data objectForKey:@"payload"];
-    id appKey = [data objectForKey:@"appKey"];
     id publicApiKey = [data objectForKey:@"publicApiKey"];
+    id serviceEncryptionKey = [data objectForKey:@"serviceEncryptionKey"];
 
-    if (![appKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide appKey" withRejecter:reject]; }
     if (![payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
     if (![publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
     if (![publicApiKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicApiKey" withRejecter:reject]; }
+    if (![serviceEncryptionKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide serviceEncryptionKey" withRejecter:reject]; }
 
     dispatch_async(dispatch_get_main_queue(), ^{
         __weak typeof (self) weakSelf = self;
-        [self.keyri easyKeyriAuthWithPublicUserId:publicUserId appKey:appKey publicApiKey:publicApiKey payload:payload completion:^(BOOL success, NSError * _Nullable error) {
+        [self.keyri easyKeyriAuthWithPublicUserId:publicUserId payload:payload completion:^(BOOL success, NSError * _Nullable error) {
             typeof (self) strongSelf = weakSelf;
             if (error != nil) {
                 return [strongSelf handleError:error withRejecter:reject];
@@ -231,7 +239,7 @@ RCT_EXPORT_METHOD(processLink:(NSDictionary *)data resolver:(RCTPromiseResolveBl
     if (![urlString isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide url" withRejecter:reject]; }
 
     __weak typeof (self) weakSelf = self;
-    [self.keyri processLinkWithUrl:[NSURL URLWithString:urlString] publicUserId:publicUserId payload:payload completion:^(BOOL success, NSError * _Nullable error) {
+    [self.keyri processLinkWithUrl:[NSURL URLWithString:urlString] publicUserId:publicUserId appKey:_appKey payload:payload completion:^(BOOL success, NSError * _Nullable error) {
         typeof (self) strongSelf = weakSelf;
         if (error != nil) {
             return [strongSelf handleError:error withRejecter:reject];

@@ -1,6 +1,6 @@
 {
   "name": "react-native-keyri",
-  "version": "1.0.3",
+  "version": "1.0.7",
   "description": "React Native Keyri SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",

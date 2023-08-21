@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
 import com.keyrico.keyrisdk.entity.session.Session
+import com.keyrico.keyrisdk.exception.DenialException
 import com.keyrico.keyrisdk.sec.fraud.enums.EventType
 import com.keyrico.scanner.easyKeyriAuth
 import kotlinx.coroutines.*
@@ -203,21 +204,21 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
                   }
 
                   geoDataMap.putMap("mobile", mobileMap)
-                }
 
-                if (hasBrowser) {
-                  val browserMap = WritableNativeMap().also {
-                    riskAnalytics.geoData?.browser?.let { browser ->
-                      it.putString("continentCode", browser.continentCode)
-                      it.putString("countryCode", browser.countryCode)
-                      it.putString("city", browser.city)
-                      it.putDouble("latitude", browser.latitude)
-                      it.putDouble("longitude", browser.longitude)
-                      it.putString("regionCode", browser.regionCode)
+                  if (hasBrowser) {
+                    val browserMap = WritableNativeMap().also {
+                      riskAnalytics.geoData?.browser?.let { browser ->
+                        it.putString("continentCode", browser.continentCode)
+                        it.putString("countryCode", browser.countryCode)
+                        it.putString("city", browser.city)
+                        it.putDouble("latitude", browser.latitude)
+                        it.putDouble("longitude", browser.longitude)
+                        it.putString("regionCode", browser.regionCode)
+                      }
                     }
-                  }
 
-                  geoDataMap.putMap("browser", browserMap)
+                    geoDataMap.putMap("browser", browserMap)
+                  }
                 }
 
                 if (hasMobile || hasBrowser) {
@@ -293,7 +294,17 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
         ?: throw java.lang.IllegalStateException("Session not found")
 
       val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
-      keyri.initializeDefaultConfirmationScreen(fm, session, payload).getOrThrow()
+      val result = keyri.initializeDefaultConfirmationScreen(fm, session, payload)
+
+      var res = false
+
+      if (result.isSuccess) {
+        res = true
+      } else {
+        result.exceptionOrNull()?.takeIf { it is DenialException }?.let { res = false } ?: result.getOrThrow()
+      }
+
+      res
     }
   }
 
@@ -360,13 +371,17 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
     }
   }
 
-  private fun <T> keyriCoroutineScope(promise: Promise, block: suspend () -> T) {
+  private inline fun <reified T> keyriCoroutineScope(promise: Promise, crossinline block: suspend () -> T) {
     val exceptionHandler = CoroutineExceptionHandler { _, e ->
       promise.reject(e)
     }
 
     CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler).launch {
       val result = block()
+
+      if (T::class.java.isAssignableFrom(Unit::class.java)) {
+        promise.resolve(true)
+      }
 
       withContext(Dispatchers.Main) {
         promise.resolve(result)
