@@ -76,7 +76,7 @@ export interface KeyriModule {
 
   getUserSignature: (publicUserId?: string, customSignedData?: string) => Promise<string>;
 
-  listAssociationKey: () => Promise<string[]>;
+  listAssociationKeys: () => Promise<string[]>;
 
   listUniqueAccounts: () => Promise<string[]>;
 
@@ -110,6 +110,7 @@ export interface EasyKeyriAuthOptions {
   appKey: string;
   publicApiKey?: string;
   serviceEncryptionKey?: string;
+  blockEmulatorDetection?: boolean;
   payload: string;
 }
 

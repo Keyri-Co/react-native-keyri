@@ -31,8 +31,8 @@ const Keyri: KeyriModule = {
     return Module.getUserSignature(publicUserId, customSignedData);
   },
 
-  listAssociationKey: () => {
-    return Module.listAssociationKey();
+  listAssociationKeys: () => {
+    return Module.listAssociationKeys();
   },
 
   listUniqueAccounts: () => {

@@ -89,7 +89,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   @ReactMethod
   fun listAssociationKey(promise: Promise) {
     keyriCoroutineScope(promise) {
-      val associationKeys = keyri.listAssociationKey().getOrThrow()
+      val associationKeys = keyri.listAssociationKeys().getOrThrow()
       val resultData = WritableNativeMap()
 
       associationKeys.forEach {
@@ -333,8 +333,10 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
           ?: throw java.lang.IllegalStateException("You need to provide serviceEncryptionKey")
         val payload: String = data.getString("payload")
           ?: throw java.lang.IllegalStateException("You need to provide payload")
+        val blockEmulatorDetection: Boolean = data.takeIf { it.hasKey("blockEmulatorDetection") }?.getBoolean("blockEmulatorDetection")
+          ?: true
 
-        easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, publicApiKey, serviceEncryptionKey, payload, publicUserId)
+        easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, publicApiKey, serviceEncryptionKey, blockEmulatorDetection, payload, publicUserId)
       } catch (e: Throwable) {
         promise.reject(e)
 

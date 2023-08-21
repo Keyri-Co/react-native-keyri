@@ -191,7 +191,7 @@ RCT_EXPORT_METHOD(removeAssociationKey:(NSString *)publicUserId resolver:(RCTPro
     resolve(@"Success");
 }
 
-RCT_EXPORT_METHOD(listAssociationKey:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(listAssociationKeys:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSDictionary *associationKeys = [self.keyri listAssociactionKeys];
     resolve(associationKeys);
@@ -209,6 +209,7 @@ RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolve
     id payload = [data objectForKey:@"payload"];
     id publicApiKey = [data objectForKey:@"publicApiKey"];
     id serviceEncryptionKey = [data objectForKey:@"serviceEncryptionKey"];
+    id blockEmulatorDetection = [data objectForKey:@"blockEmulatorDetection"]; // TODO Add param as arg
 
     if (![payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
     if (![publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
