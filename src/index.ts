@@ -55,16 +55,16 @@ const Keyri: KeyriModule = {
     return Module.initiateQrSession(options);
   },
 
-  initializeDefaultScreen: (sessionId: string, payload: string) => {
-    return Module.initializeDefaultScreen(sessionId, payload);
+  initializeDefaultScreen: (payload: string) => {
+    return Module.initializeDefaultScreen(payload);
   },
 
-  confirmSession: (sessionId: string, payload: string) => {
-    return Module.confirmSession(sessionId, payload);
+  confirmSession: (payload: string) => {
+    return Module.confirmSession(payload);
   },
 
-  denySession: (sessionId: string, payload: string) => {
-    return Module.denySession(sessionId, payload);
+  denySession: (payload: string) => {
+    return Module.denySession(payload);
   },
 
   easyKeyriAuth: (data: EasyKeyriAuthOptions) => {

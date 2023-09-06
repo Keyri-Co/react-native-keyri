@@ -88,11 +88,11 @@ export interface KeyriModule {
 
   initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
 
-  initializeDefaultScreen: (sessionId: string, payload: string) => Promise<boolean>;
+  initializeDefaultScreen: (payload: string) => Promise<boolean>;
 
-  confirmSession: (sessionId: string, payload: string) => Promise<boolean>;
+  confirmSession: (payload: string) => Promise<boolean>;
 
-  denySession: (sessionId: string, payload: string) => Promise<boolean>;
+  denySession: (payload: string) => Promise<boolean>;
 
   easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<boolean>;
 

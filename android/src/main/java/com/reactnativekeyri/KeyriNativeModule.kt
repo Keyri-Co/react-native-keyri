@@ -24,7 +24,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
   private var authWithScannerPromise: Promise? = null
 
-  private val sessions: MutableList<Session> = mutableListOf()
+  private var latestSession: Session? = null
 
   private val activityEventListener: ActivityEventListener = object : ActivityEventListener {
     override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -163,7 +163,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
       val session = keyri.initiateQrSession(sessionId, publicUserId).getOrThrow()
 
-      sessions.add(session)
+      latestSession = session
 
       WritableNativeMap().apply {
         putString("widgetOrigin", session.widgetOrigin)
@@ -288,10 +288,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun initializeDefaultScreen(sessionId: String, payload: String, promise: Promise) {
+  fun initializeDefaultScreen(payload: String, promise: Promise) {
     keyriCoroutineScope(promise) {
-      val session = sessions.firstOrNull { it.sessionId == sessionId }
-        ?: throw java.lang.IllegalStateException("Session not found")
+      val session = latestSession ?: throw java.lang.IllegalStateException("Session not found")
 
       val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
       val result = keyri.initializeDefaultConfirmationScreen(fm, session, payload)
@@ -309,13 +308,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun confirmSession(sessionId: String, payload: String, promise: Promise) {
-    finishSession(sessionId, payload, true, promise)
+  fun confirmSession(payload: String, promise: Promise) {
+    finishSession(payload, true, promise)
   }
 
   @ReactMethod
-  fun denySession(sessionId: String, payload: String, promise: Promise) {
-    finishSession(sessionId, payload, false, promise)
+  fun denySession(payload: String, promise: Promise) {
+    finishSession(payload, false, promise)
   }
 
   @ReactMethod
@@ -360,10 +359,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
     }
   }
 
-  private fun finishSession(sessionId: String, payload: String, isApproved: Boolean, promise: Promise) {
+  private fun finishSession(payload: String, isApproved: Boolean, promise: Promise) {
     keyriCoroutineScope(promise) {
-      val session = sessions.firstOrNull { it.sessionId == sessionId }
-        ?: throw java.lang.IllegalStateException("Session not found")
+      val session = latestSession ?: throw java.lang.IllegalStateException("Session not found")
 
       if (isApproved) {
         session.confirm(payload, reactContext)
