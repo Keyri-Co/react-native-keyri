@@ -100,7 +100,6 @@ export interface KeyriModule {
 }
 
 export interface InitiateQrSessionOptions {
-  appKey: string;
   sessionId: string;
   publicUserId?: string;
 }
@@ -115,7 +114,6 @@ export interface EasyKeyriAuthOptions {
 }
 
 export interface ProcessLinkOptions {
-  appKey: string;
   url: string;
   payload: string;
   publicUserId?: string;

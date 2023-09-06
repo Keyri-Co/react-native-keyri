@@ -79,7 +79,6 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
 {
     NSString *publicUserId = data[@"publicUserId"];
     NSString *sessionId = data[@"sessionId"];
-    NSString *appKey = data[@"appKey"];
 
     if (![sessionId isKindOfClass:[NSString class]]) {
         return [self handleErrorText:@"You need to provide sessionId" withRejecter:reject];
@@ -116,8 +115,6 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBloc
     if (![eventType isKindOfClass:[NSString class]]) {
         return [self handleErrorText:@"You need to provide eventType" withRejecter:reject];
     }
-
-    BOOL successBool = [success boolValue];
 
     __weak typeof (self) weakSelf = self;
     [self.keyri sendEventWithPublicUserId:publicUserId eventType:eventType success:success completion:^(FingerprintResponse * _Nullable fingerprintResponse, NSError * _Nullable error) {
@@ -228,14 +225,9 @@ RCT_EXPORT_METHOD(easyKeyriAuth:(NSDictionary *)data resolver:(RCTPromiseResolve
 {
     id publicUserId = [data objectForKey:@"publicUserId"];
     id payload = [data objectForKey:@"payload"];
-    id publicApiKey = [data objectForKey:@"publicApiKey"];
-    id serviceEncryptionKey = [data objectForKey:@"serviceEncryptionKey"];
-    id blockEmulatorDetection = [data objectForKey:@"blockEmulatorDetection"]; // TODO Add param as arg
 
     if (![payload isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide payload" withRejecter:reject]; }
     if (![publicUserId isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject]; }
-    if (![publicApiKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide publicApiKey" withRejecter:reject]; }
-    if (![serviceEncryptionKey isKindOfClass:[NSString class]]) { return [self handleErrorText:@"You need to provide serviceEncryptionKey" withRejecter:reject]; }
 
     dispatch_async(dispatch_get_main_queue(), ^{
         __weak typeof (self) weakSelf = self;
