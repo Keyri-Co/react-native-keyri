@@ -19,7 +19,7 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.5)
-  - keyri-pod (2.1.0)
+  - keyri-pod (4.1.1)
   - Permission-Camera (3.4.0):
     - RNPermissions
   - RCTRequired (0.63.5)
@@ -196,8 +196,8 @@ PODS:
     - React-Core
   - react-native-camera/RN (4.2.1):
     - React-Core
-  - react-native-keyri (1.0.3):
-    - keyri-pod (~> 2.1.0)
+  - react-native-keyri (1.2.3):
+    - keyri-pod (~> 4.1.1)
     - React-Core
   - react-native-safe-area-context (3.4.1):
     - React-Core
@@ -382,7 +382,7 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: 7dfb84f624136a45727c813ed21d130cd3e61beb
   Folly: b73c3869541e86821df3c387eb0af5f65addfab4
   glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
-  keyri-pod: ab730573e437da84124450be1fb5965ba6fb238e
+  keyri-pod: 5cc524106ad71d2e06b89a6ae27df571361eadbb
   Permission-Camera: 40f43388fa8a648dc6ced73f145ef329ab3ff3fe
   RCTRequired: 5520387431beaa5f32aa8726bf746cd5353119fe
   RCTTypeSafety: bc90d6e287fa427c50ed770922bac30faf0bbfa3
@@ -395,7 +395,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e06a32e42affb2bd89e4c8369349b5fcf787710c
   React-jsinspector: fdbc08866b34ae8e1b788ea1cbd9f9d1ca2aa3d6
   react-native-camera: 3eae183c1d111103963f3dd913b65d01aef8110f
-  react-native-keyri: 653d9264ae8e9882e7159258cade4e5dd8a20983
+  react-native-keyri: c7ce7d94ae9381ecb3b250cfe26116a81e12a94b
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   React-RCTActionSheet: e911b99f0d6fa7711ffc2f62d236b12a32771835
   React-RCTAnimation: ad8b853170a059faf31d6add34f67d22391bbe01
