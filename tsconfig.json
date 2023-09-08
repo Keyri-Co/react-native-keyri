@@ -4,11 +4,10 @@
     "paths": {
       "react-native-keyri": ["./src/index"]
     },
-    "allowJs": false,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
-    "verbatimModuleSyntax": true,
+    "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
     "lib": ["esnext"],
@@ -24,10 +23,5 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext"
-  },
-  "exclude": [
-    "node_modules",
-    "lib",
-    "example"
-  ]
+  }
 }

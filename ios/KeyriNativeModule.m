@@ -61,7 +61,7 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(initialize:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSString *appKey = data[@"appKey"];
-    NSString *publicApiKey = data[@"publicAPIKey"];
+    NSString *publicApiKey = data[@"publicApiKey"];
     NSString *serviceEncryptionKey = data[@"serviceEncryptionKey"];
 
     if (appKey == nil || ![appKey isKindOfClass:[NSString class]]) {
@@ -132,7 +132,7 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBloc
     }];
 }
 
-RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (self.latestSession == nil) {
         return [self handleErrorText:@"Session not found" withRejecter:reject];

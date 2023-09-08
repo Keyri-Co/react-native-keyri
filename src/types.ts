@@ -4,7 +4,7 @@ export interface KeyriSession {
   userParameters?: KeyriUserParameters;
   iPAddressMobile: string;
   iPAddressWidget: string;
-  widgetOrigin: string;
+  widgetOrigin?: string;
   widgetUserAgent?: KeyriWidgetUserAgent;
   riskAnalytics?: KeyriRiskAnalytics;
   mobileTemplateResponse?: KeyriMobileTemplateResponse;
@@ -29,7 +29,7 @@ export interface KeyriWidgetUserAgent {
 
 export interface KeyriRiskAnalytics {
   riskStatus?: string;
-  riskFlagString: string;
+  riskFlagString?: string;
   geoData: {
     mobile?: KeyriGeoData;
     browser?: KeyriGeoData;
@@ -42,7 +42,6 @@ export interface KeyriMobileTemplateResponse {
   widget?: KeyriTemplate;
   mobile?: KeyriTemplate;
   userAgent?: KeyriUserAgent;
-  flags?: KeyriFlags;
 }
 
 export interface KeyriTemplate {
@@ -55,16 +54,11 @@ export interface KeyriUserAgent {
   issue?: string;
 }
 
-export interface KeyriFlags {
-  isDatacenter?: boolean;
-  isNewBrowser?: boolean;
-}
-
 export interface KeyriGeoData {
-  continentCode: string;
-  countryCode: string;
-  city: string;
-  regionCode: string;
+  continentCode?: string;
+  countryCode?: string;
+  city?: string;
+  regionCode?: string;
 }
 
 export interface KeyriModule {
