@@ -64,8 +64,6 @@ export interface KeyriGeoData {
   continentCode: string;
   countryCode: string;
   city: string;
-  latitude: number;
-  longitude: number;
   regionCode: string;
 }
 

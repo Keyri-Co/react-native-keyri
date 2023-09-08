@@ -18,7 +18,6 @@ API_AVAILABLE(ios(14.0))
 @interface KeyriNativeModule ()
 
 @property (nonatomic, strong) KeyriObjC *keyri;
-@property (nonatomic, strong) NSString *appKey;
 @property (nonatomic, strong) Session *latestSession;
 
 @end
@@ -31,8 +30,8 @@ RCT_EXPORT_MODULE()
 {
     if (@available(iOS 14, *)) {
         if (self = [super init]) {
-            _latestSession = [[Session alloc] init];
             _keyri = [[KeyriObjC alloc] init];
+            _latestSession = [[Session alloc] init];
         }
     }
 
@@ -51,7 +50,7 @@ RCT_EXPORT_MODULE()
            KeyriNativeModuleGeneralCodeString,
            errorText,
            [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleGeneralCode userInfo:details]
-           );
+    );
 }
 
 - (void)handleError:(NSError *)error withRejecter:(RCTPromiseRejectBlock)reject
@@ -61,16 +60,16 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(initialize:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    _appKey = data[@"appKey"];
+    NSString *appKey = data[@"appKey"];
     NSString *publicApiKey = data[@"publicAPIKey"];
     NSString *serviceEncryptionKey = data[@"serviceEncryptionKey"];
 
-    if (_appKey == nil || ![_appKey isKindOfClass:[NSString class]]) {
+    if (appKey == nil || ![appKey isKindOfClass:[NSString class]]) {
         reject(@"InvalidArguments", @"You need to provide appKey", nil);
         return;
     }
 
-    [self.keyri initializeKeyriWithAppKey:_appKey publicAPIKey:publicApiKey serviceEncryptionKey:serviceEncryptionKey];
+    [self.keyri initializeKeyriWithAppKey:appKey publicAPIKey:publicApiKey serviceEncryptionKey:serviceEncryptionKey];
     resolve(@(YES));
 }
 
@@ -95,10 +94,10 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
 
             if (session != nil) {
                 strongSelf.latestSession = session;
-                NSDictionary *dict = [strongSelf dictionaryWithPropertiesOfObject:session];
+                NSDictionary *dict = [self dictionaryWithPropertiesOfObject:session];
                 resolve(dict);
             } else {
-                [strongSelf handleErrorText:@"Session not found" withRejecter:reject];
+                [self handleErrorText:@"Session not found" withRejecter:reject];
             }
         }];
     } else {
