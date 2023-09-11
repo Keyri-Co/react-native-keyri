@@ -32,7 +32,7 @@ const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
       const session = await Keyri.initiateQrSession(options);
       if (session) {
         setLoading(false);
-        await Keyri.initializeDefaultScreen(sessionId, 'payload');
+        await Keyri.initializeDefaultScreen('payload');
       }
     } catch (error) {
       toast.show(error);

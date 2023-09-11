@@ -65,7 +65,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
     if (activeSessionId) {
       closePopUp();
       try {
-        await Keyri.denySession(activeSessionId, 'payload');
+        await Keyri.denySession('payload');
       } catch (error) {
         toast.show(error);
       }
@@ -76,7 +76,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
     if (activeSessionId) {
       closePopUp();
       try {
-        await Keyri.confirmSession(activeSessionId, 'payload');
+        await Keyri.confirmSession('payload');
       } catch (error) {
         toast.show(error);
       }

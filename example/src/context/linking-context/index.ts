@@ -1,4 +1,3 @@
-import { APP_KEY } from '../../utils/constants';
 import { createContext, useEffect, useMemo, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 import Keyri from 'react-native-keyri';
@@ -21,7 +20,6 @@ export function LinkContext() {
 
     const onPressPrecess = () => {
       Keyri.processLink({
-        appKey: APP_KEY,
         url: deepLink,
         publicUserId: 'user@email',
         payload: 'Custom payload',
