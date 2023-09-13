@@ -80,7 +80,7 @@ export interface KeyriModule {
 
   initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
 
-  initializeDefaultScreen: (payload: string) => Promise<boolean>;
+  initializeDefaultConfirmationScreen: (payload: string) => Promise<boolean>;
 
   confirmSession: (payload: string, trustNewBrowser?: boolean) => Promise<boolean>;
 

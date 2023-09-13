@@ -288,7 +288,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun initializeDefaultScreen(payload: String, promise: Promise) {
+  fun initializeDefaultConfirmationScreen(payload: String, promise: Promise) {
     keyriCoroutineScope(promise) {
       val session = latestSession ?: throw java.lang.IllegalStateException("Session not found")
 

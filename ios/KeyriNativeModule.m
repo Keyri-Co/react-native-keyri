@@ -132,7 +132,7 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBloc
     }];
 }
 
-RCT_EXPORT_METHOD(initializeDefaultScreen:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(initializeDefaultConfirmationScreen:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (self.latestSession == nil) {
         return [self handleErrorText:@"Session not found" withRejecter:reject];
