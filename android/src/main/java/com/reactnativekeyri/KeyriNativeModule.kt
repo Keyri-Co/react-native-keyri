@@ -76,11 +76,11 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun getUserSignature(publicUserId: String?, customSignedData: String, promise: Promise) {
+  fun generateUserSignature(publicUserId: String?, data: String, promise: Promise) {
     keyriCoroutineScope(promise) {
       val signature = publicUserId?.let {
-        keyri.generateUserSignature(it, customSignedData).getOrThrow()
-      } ?: keyri.generateUserSignature(data = customSignedData).getOrThrow()
+        keyri.generateUserSignature(it, data).getOrThrow()
+      } ?: keyri.generateUserSignature(data = data).getOrThrow()
 
       signature
     }

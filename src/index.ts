@@ -27,8 +27,8 @@ const Keyri: KeyriModule = {
     return Module.generateAssociationKey(publicUserId);
   },
 
-  getUserSignature: (publicUserId?: string, customSignedData?: string) => {
-    return Module.getUserSignature(publicUserId, customSignedData);
+  generateUserSignature: (publicUserId?: string, data?: string) => {
+    return Module.generateUserSignature(publicUserId, data);
   },
 
   listAssociationKeys: () => {

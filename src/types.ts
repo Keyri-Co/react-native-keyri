@@ -66,7 +66,7 @@ export interface KeyriModule {
 
   generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
-  getUserSignature: (publicUserId?: string, customSignedData?: string) => Promise<string>;
+  generateUserSignature: (publicUserId?: string, data?: string) => Promise<string>;
 
   listAssociationKeys: () => Promise<string[]>;
 

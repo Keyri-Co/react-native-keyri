@@ -156,14 +156,14 @@ RCT_EXPORT_METHOD(generateAssociationKey:(NSString *)publicUserId resolver:(RCTP
     }];
 }
 
-RCT_EXPORT_METHOD(getUserSignature:(NSString *)publicUserId customSignedData:(NSString *)customSignedData resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(generateUserSignature:(NSString *)publicUserId data:(NSString *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSData *data = [customSignedData dataUsingEncoding:NSUTF8StringEncoding];
-    if (![data isKindOfClass:[NSData class]]) {
-        return [self handleErrorText:@"You need to provide customSignedData" withRejecter:reject];
+    NSData *dataToSign = [data dataUsingEncoding:NSUTF8StringEncoding];
+    if (![dataToSign isKindOfClass:[NSData class]]) {
+        return [self handleErrorText:@"You need to provide data" withRejecter:reject];
     }
 
-    [_keyri generateUserSignatureWithPublicUserId:publicUserId data:data completion:^(NSString * _Nullable signature, NSError * _Nullable error) {
+    [_keyri generateUserSignatureWithPublicUserId:publicUserId data:dataToSign completion:^(NSString * _Nullable signature, NSError * _Nullable error) {
         if (signature != nil) {
             resolve(signature);
         } else {
@@ -262,17 +262,17 @@ RCT_EXPORT_METHOD(processLink:(NSDictionary *)data resolver:(RCTPromiseResolveBl
     }];
 }
 
-RCT_EXPORT_METHOD(confirmSession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(confirmSession:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self finishSession:sessionId payload:payload isApproved:YES resolver:resolve rejecter:reject];
+    [self finishSession:payload isApproved:YES resolver:resolve rejecter:reject];
 }
 
-RCT_EXPORT_METHOD(denySession:(NSString *)sessionId payload:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(denySession:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self finishSession:sessionId payload:payload isApproved:NO resolver:resolve rejecter:reject];
+    [self finishSession:payload isApproved:NO resolver:resolve rejecter:reject];
 }
 
-- (void)finishSession:(NSString *)sessionId payload:(NSString *)payload isApproved:(BOOL)isApproved resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
+- (void)finishSession:(NSString *)payload isApproved:(BOOL)isApproved resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
 
     self.latestSession.payload = payload;
 
