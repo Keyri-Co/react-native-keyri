@@ -82,7 +82,7 @@ export interface KeyriModule {
 
   initializeDefaultScreen: (payload: string) => Promise<boolean>;
 
-  confirmSession: (payload: string) => Promise<boolean>;
+  confirmSession: (payload: string, trustNewBrowser?: boolean) => Promise<boolean>;
 
   denySession: (payload: string) => Promise<boolean>;
 

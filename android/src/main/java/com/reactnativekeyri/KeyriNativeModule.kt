@@ -308,13 +308,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun confirmSession(payload: String, promise: Promise) {
-    finishSession(payload, true, promise)
+  fun confirmSession(payload: String, trustNewBrowser: Boolean?, promise: Promise) {
+    finishSession(payload, true, trustNewBrowser ?: false, promise)
   }
 
   @ReactMethod
   fun denySession(payload: String, promise: Promise) {
-    finishSession(payload, false, promise)
+    finishSession(payload, false, false, promise)
   }
 
   @ReactMethod
@@ -359,12 +359,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
     }
   }
 
-  private fun finishSession(payload: String, isApproved: Boolean, promise: Promise) {
+  private fun finishSession(payload: String, isApproved: Boolean, trustNewBrowser: Boolean = false, promise: Promise) {
     keyriCoroutineScope(promise) {
       val session = latestSession ?: throw java.lang.IllegalStateException("Session not found")
 
       if (isApproved) {
-        session.confirm(payload, reactContext)
+        session.confirm(payload, reactContext, trustNewBrowser)
       } else {
         session.deny(payload, reactContext)
       }.getOrThrow()

@@ -262,7 +262,7 @@ RCT_EXPORT_METHOD(processLink:(NSDictionary *)data resolver:(RCTPromiseResolveBl
     }];
 }
 
-RCT_EXPORT_METHOD(confirmSession:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(confirmSession:(NSString *)payload trustNewBrowser(BOOL *)trustNewBrowser resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     [self finishSession:payload isApproved:YES resolver:resolve rejecter:reject];
 }

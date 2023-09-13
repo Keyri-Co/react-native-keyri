@@ -59,8 +59,8 @@ const Keyri: KeyriModule = {
     return Module.initializeDefaultScreen(payload);
   },
 
-  confirmSession: (payload: string) => {
-    return Module.confirmSession(payload);
+  confirmSession: (payload: string, trustNewBrowser?: boolean) => {
+    return Module.confirmSession(payload, trustNewBrowser);
   },
 
   denySession: (payload: string) => {
