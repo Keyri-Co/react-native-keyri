@@ -66,7 +66,7 @@ export interface KeyriModule {
 
   generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
-  generateUserSignature: (publicUserId?: string, data?: string) => Promise<string>;
+  generateUserSignature: (data: string, publicUserId?: string) => Promise<string>;
 
   listAssociationKeys: () => Promise<string[]>;
 
@@ -78,7 +78,7 @@ export interface KeyriModule {
 
   sendEvent: (data: SendEventOptions) => Promise<KeyriFingerprintEventResponse>;
 
-  initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
+  initiateQrSession: (sessionId: string, publicUserId?: string) => Promise<KeyriSession>;
 
   initializeDefaultConfirmationScreen: (payload: string) => Promise<boolean>;
 
@@ -86,23 +86,9 @@ export interface KeyriModule {
 
   denySession: (payload: string) => Promise<boolean>;
 
-  easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<boolean>;
+  easyKeyriAuth: (payload: string, publicUserId?: string) => Promise<boolean>;
 
   processLink: (options: ProcessLinkOptions) => Promise<boolean>;
-}
-
-export interface InitiateQrSessionOptions {
-  sessionId: string;
-  publicUserId?: string;
-}
-
-export interface EasyKeyriAuthOptions {
-  publicUserId: string;
-  appKey: string;
-  publicApiKey?: string;
-  serviceEncryptionKey?: string;
-  blockEmulatorDetection?: boolean;
-  payload: string;
 }
 
 export interface ProcessLinkOptions {

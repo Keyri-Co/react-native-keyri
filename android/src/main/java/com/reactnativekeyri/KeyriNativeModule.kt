@@ -21,6 +21,10 @@ import kotlinx.coroutines.*
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
   private lateinit var keyri: Keyri
+  private lateinit var appKey: String
+  private var publicApiKey: String? = null
+  private var serviceEncryptionKey: String? = null
+  private var blockEmulatorDetection: Boolean = true
 
   private var authWithScannerPromise: Promise? = null
 
@@ -51,11 +55,10 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   @ReactMethod
   fun initialize(data: ReadableMap, promise: Promise) {
     try {
-      val appKey: String = data.getString("appKey")
-        ?: throw java.lang.IllegalStateException("You need to provide appKey")
-      val publicApiKey: String? = data.takeIf { it.hasKey("publicApiKey") }?.getString("publicApiKey")
-      val serviceEncryptionKey: String? = data.takeIf { it.hasKey("serviceEncryptionKey") }?.getString("serviceEncryptionKey")
-      val blockEmulatorDetection: Boolean = data.takeIf { it.hasKey("blockEmulatorDetection") }?.getBoolean("blockEmulatorDetection")
+      appKey = data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
+      publicApiKey = data.takeIf { it.hasKey("publicApiKey") }?.getString("publicApiKey")
+      serviceEncryptionKey = data.takeIf { it.hasKey("serviceEncryptionKey") }?.getString("serviceEncryptionKey")
+      blockEmulatorDetection = data.takeIf { it.hasKey("blockEmulatorDetection") }?.getBoolean("blockEmulatorDetection")
         ?: true
 
       keyri = Keyri(reactContext, appKey, publicApiKey, serviceEncryptionKey, blockEmulatorDetection)
@@ -76,7 +79,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun generateUserSignature(publicUserId: String?, data: String, promise: Promise) {
+  fun generateUserSignature(data: String, publicUserId: String?, promise: Promise) {
     keyriCoroutineScope(promise) {
       val signature = publicUserId?.let {
         keyri.generateUserSignature(it, data).getOrThrow()
@@ -87,7 +90,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun listAssociationKey(promise: Promise) {
+  fun listAssociationKeys(promise: Promise) {
     keyriCoroutineScope(promise) {
       val associationKeys = keyri.listAssociationKeys().getOrThrow()
       val resultData = WritableNativeMap()
@@ -155,12 +158,8 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
-  fun initiateQrSession(data: ReadableMap, promise: Promise) {
+  fun initiateQrSession(sessionId: String, publicUserId: String?, promise: Promise) {
     keyriCoroutineScope(promise) {
-      val sessionId: String = data.getString("sessionId")
-        ?: throw java.lang.IllegalStateException("You need to provide sessionId")
-      val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
-
       val session = keyri.initiateQrSession(sessionId, publicUserId).getOrThrow()
 
       latestSession = session
@@ -190,7 +189,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
               val hasMobile = riskAnalytics.geoData?.mobile != null
               val hasBrowser = riskAnalytics.geoData?.browser != null
 
-              if (hasMobile) {
+              if (hasMobile || hasBrowser) {
                 val geoDataMap = WritableNativeMap().also { geoDataMap ->
                   val mobileMap = WritableNativeMap().also {
                     riskAnalytics.geoData?.mobile?.let { mobile ->
@@ -221,9 +220,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
                   }
                 }
 
-                if (hasMobile || hasBrowser) {
-                  riskAnalyticsMap.putMap("geoData", geoDataMap)
-                }
+                riskAnalyticsMap.putMap("geoData", geoDataMap)
               }
 
               riskAnalyticsMap.putString("riskStatus", riskAnalytics.riskStatus)
@@ -309,33 +306,30 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
   @ReactMethod
   fun confirmSession(payload: String, trustNewBrowser: Boolean?, promise: Promise) {
-    finishSession(payload, true, trustNewBrowser ?: false, promise)
+    finishSession(payload, isApproved = true, trustNewBrowser = trustNewBrowser ?: false, promise)
   }
 
   @ReactMethod
   fun denySession(payload: String, promise: Promise) {
-    finishSession(payload, false, false, promise)
+    finishSession(payload, isApproved = false, trustNewBrowser = false, promise)
   }
 
   @ReactMethod
-  fun easyKeyriAuth(data: ReadableMap, promise: Promise) {
+  fun easyKeyriAuth(payload: String, publicUserId: String?, promise: Promise) {
     reactContext.currentActivity?.let { activity ->
       authWithScannerPromise = promise
 
       try {
-        val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
-        val appKey: String = data.getString("appKey")
-          ?: throw java.lang.IllegalStateException("You need to provide appKey")
-        val publicApiKey: String = data.getString("publicApiKey")
-          ?: throw java.lang.IllegalStateException("You need to provide publicApiKey")
-        val serviceEncryptionKey: String = data.getString("serviceEncryptionKey")
-          ?: throw java.lang.IllegalStateException("You need to provide serviceEncryptionKey")
-        val payload: String = data.getString("payload")
-          ?: throw java.lang.IllegalStateException("You need to provide payload")
-        val blockEmulatorDetection: Boolean = data.takeIf { it.hasKey("blockEmulatorDetection") }?.getBoolean("blockEmulatorDetection")
-          ?: true
-
-        easyKeyriAuth(activity, AUTH_REQUEST_CODE, appKey, publicApiKey, serviceEncryptionKey, blockEmulatorDetection, payload, publicUserId)
+        easyKeyriAuth(
+          activity,
+          AUTH_REQUEST_CODE,
+          appKey,
+          publicApiKey,
+          serviceEncryptionKey,
+          blockEmulatorDetection,
+          payload,
+          publicUserId
+        )
       } catch (e: Throwable) {
         promise.reject(e)
 

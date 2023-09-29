@@ -1,7 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
 import type {
-  InitiateQrSessionOptions,
-  EasyKeyriAuthOptions,
   KeyriModule,
   ProcessLinkOptions,
   InitializeKeyriOptions,
@@ -27,8 +25,8 @@ const Keyri: KeyriModule = {
     return Module.generateAssociationKey(publicUserId);
   },
 
-  generateUserSignature: (publicUserId?: string, data?: string) => {
-    return Module.generateUserSignature(publicUserId, data);
+  generateUserSignature: (data: string, publicUserId?: string) => {
+    return Module.generateUserSignature(data, publicUserId);
   },
 
   listAssociationKeys: () => {
@@ -51,8 +49,8 @@ const Keyri: KeyriModule = {
     return Module.sendEvent(data);
   },
 
-  initiateQrSession: (options: InitiateQrSessionOptions) => {
-    return Module.initiateQrSession(options);
+  initiateQrSession: (sessionId: string, publicUserId?: string) => {
+    return Module.initiateQrSession(sessionId, publicUserId);
   },
 
   initializeDefaultConfirmationScreen: (payload: string) => {
@@ -67,8 +65,8 @@ const Keyri: KeyriModule = {
     return Module.denySession(payload);
   },
 
-  easyKeyriAuth: (data: EasyKeyriAuthOptions) => {
-    return Module.easyKeyriAuth(data);
+  easyKeyriAuth: (payload: string, publicUserId?: string) => {
+    return Module.easyKeyriAuth(payload, publicUserId);
   },
 
   processLink: (options: ProcessLinkOptions) => {

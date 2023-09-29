@@ -19,7 +19,7 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.5)
-  - keyri-pod (4.1.1)
+  - keyri-pod (4.2.0)
   - Permission-Camera (3.4.0):
     - RNPermissions
   - RCTRequired (0.63.5)
@@ -196,8 +196,8 @@ PODS:
     - React-Core
   - react-native-camera/RN (4.2.1):
     - React-Core
-  - react-native-keyri (1.2.3):
-    - keyri-pod (~> 4.1.1)
+  - react-native-keyri (1.3.0):
+    - keyri-pod (~> 4.2.0)
     - React-Core
   - react-native-safe-area-context (3.4.1):
     - React-Core

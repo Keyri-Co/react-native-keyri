@@ -121,11 +121,11 @@ def kotlin_version = getExtOrDefault('kotlinVersion')
 
 dependencies {
   // noinspection GradleDynamicVersion
-  api 'com.facebook.react:react-native:+'
+  api "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "com.keyri:keyrisdk:3.3.2"
-  implementation "com.keyri:scanner:3.3.2"
+  implementation "com.keyri:keyrisdk:4.0.0"
+  implementation "com.keyri:scanner:4.0.0"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
-  implementation 'androidx.activity:activity-ktx:1.7.2'
-  implementation("com.squareup.okhttp3:okhttp-urlconnection:4.9.2")
+  implementation "androidx.activity:activity-ktx:1.7.2"
+  implementation "com.squareup.okhttp3:okhttp-urlconnection:4.9.2"
 }
