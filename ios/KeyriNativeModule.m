@@ -18,7 +18,7 @@ API_AVAILABLE(ios(14.0))
 @interface KeyriNativeModule ()
 
 @property (nonatomic, strong) KeyriObjC *keyri;
-@property (nonatomic, strong) Session *latestSession;
+@property (nonatomic, strong) Session *activeSession;
 
 @end
 
@@ -31,7 +31,7 @@ RCT_EXPORT_MODULE()
     if (@available(iOS 14, *)) {
         if (self = [super init]) {
             _keyri = [[KeyriObjC alloc] init];
-            _latestSession = [[Session alloc] init];
+            _activeSession = [[Session alloc] init];
         }
     }
 
@@ -93,7 +93,7 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseRes
             }
 
             if (session != nil) {
-                strongSelf.latestSession = session;
+                strongSelf.activeSession = session;
                 NSDictionary *dict = [self dictionaryWithPropertiesOfObject:session];
                 resolve(dict);
             } else {
@@ -134,12 +134,16 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBloc
 
 RCT_EXPORT_METHOD(initializeDefaultConfirmationScreen:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (self.latestSession == nil) {
+    if (self.activeSession == nil) {
         return [self handleErrorText:@"Session not found" withRejecter:reject];
     }
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self.keyri initializeDefaultConfirmationScreenWithSession:self.latestSession payload:payload completion:^(BOOL isApproved) {
+        [self.keyri initializeDefaultConfirmationScreenWithSession:self.activeSession payload:payload completion:^(BOOL isApproved, NSError * _Nullable error) {
+            if (error != nil) {
+                return [self handleError:error withRejecter:reject];
+            }
+
             resolve(@(isApproved));
         }];
     });
@@ -262,22 +266,20 @@ RCT_EXPORT_METHOD(processLink:(NSDictionary *)data resolver:(RCTPromiseResolveBl
     }];
 }
 
-RCT_EXPORT_METHOD(confirmSession:(NSString *)payload trustNewBrowser(BOOL *)trustNewBrowser resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(confirmSession:(NSString *)payload trustNewBrowser:(BOOL *)trustNewBrowser resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self finishSession:payload isApproved:YES resolver:resolve rejecter:reject];
+    [self finishSession:payload isApproved:YES trustNewBrowser:trustNewBrowser resolver:resolve rejecter:reject];
 }
 
 RCT_EXPORT_METHOD(denySession:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self finishSession:payload isApproved:NO resolver:resolve rejecter:reject];
+    [self finishSession:payload isApproved:NO trustNewBrowser:NO resolver:resolve rejecter:reject];
 }
 
-- (void)finishSession:(NSString *)payload isApproved:(BOOL)isApproved resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
-
-    self.latestSession.payload = payload;
+- (void)finishSession:(NSString *)payload isApproved:(BOOL)isApproved trustNewBrowser:(BOOL)trustNewBrowser resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
 
     if (isApproved) {
-        [self.latestSession confirmWithCompletion:^(NSError * _Nullable error) {
+        [self.activeSession confirmWithPayload:payload trustNewBrowser:trustNewBrowser completion:^(NSError * _Nullable error) {
             if (error == nil) {
                 resolve(@(true));
             } else {
@@ -285,7 +287,7 @@ RCT_EXPORT_METHOD(denySession:(NSString *)payload resolver:(RCTPromiseResolveBlo
             }
         }];
     } else {
-        [self.latestSession denyWithCompletion:^(NSError * _Nullable error) {
+        [self.activeSession denyWithPayload:payload completion:^(NSError * _Nullable error) {
             if (error == nil) {
                 resolve(@(true));
             } else {

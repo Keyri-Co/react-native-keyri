@@ -110,6 +110,7 @@ export interface SendEventOptions {
   success: boolean;
 }
 
+// eslint-disable-next-line no-restricted-syntax
 export enum EventType {
   Visits = 'visits',
   Login = 'login',

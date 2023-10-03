@@ -12,8 +12,10 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo managed workflow\n';
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const Module = NativeModules.KeyriNativeModule;
 
+// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (!Module) throw new Error(LINKING_ERROR);
 
 const Keyri: KeyriModule = {

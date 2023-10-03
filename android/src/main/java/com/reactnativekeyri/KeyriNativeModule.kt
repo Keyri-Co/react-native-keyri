@@ -28,7 +28,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
   private var authWithScannerPromise: Promise? = null
 
-  private var latestSession: Session? = null
+  private var activeSession: Session? = null
 
   private val activityEventListener: ActivityEventListener = object : ActivityEventListener {
     override fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -162,7 +162,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
     keyriCoroutineScope(promise) {
       val session = keyri.initiateQrSession(sessionId, publicUserId).getOrThrow()
 
-      latestSession = session
+      activeSession = session
 
       WritableNativeMap().apply {
         putString("widgetOrigin", session.widgetOrigin)
@@ -287,7 +287,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   @ReactMethod
   fun initializeDefaultConfirmationScreen(payload: String, promise: Promise) {
     keyriCoroutineScope(promise) {
-      val session = latestSession ?: throw java.lang.IllegalStateException("Session not found")
+      val session = activeSession ?: throw java.lang.IllegalStateException("Session not found")
 
       val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
       val result = keyri.initializeDefaultConfirmationScreen(fm, session, payload)
@@ -355,7 +355,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
   private fun finishSession(payload: String, isApproved: Boolean, trustNewBrowser: Boolean = false, promise: Promise) {
     keyriCoroutineScope(promise) {
-      val session = latestSession ?: throw java.lang.IllegalStateException("Session not found")
+      val session = activeSession ?: throw java.lang.IllegalStateException("Session not found")
 
       if (isApproved) {
         session.confirm(payload, reactContext, trustNewBrowser)
