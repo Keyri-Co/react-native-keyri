@@ -74,15 +74,8 @@ RCT_EXPORT_METHOD(initialize:(NSDictionary *)data resolver:(RCTPromiseResolveBlo
 }
 
 
-RCT_EXPORT_METHOD(initiateQrSession:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(initiateQrSession:(NSString *)sessionId publicUserId:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    NSString *publicUserId = data[@"publicUserId"];
-    NSString *sessionId = data[@"sessionId"];
-
-    if (![sessionId isKindOfClass:[NSString class]]) {
-        return [self handleErrorText:@"You need to provide sessionId" withRejecter:reject];
-    }
-
     __weak typeof (self) weakSelf = self;
     if (@available(iOS 14.0, *)) {
         [self.keyri initiateQrSessionWithSessionId:sessionId publicUserId:publicUserId completion:^(Session * _Nullable session, NSError * _Nullable error) {
@@ -160,7 +153,7 @@ RCT_EXPORT_METHOD(generateAssociationKey:(NSString *)publicUserId resolver:(RCTP
     }];
 }
 
-RCT_EXPORT_METHOD(generateUserSignature:(NSString *)publicUserId data:(NSString *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(generateUserSignature:(NSString *)data publicUserId:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSData *dataToSign = [data dataUsingEncoding:NSUTF8StringEncoding];
     if (![dataToSign isKindOfClass:[NSData class]]) {
