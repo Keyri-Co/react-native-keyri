@@ -22,17 +22,10 @@ def getExtOrDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['Keyri_' + name]
 }
 
-def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['Keyri_' + name]).toInteger()
-}
-
 android {
-  compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
   defaultConfig {
-    minSdkVersion 23
-    targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
-    versionCode 1
-    versionName "1.0"
+    compileSdk 33
+    minSdk 23
   }
 
   buildTypes {
@@ -40,12 +33,14 @@ android {
       minifyEnabled false
     }
   }
+
   lintOptions {
     disable 'GradleCompatible'
   }
+
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    sourceCompatibility JavaVersion.VERSION_11
+    targetCompatibility JavaVersion.VERSION_11
   }
 }
 
@@ -126,9 +121,9 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "com.keyri:keyrisdk:4.0.1"
-  implementation "com.keyri:scanner:4.0.1"
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1"
+  implementation "com.keyri:keyrisdk:4.0.2"
+  implementation "com.keyri:scanner:4.0.2"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
   implementation 'androidx.activity:activity-ktx:1.5.0'
   implementation("com.squareup.okhttp3:okhttp-urlconnection:4.9.1")
 }

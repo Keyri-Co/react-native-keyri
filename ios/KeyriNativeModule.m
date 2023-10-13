@@ -133,7 +133,9 @@ RCT_EXPORT_METHOD(initializeDefaultConfirmationScreen:(NSString *)payload resolv
 
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.keyri initializeDefaultConfirmationScreenWithSession:self.activeSession payload:payload completion:^(BOOL isApproved, NSError * _Nullable error) {
-            if (error != nil) {
+            if ([error.localizedDescription isEqualToString:@"Denied by user"]) {
+                resolve(@(false));
+            } else {
                 return [self handleError:error withRejecter:reject];
             }
 
@@ -182,22 +184,18 @@ RCT_EXPORT_METHOD(getAssociationKey:(NSString *)publicUserId resolver:(RCTPromis
 
 RCT_EXPORT_METHOD(removeAssociationKey:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    if (![publicUserId isKindOfClass:[NSData class]]) {
-        return [self handleErrorText:@"You need to provide publicUserId" withRejecter:reject];
-    }
-
     [_keyri removeAssociationKeyWithPublicUserId: publicUserId completion:^(NSError * _Nullable error) {
         if (error != nil) {
-            resolve(@(true));
-        } else {
             return [self handleError:error withRejecter:reject];
         }
+
+        resolve(@(true));
     }];
 }
 
 RCT_EXPORT_METHOD(listAssociationKeys:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-    [self.keyri listAssociactionKeysWithCompletion:^(NSDictionary<NSString *,NSString *> * _Nullable associationKeys, NSError * _Nullable error) {
+    [self.keyri listAssociationKeysWithCompletion:^(NSDictionary<NSString *,NSString *> * _Nullable associationKeys, NSError * _Nullable error) {
         if (associationKeys != nil) {
             resolve(associationKeys);
         } else {
@@ -270,7 +268,6 @@ RCT_EXPORT_METHOD(denySession:(NSString *)payload resolver:(RCTPromiseResolveBlo
 }
 
 - (void)finishSession:(NSString *)payload isApproved:(BOOL)isApproved trustNewBrowser:(BOOL)trustNewBrowser resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {
-
     if (isApproved) {
         [self.activeSession confirmWithPayload:payload trustNewBrowser:trustNewBrowser completion:^(NSError * _Nullable error) {
             if (error == nil) {

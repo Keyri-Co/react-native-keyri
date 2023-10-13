@@ -349,7 +349,17 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
       val uri = Uri.parse(url)
       val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
 
-      keyri.processLink(fm, uri, payload, publicUserId).getOrThrow()
+      val result = keyri.processLink(fm, uri, payload, publicUserId)
+
+      var res = false
+
+      if (result.isSuccess) {
+        res = true
+      } else {
+        result.exceptionOrNull()?.takeIf { it is DenialException }?.let { res = false } ?: result.getOrThrow()
+      }
+
+      res
     }
   }
 
