@@ -50,7 +50,7 @@ RCT_EXPORT_MODULE()
            KeyriNativeModuleGeneralCodeString,
            errorText,
            [NSError errorWithDomain:KeyriNativeModuleDomain code:KeyriNativeModuleGeneralCode userInfo:details]
-    );
+           );
 }
 
 - (void)handleError:(NSError *)error withRejecter:(RCTPromiseRejectBlock)reject
@@ -133,13 +133,17 @@ RCT_EXPORT_METHOD(initializeDefaultConfirmationScreen:(NSString *)payload resolv
 
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.keyri initializeDefaultConfirmationScreenWithSession:self.activeSession payload:payload completion:^(BOOL isApproved, NSError * _Nullable error) {
-            if ([error.localizedDescription isEqualToString:@"Denied by user"]) {
-                resolve(@(false));
+            if (isApproved) {
+                resolve(@(true));
             } else {
-                return [self handleError:error withRejecter:reject];
+                if (![error isEqual:nil]) {
+                    if ([error.localizedDescription isEqualToString:@"Denied by user"]) {
+                        resolve(@(false));
+                    } else {
+                        return [self handleError:error withRejecter:reject];
+                    }
+                }
             }
-
-            resolve(@(isApproved));
         }];
     });
 }
