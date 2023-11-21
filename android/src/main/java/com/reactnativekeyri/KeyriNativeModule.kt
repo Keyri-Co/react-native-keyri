@@ -285,6 +285,32 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   }
 
   @ReactMethod
+  fun login(publicUserId: String?, promise: Promise) {
+    keyriCoroutineScope(promise) {
+      val loginObject = keyri.login(publicUserId).getOrThrow()
+
+      WritableNativeMap().apply {
+        putString("timestamp_nonce", loginObject.timestamp_nonce)
+        putString("signature", loginObject.signature)
+        putString("publicKey", loginObject.publicKey)
+        putString("userId", loginObject.userId)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun register(publicUserId: String?, promise: Promise) {
+    keyriCoroutineScope(promise) {
+      val registerObject = keyri.register(publicUserId).getOrThrow()
+
+      WritableNativeMap().apply {
+        putString("publicKey", registerObject.publicKey)
+        putString("userId", registerObject.userId)
+      }
+    }
+  }
+
+  @ReactMethod
   fun initializeDefaultConfirmationScreen(payload: String, promise: Promise) {
     keyriCoroutineScope(promise) {
       val session = activeSession ?: throw java.lang.IllegalStateException("Session not found")

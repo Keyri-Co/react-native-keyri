@@ -10,6 +10,18 @@ export interface KeyriSession {
   mobileTemplateResponse?: KeyriMobileTemplateResponse;
 }
 
+export interface LoginObject {
+  timestamp_nonce: string;
+  signature: string;
+  publicKey: string;
+  userId: string;
+}
+
+export interface RegisterObject {
+  publicKey: string;
+  userId: string;
+}
+
 export interface KeyriFingerprintEventResponse {
   apiCiphertextSignature: string;
   publicEncryptionKey: string;
@@ -79,6 +91,10 @@ export interface KeyriModule {
   sendEvent: (data: SendEventOptions) => Promise<KeyriFingerprintEventResponse>;
 
   initiateQrSession: (sessionId: string, publicUserId?: string) => Promise<KeyriSession>;
+
+  login: (publicUserId?: string) => Promise<LoginObject>;
+
+  register: (publicUserId?: string) => Promise<RegisterObject>;
 
   initializeDefaultConfirmationScreen: (payload: string) => Promise<boolean>;
 

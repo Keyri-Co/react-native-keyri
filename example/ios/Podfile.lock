@@ -196,7 +196,7 @@ PODS:
     - React-Core
   - react-native-camera/RN (4.2.1):
     - React-Core
-  - react-native-keyri (1.1.8):
+  - react-native-keyri (3.0.0):
     - keyri-pod (~> 4.2.5)
     - React-Core
   - react-native-safe-area-context (3.4.1):
@@ -395,7 +395,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e06a32e42affb2bd89e4c8369349b5fcf787710c
   React-jsinspector: fdbc08866b34ae8e1b788ea1cbd9f9d1ca2aa3d6
   react-native-camera: 3eae183c1d111103963f3dd913b65d01aef8110f
-  react-native-keyri: 5416b094852796b7b6e8bebc7acea6354e1f00c3
+  react-native-keyri: 7f2096c85e08bff980aacad4ca522225dd34ddc6
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   React-RCTActionSheet: e911b99f0d6fa7711ffc2f62d236b12a32771835
   React-RCTAnimation: ad8b853170a059faf31d6add34f67d22391bbe01

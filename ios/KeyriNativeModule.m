@@ -98,6 +98,34 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSString *)sessionId publicUserId:(NSString
     }
 }
 
+RCT_EXPORT_METHOD(login:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    id publicUserId = [data objectForKey:@"publicUserId"];
+
+    [_keyri loginWithPublicUserId:publicUserId completion:^(NSString * _Nullable loginObject, NSError * _Nullable error) {
+        if (loginObject != nil) {
+            NSDictionary *dict = [self dictionaryWithPropertiesOfObject:loginObject];
+            resolve(dict);
+        } else {
+            return [self handleError:error withRejecter:reject];
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(register:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    id publicUserId = [data objectForKey:@"publicUserId"];
+
+    [_keyri registerWithPublicUserId:publicUserId completion:^(NSString * _Nullable registerObject, NSError * _Nullable error) {
+        if (registerObject != nil) {
+            NSDictionary *dict = [self dictionaryWithPropertiesOfObject:registerObject];
+            resolve(dict);
+        } else {
+            return [self handleError:error withRejecter:reject];
+        }
+    }];
+}
+
 RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     id publicUserId = [data objectForKey:@"publicUserId"];

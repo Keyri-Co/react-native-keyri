@@ -55,6 +55,14 @@ const Keyri: KeyriModule = {
     return Module.initiateQrSession(sessionId, publicUserId);
   },
 
+  login: (publicUserId?: string) => {
+    return Module.login(publicUserId);
+  },
+
+  register: (publicUserId?: string) => {
+    return Module.register(publicUserId);
+  },
+
   initializeDefaultConfirmationScreen: (payload: string) => {
     return Module.initializeDefaultConfirmationScreen(payload);
   },
