@@ -290,7 +290,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
       val loginObject = keyri.login(publicUserId).getOrThrow()
 
       WritableNativeMap().apply {
-        putString("timestamp_nonce", loginObject.timestamp_nonce)
+        putString("timestampNonce", loginObject.timestampNonce)
         putString("signature", loginObject.signature)
         putString("publicKey", loginObject.publicKey)
         putString("userId", loginObject.userId)

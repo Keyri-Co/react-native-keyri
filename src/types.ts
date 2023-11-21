@@ -11,7 +11,7 @@ export interface KeyriSession {
 }
 
 export interface LoginObject {
-  timestamp_nonce: string;
+  timestampNonce: string;
   signature: string;
   publicKey: string;
   userId: string;
