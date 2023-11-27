@@ -76,6 +76,8 @@ export interface KeyriGeoData {
 export interface KeyriModule {
   initialize: (data: InitializeKeyriOptions) => Promise<boolean>;
 
+  easyKeyriAuth: (payload: string, publicUserId?: string) => Promise<boolean>;
+
   generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
   generateUserSignature: (data: string, publicUserId?: string) => Promise<string>;
@@ -98,13 +100,11 @@ export interface KeyriModule {
 
   initializeDefaultConfirmationScreen: (payload: string) => Promise<boolean>;
 
+  processLink: (options: ProcessLinkOptions) => Promise<boolean>;
+
   confirmSession: (payload: string, trustNewBrowser?: boolean) => Promise<boolean>;
 
   denySession: (payload: string) => Promise<boolean>;
-
-  easyKeyriAuth: (payload: string, publicUserId?: string) => Promise<boolean>;
-
-  processLink: (options: ProcessLinkOptions) => Promise<boolean>;
 }
 
 export interface ProcessLinkOptions {

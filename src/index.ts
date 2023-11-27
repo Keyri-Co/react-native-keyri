@@ -23,6 +23,10 @@ const Keyri: KeyriModule = {
     return Module.initialize(options);
   },
 
+  easyKeyriAuth: (payload: string, publicUserId?: string) => {
+    return Module.easyKeyriAuth(payload, publicUserId);
+  },
+
   generateAssociationKey: (publicUserId?: string) => {
     return Module.generateAssociationKey(publicUserId);
   },
@@ -67,20 +71,16 @@ const Keyri: KeyriModule = {
     return Module.initializeDefaultConfirmationScreen(payload);
   },
 
+  processLink: (options: ProcessLinkOptions) => {
+    return Module.processLink(options);
+  },
+
   confirmSession: (payload: string, trustNewBrowser?: boolean) => {
     return Module.confirmSession(payload, trustNewBrowser);
   },
 
   denySession: (payload: string) => {
     return Module.denySession(payload);
-  },
-
-  easyKeyriAuth: (payload: string, publicUserId?: string) => {
-    return Module.easyKeyriAuth(payload, publicUserId);
-  },
-
-  processLink: (options: ProcessLinkOptions) => {
-    return Module.processLink(options);
   },
 };
 
