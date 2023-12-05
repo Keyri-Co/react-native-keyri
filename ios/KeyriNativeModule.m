@@ -60,17 +60,22 @@ RCT_EXPORT_METHOD(initialize:(NSDictionary *)data resolver:(RCTPromiseResolveBlo
     id appKey = data[@"appKey"];
     id publicApiKeyValue = data[@"publicApiKey"];
     id serviceEncryptionKeyValue = data[@"serviceEncryptionKey"];
-
-   // TODO: Add blockEmulatorDetection argument
+    id blockEmulatorDetectionValue = data[@"blockEmulatorDetection"];
 
     if (appKey == nil || ![appKey isKindOfClass:[NSString class]]) {
         return [self handleErrorText: @"You need to provide appKey" withRejecter:reject];
     }
 
+    BOOL blockEmulatorDetection = YES;
+
+    if (blockEmulatorDetectionValue != nil || [blockEmulatorDetectionValue isKindOfClass:[NSNumber class]]) {
+        blockEmulatorDetection = [blockEmulatorDetectionValue boolValue];
+    }
+
     NSString *publicApiKey = [publicApiKeyValue isKindOfClass:[NSString class]] ? publicApiKeyValue : nil;
     NSString *serviceEncryptionKey = [serviceEncryptionKeyValue isKindOfClass:[NSString class]] ? serviceEncryptionKeyValue : nil;
 
-    [self.keyri initializeKeyriWithAppKey:appKey publicAPIKey:publicApiKey serviceEncryptionKey:serviceEncryptionKey];
+    [self.keyri initializeKeyriWithAppKey:publicApiKey publicApiKey:publicApiKey serviceEncryptionKey:serviceEncryptionKey blockEmulatorDetection:blockEmulatorDetection];
     resolve(@(YES));
 }
 
@@ -171,9 +176,7 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBloc
 
     NSString *publicUserId = [publicUserIdValue isKindOfClass:[NSString class]] ? publicUserIdValue : nil;
 
-    if (![eventType isKindOfClass:[NSString class]]) {
-        return [self handleErrorText:@"You need to provide eventType" withRejecter:reject];
-    }
+    BOOL success = NO;
 
     if (successValue != nil || [successValue isKindOfClass:[NSNumber class]]) {
         success = [successValue boolValue];
@@ -222,30 +225,35 @@ RCT_EXPORT_METHOD(initiateQrSession:(NSString *)sessionId publicUserId:(NSString
     }];
 }
 
-// TODO: Uncomment when available
-// RCT_EXPORT_METHOD(login:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
-// {
-//     [self.keyri loginWithPublicUserId:publicUserId completion:^(NSString * _Nullable loginObject, NSError * _Nullable error) {
-//         if (loginObject != nil) {
-//             NSDictionary *dict = [self dictionaryWithPropertiesOfObject:loginObject];
-//             resolve(dict);
-//         } else {
-//             return [self handleError:error withRejecter:reject];
-//         }
-//     }];
-// }
-//
-// RCT_EXPORT_METHOD(register:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
-// {
-//     [self.keyri registerWithPublicUserId:publicUserId completion:^(NSString * _Nullable registerObject, NSError * _Nullable error) {
-//         if (registerObject != nil) {
-//             NSDictionary *dict = [self dictionaryWithPropertiesOfObject:registerObject];
-//             resolve(dict);
-//         } else {
-//             return [self handleError:error withRejecter:reject];
-//         }
-//     }];
-// }
+RCT_EXPORT_METHOD(login:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.keyri loginWithPublicUserId:publicUserId completion:^(LoginObject * _Nullable loginObject, NSError * _Nullable error) {
+        if (error != nil) {
+            return [self handleError:error withRejecter:reject];
+        }
+
+        if (loginObject != nil) {
+            resolve([self dictionaryWithPropertiesOfObject:loginObject]);
+        } else {
+            return [self handleErrorText:@"LoginObject is nil" withRejecter:reject];
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(register:(NSString *)publicUserId resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.keyri registerWithPublicUserId:publicUserId completion:^(RegisterObject * _Nullable registerObject, NSError * _Nullable error) {
+        if (error != nil) {
+            return [self handleError:error withRejecter:reject];
+        }
+
+        if (registerObject != nil) {
+            resolve([self dictionaryWithPropertiesOfObject:registerObject]);
+        } else {
+            return [self handleErrorText:@"RegisterObject is nil" withRejecter:reject];
+        }
+    }];
+}
 
 RCT_EXPORT_METHOD(initializeDefaultConfirmationScreen:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {

@@ -3,7 +3,7 @@ import { View, Text, Dimensions, Modal, TouchableOpacity, Animated, Image } from
 import type { KeyriSession } from 'react-native-keyri';
 
 import { IWidgetTypes } from '../../utils/types';
-import { ICONS } from '../../assets/index';
+import { ICONS } from "../../assets";
 import styles from './popup-modal-styles';
 
 const { height } = Dimensions.get('window');
