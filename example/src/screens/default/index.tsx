@@ -7,11 +7,11 @@ import Keyri from 'react-native-keyri';
 
 import type { ISearchParam } from '../../utils/types';
 import { parseUrlParams } from '../../utils/helpers';
-import { APP_KEY } from '../../utils/constants';
 import { AppLinkContext } from '../../context/linking-context';
 import styles from './default-styles';
 import { ICONS } from '../../assets';
 import toast from '../../services/toast';
+import { APP_KEY } from '../../utils/constants';
 interface InitialScreenProps extends RootNavigationProps<'Default'> {}
 
 const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
@@ -22,17 +22,13 @@ const DefaultScreen: React.FC<InitialScreenProps> = ({ navigation }) => {
   const onReadSuccess = useCallback(async (scan: BarCodeReadEvent | { data: string }) => {
     try {
       setLoading(true);
+      await Keyri.initialize({ appKey: APP_KEY });
       const params: ISearchParam = parseUrlParams(scan.data);
       const sessionId: string = params?.sessionId ?? '';
-      const options = {
-        appKey: APP_KEY,
-        sessionId: sessionId,
-        publicUserId: 'user@email',
-      };
-      const session = await Keyri.initiateQrSession(options);
+      const session = await Keyri.initiateQrSession(sessionId, 'user@email');
       if (session) {
         setLoading(false);
-        await Keyri.initializeDefaultScreen(sessionId, 'payload');
+        await Keyri.initializeDefaultConfirmationScreen('payload');
       }
     } catch (error) {
       toast.show(error);

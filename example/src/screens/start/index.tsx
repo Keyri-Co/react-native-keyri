@@ -32,13 +32,9 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
   }, [setDeepLink]);
 
   const easyAuth = async () => {
-    const data = {
-      publicUserId: 'user@email',
-      appKey: APP_KEY,
-      payload: 'payload',
-    };
     try {
-      await Keyri.easyKeyriAuth(data);
+      await Keyri.initialize({ appKey: APP_KEY });
+      await Keyri.easyKeyriAuth('payload', 'user@email');
     } catch (error) {
       toast.show(error);
     }
@@ -60,14 +56,11 @@ const StartScreen: React.FC<StartScreenProps> = ({ navigation }) => {
         }
       );
       if (response) {
-        const data = {
-          publicUserId: SUPABASE_USER_EMAIL,
-          appKey: SUPABASE_APP_KEY,
-          payload: JSON.stringify({
-            refreshToken: response?.data?.refresh_token,
-          }),
-        };
-        await Keyri.easyKeyriAuth(data);
+        const payload = JSON.stringify({
+          refreshToken: response?.data?.refresh_token,
+        });
+        await Keyri.initialize({ appKey: SUPABASE_APP_KEY });
+        await Keyri.easyKeyriAuth(payload, SUPABASE_USER_EMAIL);
       }
     } catch (error) {
       toast.show(error);

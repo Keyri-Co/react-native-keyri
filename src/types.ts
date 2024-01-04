@@ -4,9 +4,30 @@ export interface KeyriSession {
   userParameters?: KeyriUserParameters;
   iPAddressMobile: string;
   iPAddressWidget: string;
-  widgetOrigin: string;
+  widgetOrigin?: string;
   widgetUserAgent?: KeyriWidgetUserAgent;
   riskAnalytics?: KeyriRiskAnalytics;
+  mobileTemplateResponse?: KeyriMobileTemplateResponse;
+}
+
+export interface LoginObject {
+  timestampNonce: string;
+  signature: string;
+  publicKey: string;
+  userId: string;
+}
+
+export interface RegisterObject {
+  publicKey: string;
+  userId: string;
+}
+
+export interface KeyriFingerprintEventResponse {
+  apiCiphertextSignature: string;
+  publicEncryptionKey: string;
+  ciphertext: string;
+  iv: string;
+  salt: string;
 }
 
 export interface KeyriUserParameters {
@@ -14,75 +35,107 @@ export interface KeyriUserParameters {
 }
 
 export interface KeyriWidgetUserAgent {
-  electronVersion: string;
-  isDesktop: boolean;
   os: string;
   browser: string;
-  isAuthoritative: boolean;
-  isWindows: boolean;
-  source: string;
-  version: string;
-  platform: string;
-  isChrome: boolean;
 }
 
 export interface KeyriRiskAnalytics {
   riskStatus?: string;
-  riskFlagString: string;
+  riskFlagString?: string;
   geoData: {
     mobile?: KeyriGeoData;
     browser?: KeyriGeoData;
   };
 }
 
+export interface KeyriMobileTemplateResponse {
+  title: string;
+  message?: string;
+  widget?: KeyriTemplate;
+  mobile?: KeyriTemplate;
+  userAgent?: KeyriUserAgent;
+}
+
+export interface KeyriTemplate {
+  location?: string;
+  issue?: string;
+}
+
+export interface KeyriUserAgent {
+  name?: string;
+  issue?: string;
+}
+
 export interface KeyriGeoData {
-  continentCode: string;
-  countryCode: string;
-  city: string;
-  latitude: number;
-  longitude: number;
-  regionCode: string;
+  continentCode?: string;
+  countryCode?: string;
+  city?: string;
+  regionCode?: string;
 }
 
 export interface KeyriModule {
+  initialize: (data: InitializeKeyriOptions) => Promise<boolean>;
+
+  easyKeyriAuth: (payload: string, publicUserId?: string) => Promise<boolean>;
+
   generateAssociationKey: (publicUserId?: string) => Promise<string>;
 
-  getUserSignature: (publicUserId?: string, customSignedData?: string) => Promise<string>;
+  generateUserSignature: (data: string, publicUserId?: string) => Promise<string>;
 
-  listAssociationKey: () => Promise<string[]>;
+  listAssociationKeys: () => Promise<string[]>;
+
+  listUniqueAccounts: () => Promise<string[]>;
 
   getAssociationKey: (publicUserId?: string) => Promise<string>;
 
-  removeAssociationKey: (publicUserId?: string) => Promise<void>;
+  removeAssociationKey: (publicUserId: string) => Promise<boolean>;
 
-  initiateQrSession: (options: InitiateQrSessionOptions) => Promise<KeyriSession>;
+  sendEvent: (data: SendEventOptions) => Promise<KeyriFingerprintEventResponse>;
 
-  initializeDefaultScreen: (sessionId: string, payload: string) => Promise<boolean>;
+  initiateQrSession: (sessionId: string, publicUserId?: string) => Promise<KeyriSession>;
 
-  confirmSession: (sessionId: string, payload: string) => Promise<boolean>;
+  login: (publicUserId?: string) => Promise<LoginObject>;
 
-  denySession: (sessionId: string, payload: string) => Promise<boolean>;
+  register: (publicUserId?: string) => Promise<RegisterObject>;
 
-  easyKeyriAuth: (data: EasyKeyriAuthOptions) => Promise<string>;
+  initializeDefaultConfirmationScreen: (payload: string) => Promise<boolean>;
 
   processLink: (options: ProcessLinkOptions) => Promise<boolean>;
-}
 
-export interface InitiateQrSessionOptions {
-  appKey: string;
-  sessionId: string;
-  publicUserId?: string;
-}
+  confirmSession: (payload: string, trustNewBrowser?: boolean) => Promise<boolean>;
 
-export interface EasyKeyriAuthOptions {
-  publicUserId: string;
-  appKey: string;
-  payload: string;
+  denySession: (payload: string) => Promise<boolean>;
 }
 
 export interface ProcessLinkOptions {
-  appKey: string;
   url: string;
   payload: string;
   publicUserId?: string;
+}
+
+export interface InitializeKeyriOptions {
+  appKey: string;
+  publicApiKey?: string;
+  serviceEncryptionKey?: string;
+  blockEmulatorDetection?: boolean;
+}
+
+export interface SendEventOptions {
+  publicUserId?: string;
+  eventType: EventType;
+  success: boolean;
+}
+
+// eslint-disable-next-line no-restricted-syntax
+export enum EventType {
+  Visits = 'visits',
+  Login = 'login',
+  Signup = 'signup',
+  AttachNewDevice = 'attach_new_device',
+  EmailChange = 'email_change',
+  ProfileUpdate = 'profile_update',
+  PasswordReset = 'password_reset',
+  Withdrawal = 'withdrawal',
+  Deposit = 'deposit',
+  Purchase = 'purchase',
 }

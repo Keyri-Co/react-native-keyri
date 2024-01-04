@@ -27,14 +27,10 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
     async (scan: BarCodeReadEvent | { data: string }) => {
       try {
         setLoading(true);
+        await Keyri.initialize({ appKey: APP_KEY });
         const params: ISearchParam = parseUrlParams(scan.data);
         const sessionId: string = params?.sessionId ?? '';
-        const options = {
-          appKey: APP_KEY,
-          sessionId: sessionId,
-          publicUserId: 'user@email',
-        };
-        const session = await Keyri.initiateQrSession(options);
+        const session = await Keyri.initiateQrSession(sessionId, 'user@email');
         if (session) {
           setActiveSession(session);
           setIsPopUpVisible(true);
@@ -65,7 +61,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
     if (activeSessionId) {
       closePopUp();
       try {
-        await Keyri.denySession(activeSessionId, 'payload');
+        await Keyri.denySession('payload');
       } catch (error) {
         toast.show(error);
       }
@@ -76,7 +72,7 @@ const CustomScreen: React.FC<CustomScreenProps> = ({ navigation }) => {
     if (activeSessionId) {
       closePopUp();
       try {
-        await Keyri.confirmSession(activeSessionId, 'payload');
+        await Keyri.confirmSession('payload');
       } catch (error) {
         toast.show(error);
       }
