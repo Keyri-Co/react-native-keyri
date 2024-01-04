@@ -13,7 +13,7 @@ yarn add react-native-keyri
 ```
 
 ```groovy
-distributionUrl=https\://services.gradle.org/distributions/gradle-6.9-all.zip
+distributionUrl=https\://services.gradle.org/distributions/gradle-7.5.1-bin.zip
 ```
 
 ```groovy
@@ -27,7 +27,7 @@ buildscript {
     }
     dependencies {
         <!-- ... -->
-        classpath("com.android.tools.build:gradle:7.0.0")
+        classpath("com.android.tools.build:gradle:7.4.2")
         <!-- ... -->
     }
 }
