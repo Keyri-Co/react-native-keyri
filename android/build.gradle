@@ -117,9 +117,9 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'com.keyri:keyrisdk:4.1.1'
-  implementation 'com.keyri:scanner:4.1.1'
-  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+  implementation 'com.keyri:keyrisdk:4.2.4'
+  implementation 'com.keyri:scanner:4.2.4'
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0"
   implementation 'androidx.activity:activity-ktx:1.7.2'
-  implementation("com.squareup.okhttp3:okhttp-urlconnection:4.10.0")
+  implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
 }

@@ -14,9 +14,11 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.keyrico.keyrisdk.Keyri
 import com.keyrico.keyrisdk.entity.session.Session
 import com.keyrico.keyrisdk.exception.DenialException
-import com.keyrico.keyrisdk.sec.fraud.enums.EventType
+import com.keyrico.keyrisdk.sec.fraud.event.EventType
 import com.keyrico.scanner.easyKeyriAuth
 import kotlinx.coroutines.*
+import org.json.JSONObject
+import java.lang.IllegalStateException
 
 class KeyriNativeModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -55,7 +57,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   @ReactMethod
   fun initialize(data: ReadableMap, promise: Promise) {
     try {
-      appKey = data.getString("appKey") ?: throw java.lang.IllegalStateException("You need to provide appKey")
+      appKey = data.getString("appKey") ?: throw IllegalStateException("You need to provide appKey")
       publicApiKey = data.takeIf { it.hasKey("publicApiKey") }?.getString("publicApiKey")
       serviceEncryptionKey = data.takeIf { it.hasKey("serviceEncryptionKey") }?.getString("serviceEncryptionKey")
       blockEmulatorDetection = data.takeIf { it.hasKey("blockEmulatorDetection") }?.getBoolean("blockEmulatorDetection")
@@ -163,11 +165,12 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   fun sendEvent(data: ReadableMap, promise: Promise) {
     keyriCoroutineScope(promise) {
       val publicUserId = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId") ?: "ANON"
-      val eventType = data.getString("eventType")
-        ?: throw java.lang.IllegalStateException("You need to provide eventType")
+      val eventType = data.getString("eventType") ?: throw IllegalStateException("You need to provide eventType")
+      val eventMetadata = data.takeIf { it.hasKey("eventMetadata") }?.getString("eventMetadata")
       val success = data.getBoolean("success")
 
-      val type = EventType.values().first { it.type == eventType }
+      val jsonMetadata = eventMetadata?.let(::JSONObject)
+      val type = EventType.custom(eventType, jsonMetadata)
 
       val fingerprintEventResponse = keyri.sendEvent(publicUserId, type, success).getOrThrow()
 
@@ -177,6 +180,20 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
         putString("ciphertext", fingerprintEventResponse.ciphertext)
         putString("iv", fingerprintEventResponse.iv)
         putString("salt", fingerprintEventResponse.salt)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun createFingerprint(promise: Promise) {
+    keyriCoroutineScope(promise) {
+      val fingerprintRequest = keyri.createFingerprint().getOrThrow()
+
+      WritableNativeMap().apply {
+        putString("clientEncryptionKey", fingerprintRequest.clientEncryptionKey)
+        putString("encryptedPayload", fingerprintRequest.encryptedPayload)
+        putString("iv", fingerprintRequest.iv)
+        putString("salt", fingerprintRequest.salt)
       }
     }
   }
@@ -337,7 +354,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   @ReactMethod
   fun initializeDefaultConfirmationScreen(payload: String, promise: Promise) {
     keyriCoroutineScope(promise) {
-      val session = activeSession ?: throw java.lang.IllegalStateException("Session not found")
+      val session = activeSession ?: throw IllegalStateException("Session not found")
 
       val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
       val result = keyri.initializeDefaultConfirmationScreen(fm, session, payload)
@@ -358,9 +375,8 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   fun processLink(data: ReadableMap, promise: Promise) {
     keyriCoroutineScope(promise) {
       val publicUserId: String? = data.takeIf { it.hasKey("publicUserId") }?.getString("publicUserId")
-      val url: String = data.getString("url") ?: throw java.lang.IllegalStateException("You need to provide url")
-      val payload: String = data.getString("payload")
-        ?: throw java.lang.IllegalStateException("You need to provide payload")
+      val url: String = data.getString("url") ?: throw IllegalStateException("You need to provide url")
+      val payload: String = data.getString("payload") ?: throw IllegalStateException("You need to provide payload")
 
       val uri = Uri.parse(url)
       val fm = requireNotNull((reactContext.currentActivity as? AppCompatActivity)?.supportFragmentManager)
@@ -391,7 +407,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
 
   private fun finishSession(payload: String, isApproved: Boolean, trustNewBrowser: Boolean = false, promise: Promise) {
     keyriCoroutineScope(promise) {
-      val session = activeSession ?: throw java.lang.IllegalStateException("Session not found")
+      val session = activeSession ?: throw IllegalStateException("Session not found")
 
       if (isApproved) {
         session.confirm(payload, reactContext, trustNewBrowser)
