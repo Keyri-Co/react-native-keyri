@@ -172,9 +172,11 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBloc
 {
     id publicUserIdValue = [data objectForKey:@"publicUserId"];
     id eventType = [data objectForKey:@"eventType"];
+    id eventMetadataValue = [data objectForKey:@"eventMetadata"];
     id successValue = [data objectForKey:@"success"];
 
     NSString *publicUserId = [publicUserIdValue isKindOfClass:[NSString class]] ? publicUserIdValue : nil;
+    NSString *eventMetadata = [eventMetadataValue isKindOfClass:[NSString class]] ? eventMetadataValue : nil;
 
     BOOL success = NO;
 
@@ -188,8 +190,11 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBloc
         return [self handleErrorText:@"You need to provide eventType" withRejecter:reject];
     }
 
+    NSDictionary *metadata = [self dictionaryFromJSONString:eventMetadata];
+    EventType *event = [EventType customWithName:eventType metadata:metadata];
+
     __weak typeof (self) weakSelf = self;
-    [self.keyri sendEventWithPublicUserId:publicUserId eventType:eventType success:success completion:^(FingerprintResponse * _Nullable fingerprintResponse, NSError * _Nullable error) {
+    [self.keyri sendEventWithPublicUserId:publicUserId eventType:event success:success completion:^(FingerprintResponse * _Nullable fingerprintResponse, NSError * _Nullable error) {
         typeof (self) strongSelf = weakSelf;
 
         if (error != nil) {
@@ -200,7 +205,23 @@ RCT_EXPORT_METHOD(sendEvent:(NSDictionary *)data resolver:(RCTPromiseResolveBloc
             NSDictionary *dict = [strongSelf dictionaryWithPropertiesOfObject:fingerprintResponse];
             resolve(dict);
         } else {
-            [strongSelf handleErrorText:@"Fingerprint response is null" withRejecter:reject];
+            [strongSelf handleErrorText:@"Fingerprint response is nil" withRejecter:reject];
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(createFingerprint:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.keyri createFingerprintWithCompletion:^(FingerprintRequest * _Nullable fingerprintRequest, NSError * _Nullable error) {
+        if (error != nil) {
+            return [self handleError:error withRejecter:reject];
+        }
+
+        if (fingerprintRequest != nil) {
+            NSDictionary *dict = [self dictionaryWithPropertiesOfObject:fingerprintRequest];
+            resolve(dict);
+        } else {
+            [self handleErrorText:@"FingerprintRequest is nil" withRejecter:reject];
         }
     }];
 }
@@ -353,6 +374,31 @@ RCT_EXPORT_METHOD(denySession:(NSString *)payload resolver:(RCTPromiseResolveBlo
     free(properties);
 
     return [NSDictionary dictionaryWithDictionary:dict];
+}
+
+- (NSDictionary *)dictionaryFromJSONString:(NSString *)jsonString {
+    if (jsonString == nil) {
+        return nil;
+    }
+
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    if (jsonData == nil) {
+        return nil;
+    }
+
+    NSError *error;
+    id jsonObject = [NSJSONSerialization JSONObjectWithData:jsonData options:kNilOptions error:&error];
+
+    if (error) {
+        NSLog(@"Error parsing JSON: %@", error);
+        return nil;
+    }
+
+    if ([jsonObject isKindOfClass:[NSDictionary class]]) {
+        return (NSDictionary *)jsonObject;
+    } else {
+        return nil;
+    }
 }
 
 @end

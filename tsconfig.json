@@ -6,12 +6,11 @@
         "./src/index"
       ]
     },
-    "allowJs": false,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "jsx": "react-native",
+    "jsx": "react",
     "lib": [
       "esnext"
     ],
@@ -19,25 +18,13 @@
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
+    "noImplicitUseStrict": false,
     "noStrictGenericChecks": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext",
-    "outDir": "lib"
-  },
-  "include": [
-    "src",
-    ".eslintrc.js",
-    "babel.config.js"
-  ],
-  "exclude": [
-    "node_modules",
-    "lib",
-    "docs",
-    "example"
-  ]
+    "target": "esnext"
+  }
 }

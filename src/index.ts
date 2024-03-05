@@ -1,10 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
-import type {
-  KeyriModule,
-  ProcessLinkOptions,
-  InitializeKeyriOptions,
-  SendEventOptions,
-} from './types';
+import { KeyriModule, ProcessLinkOptions, InitializeKeyriOptions, SendEventOptions } from './types';
 
 const LINKING_ERROR =
   "The package 'react-native-keyri' doesn't seem to be linked. Make sure: \n\n" +
@@ -52,7 +47,16 @@ const Keyri: KeyriModule = {
   },
 
   sendEvent: (data: SendEventOptions) => {
-    return Module.sendEvent(data);
+    return Module.sendEvent({
+      publicUserId: data.publicUserId,
+      eventType: data.eventType.name,
+      eventMetadata: JSON.stringify(data.eventType.metadata),
+      success: data.success,
+    });
+  },
+
+  createFingerprint: () => {
+    return Module.createFingerprint();
   },
 
   initiateQrSession: (sessionId: string, publicUserId?: string) => {

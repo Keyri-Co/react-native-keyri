@@ -1,5 +1,5 @@
 export function parseUrlParams(url: string) {
-  const params = url
+  return url
     .split('?')?.[1]
     .split('&')
     .reduce(
@@ -13,5 +13,4 @@ export function parseUrlParams(url: string) {
       },
       { aesKey: null, issuer: null, secret: null, sessionId: null, data: null }
     );
-  return params;
 }

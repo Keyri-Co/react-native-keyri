@@ -25,7 +25,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#777',
   },
-  markerStyle: { borderColor: '#666' },
   touchable: {
     height: 50,
     width: 50,
