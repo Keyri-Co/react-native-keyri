@@ -28,7 +28,6 @@ RCT_EXPORT_MODULE()
 - (instancetype)init
 {
     if (self = [super init]) {
-        self.keyri = [[KeyriObjC alloc] init];
         self.activeSession = [[Session alloc] init];
     }
 
@@ -60,22 +59,25 @@ RCT_EXPORT_METHOD(initialize:(NSDictionary *)data resolver:(RCTPromiseResolveBlo
     id appKey = data[@"appKey"];
     id publicApiKeyValue = data[@"publicApiKey"];
     id serviceEncryptionKeyValue = data[@"serviceEncryptionKey"];
-    id blockEmulatorDetectionValue = data[@"blockEmulatorDetection"];
+    NSDictionary *detectionsConfig = data[@"detectionsConfig"];
 
     if (appKey == nil || ![appKey isKindOfClass:[NSString class]]) {
         return [self handleErrorText: @"You need to provide appKey" withRejecter:reject];
     }
 
-    BOOL blockEmulatorDetection = YES;
-
-    if (blockEmulatorDetectionValue != nil || [blockEmulatorDetectionValue isKindOfClass:[NSNumber class]]) {
-        blockEmulatorDetection = [blockEmulatorDetectionValue boolValue];
-    }
+    BOOL blockEmulatorDetection = getDetectionSetting(detectionsConfig, @"blockEmulatorDetection", YES);
+    BOOL blockRootDetection = getDetectionSetting(detectionsConfig, @"blockRootDetection", NO);
+    BOOL blockDangerousAppsDetection = getDetectionSetting(detectionsConfig, @"blockDangerousAppsDetection", NO);
+    BOOL blockTamperDetection = getDetectionSetting(detectionsConfig, @"blockTamperDetection", YES);
+    BOOL blockSwizzleDetection = getDetectionSetting(detectionsConfig, @"blockSwizzleDetection", NO);
 
     NSString *publicApiKey = [publicApiKeyValue isKindOfClass:[NSString class]] ? publicApiKeyValue : nil;
     NSString *serviceEncryptionKey = [serviceEncryptionKeyValue isKindOfClass:[NSString class]] ? serviceEncryptionKeyValue : nil;
 
-    [self.keyri initializeKeyriWithAppKey:appKey publicApiKey:publicApiKey serviceEncryptionKey:serviceEncryptionKey blockEmulatorDetection:blockEmulatorDetection];
+    KeyriDetectionsConfig *config = [[KeyriDetectionsConfig alloc] initWithBlockEmulatorDetection: blockEmulatorDetection blockRootDetection:blockRootDetection blockDangerousAppsDetection:blockDangerousAppsDetection blockTamperDetection:blockTamperDetection blockSwizzleDetection:blockSwizzleDetection];
+
+    self.keyri = [[KeyriObjC alloc] initWithAppKey:appKey publicApiKey:publicApiKey serviceEncryptionKey:serviceEncryptionKey detectionsConfig:config];
+
     resolve(@(YES));
 }
 
@@ -276,6 +278,13 @@ RCT_EXPORT_METHOD(register:(NSString *)publicUserId resolver:(RCTPromiseResolveB
     }];
 }
 
+RCT_EXPORT_METHOD(getCorrectedTimestampSeconds:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [self.keyri getCorrectedTimestampSecondsWithCompletion:^(NSInteger timestamp) {
+        resolve(@(timestamp));
+    }];
+}
+
 RCT_EXPORT_METHOD(initializeDefaultConfirmationScreen:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     if (self.activeSession == nil) {
@@ -329,6 +338,14 @@ RCT_EXPORT_METHOD(confirmSession:(NSString *)payload trustNewBrowser:(BOOL *)tru
 RCT_EXPORT_METHOD(denySession:(NSString *)payload resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     [self finishSession:payload isApproved:NO trustNewBrowser:NO resolver:resolve rejecter:reject];
+}
+
+BOOL getDetectionSetting(NSDictionary *config, NSString *key, BOOL defaultValue) {
+    NSNumber *value = config[key];
+    if (value != nil && [value isKindOfClass:[NSNumber class]]) {
+        return [value boolValue];
+    }
+    return defaultValue;
 }
 
 - (void)finishSession:(NSString *)payload isApproved:(BOOL)isApproved trustNewBrowser:(BOOL)trustNewBrowser resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject {

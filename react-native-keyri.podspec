@@ -16,5 +16,5 @@ Pod::Spec.new do |spec|
   spec.source_files = "ios/**/*.{h,m,mm,swift}"
 
   spec.dependency "React-Core"
-  spec.dependency "keyri-pod", '~> 4.5.1'
+  spec.dependency "keyri-pod", '~> 4.6.0-alpha05'
 end

@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.Promise
+import com.keyrico.keyrisdk.config.KeyriDetectionsConfig
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -26,7 +27,7 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
   private lateinit var appKey: String
   private var publicApiKey: String? = null
   private var serviceEncryptionKey: String? = null
-  private var blockEmulatorDetection: Boolean = true
+  private var detectionsConfig: KeyriDetectionsConfig = KeyriDetectionsConfig()
 
   private var authWithScannerPromise: Promise? = null
 
@@ -60,10 +61,29 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
       appKey = data.getString("appKey") ?: throw IllegalStateException("You need to provide appKey")
       publicApiKey = data.takeIf { it.hasKey("publicApiKey") }?.getString("publicApiKey")
       serviceEncryptionKey = data.takeIf { it.hasKey("serviceEncryptionKey") }?.getString("serviceEncryptionKey")
-      blockEmulatorDetection = data.takeIf { it.hasKey("blockEmulatorDetection") }?.getBoolean("blockEmulatorDetection")
-        ?: true
 
-      keyri = Keyri(reactContext, appKey, publicApiKey, serviceEncryptionKey, blockEmulatorDetection)
+      val detectionsConfigMap = data.takeIf { it.hasKey("detectionsConfig") }?.getMap("detectionsConfig")
+
+      val blockEmulatorDetection =
+        detectionsConfigMap?.takeIf { it.hasKey("blockEmulatorDetection") }?.getBoolean("blockEmulatorDetection") ?: true
+      val blockRootDetection =
+        detectionsConfigMap?.takeIf { it.hasKey("blockRootDetection") }?.getBoolean("blockRootDetection") ?: false
+      val blockDangerousAppsDetection =
+        detectionsConfigMap?.takeIf { it.hasKey("blockDangerousAppsDetection") }?.getBoolean("blockDangerousAppsDetection") ?: false
+      val blockTamperDetection =
+        detectionsConfigMap?.takeIf { it.hasKey("blockTamperDetection") }?.getBoolean("blockTamperDetection") ?: true
+      val blockSwizzleDetection =
+        detectionsConfigMap?.takeIf { it.hasKey("blockSwizzleDetection") }?.getBoolean("blockSwizzleDetection") ?: false
+
+      detectionsConfig = detectionsConfig.copy(
+        blockEmulatorDetection = blockEmulatorDetection,
+        blockRootDetection = blockRootDetection,
+        blockDangerousAppsDetection = blockDangerousAppsDetection,
+        blockTamperDetection = blockTamperDetection,
+        blockSwizzleDetection = blockSwizzleDetection,
+      )
+
+      keyri = Keyri(reactContext, appKey, publicApiKey, serviceEncryptionKey, detectionsConfig)
     } catch (e: Throwable) {
       promise.reject(e)
     }
@@ -81,9 +101,9 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
           appKey,
           publicApiKey,
           serviceEncryptionKey,
-          blockEmulatorDetection,
           payload,
-          publicUserId
+          publicUserId,
+          detectionsConfig
         )
       } catch (e: Throwable) {
         promise.reject(e)
@@ -348,6 +368,13 @@ class KeyriNativeModule(private val reactContext: ReactApplicationContext) : Rea
         putString("publicKey", registerObject.publicKey)
         putString("userId", registerObject.userId)
       }
+    }
+  }
+
+  @ReactMethod
+  fun getCorrectedTimestampSeconds(promise: Promise) {
+    keyriCoroutineScope(promise) {
+      keyri.getCorrectedTimestampSeconds()
     }
   }
 
