@@ -71,6 +71,10 @@ const Keyri: KeyriModule = {
     return Module.register(publicUserId);
   },
 
+  getCorrectedTimestampSeconds: () => {
+    return Module.getCorrectedTimestampSeconds();
+  },
+
   initializeDefaultConfirmationScreen: (payload: string) => {
     return Module.initializeDefaultConfirmationScreen(payload);
   },
